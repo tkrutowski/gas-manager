@@ -1,85 +1,85 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
-import {
-  ClipboardDocumentCheckIcon,
-  CurrencyDollarIcon,
-  UserGroupIcon,
-  TruckIcon,
-  Cog6ToothIcon,
-  UserCircleIcon,
-  ArrowRightOnRectangleIcon,
-} from '@heroicons/vue/24/outline'
+  import { computed } from 'vue';
+  import { useRouter } from 'vue-router';
+  import { useAuthStore } from '../stores/auth';
+  import {
+    ClipboardDocumentCheckIcon,
+    CurrencyDollarIcon,
+    UserGroupIcon,
+    TruckIcon,
+    Cog6ToothIcon,
+    UserCircleIcon,
+    ArrowRightOnRectangleIcon,
+  } from '@heroicons/vue/24/outline';
 
-const router = useRouter()
-const authStore = useAuthStore()
+  const router = useRouter();
+  const authStore = useAuthStore();
 
-const userName = computed(() => authStore.getFirstName() || authStore.user?.name || 'Użytkowniku')
-const userRole = computed(() => authStore.user?.role || 'Użytkownik')
+  const userName = computed(() => authStore.getFirstName() || authStore.user?.name || 'Użytkowniku');
+  const userRole = computed(() => authStore.user?.role || 'Użytkownik');
 
-const modules = [
-  {
-    id: 'tasks',
-    title: 'Zadania i Projekty',
-    description: 'Harmonogram prac, statusy realizacji przyłączy oraz delegowanie zadań zespołom.',
-    icon: ClipboardDocumentCheckIcon,
-    color: 'bg-blue-500',
-    route: '/tasks',
-  },
-  {
-    id: 'finance',
-    title: 'Finanse',
-    description: 'Fakturowanie, kosztorysy, płatności i monitorowanie rentowności inwestycji.',
-    icon: CurrencyDollarIcon,
-    color: 'bg-green-500',
-    route: '/finance',
-  },
-  {
-    id: 'hr',
-    title: 'Kadry i HR',
-    description: 'Ewidencja pracowników, zarządzanie urlopami, szkolenia BHP i uprawnienia.',
-    icon: UserGroupIcon,
-    color: 'bg-purple-500',
-    route: '/hr',
-  },
-  {
-    id: 'fleet',
-    title: 'Flota',
-    description: 'Zarządzanie pojazdami służbowymi, serwis, ubezpieczenia i karty paliwowe.',
-    icon: TruckIcon,
-    color: 'bg-orange-500',
-    route: '/fleet',
-  },
-  {
-    id: 'settings',
-    title: 'Ustawienia',
-    description: 'Konfiguracja systemu, szablony dokumentów, powiadomienia i preferencje.',
-    icon: Cog6ToothIcon,
-    color: 'bg-gray-500',
-    route: '/settings',
-  },
-  {
-    id: 'admin',
-    title: 'Panel Administracyjny',
-    description: 'Zarządzanie użytkownikami, logi systemowe, kopie zapasowe i bezpieczeństwo.',
-    icon: UserCircleIcon,
-    color: 'bg-yellow-400',
-    textColor: 'text-black',
-    route: '/admin',
-    isAdmin: true,
-  },
-]
+  const modules = [
+    {
+      id: 'tasks',
+      title: 'Zadania i Projekty',
+      description: 'Harmonogram prac, statusy realizacji przyłączy oraz delegowanie zadań zespołom.',
+      icon: ClipboardDocumentCheckIcon,
+      color: 'bg-blue-500',
+      route: '/tasks',
+    },
+    {
+      id: 'finance',
+      title: 'Finanse',
+      description: 'Fakturowanie, kosztorysy, płatności i monitorowanie rentowności inwestycji.',
+      icon: CurrencyDollarIcon,
+      color: 'bg-green-500',
+      route: '/finance',
+    },
+    {
+      id: 'hr',
+      title: 'Kadry i HR',
+      description: 'Ewidencja pracowników, zarządzanie urlopami, szkolenia BHP i uprawnienia.',
+      icon: UserGroupIcon,
+      color: 'bg-purple-500',
+      route: '/hr',
+    },
+    {
+      id: 'fleet',
+      title: 'Flota',
+      description: 'Zarządzanie pojazdami służbowymi, serwis, ubezpieczenia i karty paliwowe.',
+      icon: TruckIcon,
+      color: 'bg-orange-500',
+      route: '/fleet',
+    },
+    {
+      id: 'settings',
+      title: 'Ustawienia',
+      description: 'Konfiguracja systemu, szablony dokumentów, powiadomienia i preferencje.',
+      icon: Cog6ToothIcon,
+      color: 'bg-gray-500',
+      route: '/settings',
+    },
+    {
+      id: 'admin',
+      title: 'Panel Administracyjny',
+      description: 'Zarządzanie użytkownikami, logi systemowe, kopie zapasowe i bezpieczeństwo.',
+      icon: UserCircleIcon,
+      color: 'bg-yellow-400',
+      textColor: 'text-black',
+      route: '/admin',
+      isAdmin: true,
+    },
+  ];
 
-const handleLogout = () => {
-  authStore.logout()
-  router.push('/login')
-}
+  const handleLogout = () => {
+    authStore.logout();
+    router.push('/login');
+  };
 
-const handleModuleClick = (route: string) => {
-  // TODO: Implementacja nawigacji do modułu
-  console.log('Nawigacja do:', route)
-}
+  const handleModuleClick = (route: string) => {
+    // TODO: Implementacja nawigacji do modułu
+    console.log('Nawigacja do:', route);
+  };
 </script>
 
 <template>
@@ -104,16 +104,14 @@ const handleModuleClick = (route: string) => {
             <p class="text-white font-medium">{{ authStore.user?.name || 'Użytkownik' }}</p>
             <p class="text-sm text-white/60">{{ userRole }}</p>
           </div>
-          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+          <div
+            class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center"
+          >
             <span class="text-white font-semibold text-sm">
               {{ userName.charAt(0).toUpperCase() }}
             </span>
           </div>
-          <button
-            @click="handleLogout"
-            class="p-2 hover:bg-[#2a2a2a] rounded-lg transition-colors"
-            title="Wyloguj się"
-          >
+          <button @click="handleLogout" class="p-2 hover:bg-[#2a2a2a] rounded-lg transition-colors" title="Wyloguj się">
             <ArrowRightOnRectangleIcon class="w-5 h-5 text-white/70 hover:text-white" />
           </button>
         </div>
@@ -124,12 +122,8 @@ const handleModuleClick = (route: string) => {
     <main class="max-w-7xl mx-auto px-6 py-12">
       <!-- Powitanie -->
       <div class="text-center mb-12">
-        <h2 class="text-4xl md:text-5xl font-bold text-white mb-4">
-          Witaj, {{ userName }}
-        </h2>
-        <p class="text-lg text-white/70">
-          Wybierz moduł, którym chcesz dzisiaj zarządzać.
-        </p>
+        <h2 class="text-4xl md:text-5xl font-bold text-white mb-4">Witaj, {{ userName }}</h2>
+        <p class="text-lg text-white/70">Wybierz moduł, którym chcesz dzisiaj zarządzać.</p>
       </div>
 
       <!-- Karty modułów -->
@@ -182,15 +176,12 @@ const handleModuleClick = (route: string) => {
         </div>
 
         <!-- Copyright -->
-        <p class="text-white/40 text-sm">
-          © 2024 GasManager Pro. System zarządzania instalacjami gazowymi.
-        </p>
+        <p class="text-white/40 text-sm">© 2024 GasManager Pro. System zarządzania instalacjami gazowymi.</p>
       </div>
     </main>
   </div>
 </template>
 
 <style scoped>
-/* Dodatkowe style jeśli potrzebne */
+  /* Dodatkowe style jeśli potrzebne */
 </style>
-

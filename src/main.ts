@@ -1,19 +1,19 @@
-import PrimeVue from 'primevue/config'
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
-import './style.css'
-import './assets/tailwind.css'
-import ConfirmationService from 'primevue/confirmationservice'
-import DialogService from 'primevue/dialogservice'
-import ToastService from 'primevue/toastservice'
+import PrimeVue from 'primevue/config';
+import { createApp } from 'vue';
+import { createPinia } from 'pinia';
+import './style.css';
+import './assets/tailwind.css';
+import ConfirmationService from 'primevue/confirmationservice';
+import DialogService from 'primevue/dialogservice';
+import ToastService from 'primevue/toastservice';
 
-import App from './App.vue'
-import router from './router'
+import App from './App.vue';
+import router from './router';
 
-const app = createApp(App)
+const app = createApp(App);
 
-app.use(createPinia())
-app.use(router)
+app.use(createPinia());
+app.use(router);
 app.use(PrimeVue, {
   theme: 'none',
   locale: {
@@ -159,8 +159,8 @@ app.use(PrimeVue, {
       zoomOut: 'Oddal',
     },
   },
-})
-app.use(ConfirmationService)
-app.use(ToastService)
-app.use(DialogService)
-app.mount('#app')
+});
+app.use(ConfirmationService);
+app.use(ToastService);
+app.use(DialogService);
+app.mount('#app');

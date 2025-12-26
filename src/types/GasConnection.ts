@@ -1,142 +1,141 @@
-import {Customer} from "@/types/Customer.ts";
-import {Designer, DesignerTraffic} from "@/types/Designer.ts";
-import {Coordinator} from "@/types/Coordinator.ts";
-import {Address} from "@/types/Address.ts";
-import {Surveyor} from "@/types/Surveyor.ts";
-import {UtilityCompanyType} from "@/types/Commons.ts";
-import {Plot} from "@/types/Plot.ts";
-import {WorkRangeConnection, WorkRangeGasConnection, WorkRangeGasStation} from "@/types/WorkRange.ts";
-import {TaskType} from "@/types/TaskType.ts";
-import {Stage} from "@/types/Enums.ts";
+import { Customer } from '@/types/Customer.ts';
+import { Designer, DesignerTraffic } from '@/types/Designer.ts';
+import { Coordinator } from '@/types/Coordinator.ts';
+import { Address } from '@/types/Address.ts';
+import { Surveyor } from '@/types/Surveyor.ts';
+import { UtilityCompanyType } from '@/types/Commons.ts';
+import { Plot } from '@/types/Plot.ts';
+import { WorkRangeConnection, WorkRangeGasConnection, WorkRangeGasStation } from '@/types/WorkRange.ts';
+import { TaskType } from '@/types/TaskType.ts';
+import { Stage } from '@/types/Enums.ts';
 
 export interface GasConnection {
-    idTask: number;
-    designer: Designer | undefined;
-    coordinator: Coordinator | undefined;
-    customer: Customer | undefined;
-    address: Address | undefined;
-    plots: Plot[];
-    workRangeGasConnections: WorkRangeGasConnection[];
-    workRangeGasStations: WorkRangeGasStation[];
-    workRangeConnection: WorkRangeConnection;
-    pgn: Pgn;
+  idTask: number;
+  designer: Designer | undefined;
+  coordinator: Coordinator | undefined;
+  customer: Customer | undefined;
+  address: Address | undefined;
+  plots: Plot[];
+  workRangeGasConnections: WorkRangeGasConnection[];
+  workRangeGasStations: WorkRangeGasStation[];
+  workRangeConnection: WorkRangeConnection;
+  pgn: Pgn;
 
-    taskNo: string;
-    contractNo: string;
-    contractDate: undefined | Date;
-    conditionNo: string;
-    conditionDate: undefined | Date;
-    substationName: string;//todo zrobić enum
-    connectionAgreementNumber: string;
-    sapUpNo: string;
-    accelerationDate: undefined | Date;
+  taskNo: string;
+  contractNo: string;
+  contractDate: undefined | Date;
+  conditionNo: string;
+  conditionDate: undefined | Date;
+  substationName: string; //todo zrobić enum
+  connectionAgreementNumber: string;
+  sapUpNo: string;
+  accelerationDate: undefined | Date;
 
-    taskValue: number;
-    finishDeadline: undefined | Date;
-    projectDeadline: undefined | Date;
-    projectValue: number;
-    wsgFinalPickupDate: undefined | Date;
-    constructionValue: number;
-    isPGN: boolean;
-    info: string;
-    isFinished: boolean;
-    idGasConnectionSync: boolean;
-    stage: Stage;
-    gasConnectionDesign: GasConnectionDesign;
-    gasConnectionBuild: GasConnectionBuild;
-    gasConnectionFinance: GasConnectionFinance;
+  taskValue: number;
+  finishDeadline: undefined | Date;
+  projectDeadline: undefined | Date;
+  projectValue: number;
+  wsgFinalPickupDate: undefined | Date;
+  constructionValue: number;
+  isPGN: boolean;
+  info: string;
+  isFinished: boolean;
+  idGasConnectionSync: boolean;
+  stage: Stage;
+  gasConnectionDesign: GasConnectionDesign;
+  gasConnectionBuild: GasConnectionBuild;
+  gasConnectionFinance: GasConnectionFinance;
 }
 
 export interface GasConnectionDesign {
-    //stage 1
-    projectOrderSubmissionDate: undefined | Date;
-    projectOrderConfirmationDate: undefined | Date;
-    proxySubmissionDate: undefined | Date;
-    proxyReceiptDate: undefined | Date;
-    mapSubmissionDate: undefined | Date ;
-    mapReceiptDate: undefined | Date;
-    mapDeliveredBy: number;
-    mapSurveyor: Surveyor | null;
-    extractSubmissionDate: undefined | Date;
-    extractReceiptDate: undefined | Date;
+  //stage 1
+  projectOrderSubmissionDate: undefined | Date;
+  projectOrderConfirmationDate: undefined | Date;
+  proxySubmissionDate: undefined | Date;
+  proxyReceiptDate: undefined | Date;
+  mapSubmissionDate: undefined | Date;
+  mapReceiptDate: undefined | Date;
+  mapDeliveredBy: number;
+  mapSurveyor: Surveyor | null;
+  extractSubmissionDate: undefined | Date;
+  extractReceiptDate: undefined | Date;
 
-    //stage 2
-    withoutZud:boolean;
-    zudpSubmissionDate: undefined | Date;
-    zudpReceiptDate: undefined | Date;
-    utilityCompanyType:UtilityCompanyType | null;
-    utilityCompanySubmissionDate: undefined | Date;
-    utilityCompanyReceiptDate: undefined | Date;
+  //stage 2
+  withoutZud: boolean;
+  zudpSubmissionDate: undefined | Date;
+  zudpReceiptDate: undefined | Date;
+  utilityCompanyType: UtilityCompanyType | null;
+  utilityCompanySubmissionDate: undefined | Date;
+  utilityCompanyReceiptDate: undefined | Date;
 
-    //stage 3
-    wsgAgreementSubmissionDate: undefined | Date;
-    wsgAgreementReceiptDate: undefined | Date;
-    wsgAgreementAgreementDate: undefined | Date;
-    wsgAgreementNo: string;
-    wsgAgreementPointSchemeSubmissionDate: undefined | Date;
-    wsgAgreementPointSchemeReceiptDate: undefined | Date;
+  //stage 3
+  wsgAgreementSubmissionDate: undefined | Date;
+  wsgAgreementReceiptDate: undefined | Date;
+  wsgAgreementAgreementDate: undefined | Date;
+  wsgAgreementNo: string;
+  wsgAgreementPointSchemeSubmissionDate: undefined | Date;
+  wsgAgreementPointSchemeReceiptDate: undefined | Date;
 
-    //stage 4
-    withoutTrafficOrganizationProject:boolean;
-    trafficOrganizationProjectSubmissionDate: undefined | Date;
-    trafficOrganizationProjectReceiptDate: undefined | Date;
-    designerTraffic: DesignerTraffic | null;
-    gasPointOrderDate: undefined | Date;
-    gasPointPickupDate: undefined | Date;
-    gasPointDocPickupDate: undefined | Date;
-    gasPointOrderNo: string;
-    zudpSentToSurveyorDate: undefined | Date;
-    surveyorTrafficProject: Surveyor | null;
+  //stage 4
+  withoutTrafficOrganizationProject: boolean;
+  trafficOrganizationProjectSubmissionDate: undefined | Date;
+  trafficOrganizationProjectReceiptDate: undefined | Date;
+  designerTraffic: DesignerTraffic | null;
+  gasPointOrderDate: undefined | Date;
+  gasPointPickupDate: undefined | Date;
+  gasPointDocPickupDate: undefined | Date;
+  gasPointOrderNo: string;
+  zudpSentToSurveyorDate: undefined | Date;
+  surveyorTrafficProject: Surveyor | null;
 }
 
 export interface GasConnectionBuild {
-    substationNotificationSubmissionDate: undefined | Date;
-    surveyingSketchesDate: undefined | Date;
-    surveyingInventoryDate: undefined | Date;
-    realizationStartDate: undefined | Date;
-    realizationEndDate: undefined | Date;
-    wsgTechnicalAcceptanceDate: undefined | Date;
-    wsgFinalAcceptanceSubmissionDate: undefined | Date;
-    wsgFinalAcceptanceDate: undefined | Date;
-    gasConnectionRealLength: number;
-    technicalAcceptanceProtocolNo: string;
-    gasPipelineInventoryNumber: string;
-    wsgInfo: string;
+  substationNotificationSubmissionDate: undefined | Date;
+  surveyingSketchesDate: undefined | Date;
+  surveyingInventoryDate: undefined | Date;
+  realizationStartDate: undefined | Date;
+  realizationEndDate: undefined | Date;
+  wsgTechnicalAcceptanceDate: undefined | Date;
+  wsgFinalAcceptanceSubmissionDate: undefined | Date;
+  wsgFinalAcceptanceDate: undefined | Date;
+  gasConnectionRealLength: number;
+  technicalAcceptanceProtocolNo: string;
+  gasPipelineInventoryNumber: string;
+  wsgInfo: string;
 }
 
 export interface GasConnectionFinance {
-    financeInventoryAmount:number;
-    financeInventoryDate: undefined | Date;
-    financeProjectAmount: number;
-    financeProjectDate: undefined | Date;
-    financeRoadPastureAmount: number;
-    financeRoadPastureDate: undefined | Date;
-    costList: Cost[] | [];
-
+  financeInventoryAmount: number;
+  financeInventoryDate: undefined | Date;
+  financeProjectAmount: number;
+  financeProjectDate: undefined | Date;
+  financeRoadPastureAmount: number;
+  financeRoadPastureDate: undefined | Date;
+  costList: Cost[] | [];
 }
 
 export interface Cost {
-    id: number;
-    idTask: number;
-    costType: CostType;
-    paymentDate: undefined | Date;
-    amount: number;
-    taskType: TaskType;
-    description: string;
+  id: number;
+  idTask: number;
+  costType: CostType;
+  paymentDate: undefined | Date;
+  amount: number;
+  taskType: TaskType;
+  description: string;
 }
 
 export interface CostType {
-    id: number;
-    name: string;
+  id: number;
+  name: string;
 }
 
 export interface Pgn {
-    id: number;
-    idTask: number;
-    pgnNumber: string;
-    applicationNumber: string;
-    recipient: string;
-    workDate: undefined | Date;
-    info: string;
-    taskType: TaskType;
+  id: number;
+  idTask: number;
+  pgnNumber: string;
+  applicationNumber: string;
+  recipient: string;
+  workDate: undefined | Date;
+  info: string;
+  taskType: TaskType;
 }
