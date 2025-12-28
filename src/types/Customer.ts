@@ -6,15 +6,14 @@ export interface Customer {
   // Dla osób:
   firstName?: string;
   lastName?: string;
-  pesel?: string;
   // Dla firm:
   companyName?: string;
   nip?: string;
   regon?: string;
   krs?: string;
   // Wspólne pola:
-  phone: string;
-  email: string;
+  phone?: string;
+  email?: string;
   info?: string;
   address: Address;
   status: boolean; // oznacza czy klient jest aktywny

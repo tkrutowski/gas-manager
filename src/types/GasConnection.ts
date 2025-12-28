@@ -1,19 +1,19 @@
-import { Customer } from '@/types/Customer.ts';
-import { Designer, DesignerTraffic } from '@/types/Designer.ts';
-import { Coordinator } from '@/types/Coordinator.ts';
-import { Address } from '@/types/Address.ts';
-import { Surveyor } from '@/types/Surveyor.ts';
-import { UtilityCompanyType } from '@/types/Commons.ts';
-import { Plot } from '@/types/Plot.ts';
-import { WorkRangeConnection, WorkRangeGasConnection, WorkRangeGasStation } from '@/types/WorkRange.ts';
-import { TaskType } from '@/types/TaskType.ts';
-import { Stage } from '@/types/Enums.ts';
+import { type Customer } from '@/types/Customer.ts';
+import { type Designer, type DesignerTraffic } from '@/types/Designer.ts';
+import { type Coordinator } from '@/types/Coordinator.ts';
+import { type Address } from '@/types/Address.ts';
+import { type Surveyor } from '@/types/Surveyor.ts';
+import { type UtilityCompanyType } from '@/types/Commons.ts';
+import { type Plot } from '@/types/Plot.ts';
+import { type WorkRangeConnection, type WorkRangeGasConnection, type WorkRangeGasStation } from '@/types/WorkRange.ts';
+import { type TaskType } from '@/types/TaskType.ts';
 
 export interface GasConnection {
-  idTask: number;
+  id: number;
   designer: Designer | undefined;
   coordinator: Coordinator | undefined;
   customer: Customer | undefined;
+  endCustomer: Customer | undefined;
   address: Address | undefined;
   plots: Plot[];
   workRangeGasConnections: WorkRangeGasConnection[];
@@ -41,7 +41,7 @@ export interface GasConnection {
   info: string;
   isFinished: boolean;
   idGasConnectionSync: boolean;
-  stage: Stage;
+  phase: Phase;
   gasConnectionDesign: GasConnectionDesign;
   gasConnectionBuild: GasConnectionBuild;
   gasConnectionFinance: GasConnectionFinance;
@@ -138,4 +138,22 @@ export interface Pgn {
   workDate: undefined | Date;
   info: string;
   taskType: TaskType;
+}
+
+/**
+ * Faza projektu
+ */
+export enum Phase {
+  NONE = 'NONE',
+  PROJECT = 'PROJECT',
+  WORK = 'WORK',
+  FINANSE = 'FINANSE',
+}
+
+/**
+ * Etap projektu
+ */
+export interface Stage {
+  name: string;
+  viewName: string;
 }

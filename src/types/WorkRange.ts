@@ -1,6 +1,6 @@
-import { TaskType } from '@/types/TaskType.ts';
-import { GasCabinetProviderType } from '@/types/GasCabinetProviderType.ts';
-import { GasStationType } from '@/types/GasStationType.ts';
+import type { TaskType } from '@/types/TaskType.ts';
+import type { GasCabinetProviderType } from '@/types/GasCabinetProviderType.ts';
+import type { GasStationType } from '@/types/GasStationType.ts';
 
 export interface WorkRangeGasStation {
   id: number;

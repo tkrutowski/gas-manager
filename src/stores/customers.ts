@@ -73,11 +73,6 @@ function generateKRS(): string {
   return Array.from({ length: 10 }, () => Math.floor(Math.random() * 10)).join('');
 }
 
-// Funkcja pomocnicza do generowania PESEL
-function generatePESEL(): string {
-  return Array.from({ length: 11 }, () => Math.floor(Math.random() * 10)).join('');
-}
-
 // Generowanie 100 mockowanych klientów
 function generateMockCustomers(): Customer[] {
   const customers: Customer[] = [];
@@ -147,7 +142,6 @@ function generateMockCustomers(): Customer[] {
       customerType: 'person',
       firstName,
       lastName,
-      pesel: Math.random() > 0.3 ? generatePESEL() : undefined, // 70% ma PESEL
       phone,
       email,
       info:

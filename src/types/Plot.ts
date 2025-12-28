@@ -1,4 +1,4 @@
-import { TaskType } from '@/types/TaskType.ts';
+import type { TaskType } from '@/types/TaskType.ts';
 
 export interface Plot {
   id: number;
