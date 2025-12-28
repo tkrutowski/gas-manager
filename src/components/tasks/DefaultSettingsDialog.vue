@@ -53,11 +53,11 @@ const isPGN = ref(false);
 // Current defaults
 const currentDefault = computed(() => {
     if (props.sectionName === 'customer') {
-        return settingsStore.getDefaultCustomerData();
+        return settingsStore.getDefaultValueData('customer') as Customer | null;
     } else if (props.sectionName === 'endCustomer') {
-        return settingsStore.getDefaultEndCustomerData();
+        return settingsStore.getDefaultValueData('endCustomer') as Customer | null;
     } else if (props.sectionName === 'finance') {
-        return settingsStore.getDefaultGasDistributionData();
+        return settingsStore.getDefaultValueData('gasDistribution') as GasDistribution | null;
     }
     return null;
 });
@@ -79,41 +79,67 @@ const hasTeamDefaults = computed(() => {
 });
 
 onMounted(() => {
+    // Initialize suggestions first
+    customerSuggestions.value = customersStore.getAllCustomers({ status: true });
+    designerSuggestions.value = designersStore.getAllDesigners({ status: true });
+    coordinatorSuggestions.value = coordinatorsStore.getAllCoordinators({ status: true });
+    coordinatorProjectSuggestions.value = coordinatorsStore.getAllCoordinators({ status: true });
+
     // Load current defaults
     if (props.sectionName === 'customer') {
-        const defaultCustomer = settingsStore.getDefaultCustomerData();
+        const defaultCustomer = settingsStore.getDefaultValueData('customer') as Customer | null;
         if (defaultCustomer) {
             selectedCustomer.value = defaultCustomer;
             customerSearchQuery.value = getCustomerDisplayName(defaultCustomer);
+            // Upewnij się, że wybrany klient jest w suggestions
+            if (!customerSuggestions.value.find(c => c.id === defaultCustomer.id)) {
+                customerSuggestions.value = [defaultCustomer, ...customerSuggestions.value];
+            }
         }
     } else if (props.sectionName === 'endCustomer') {
-        const defaultEndCustomer = settingsStore.getDefaultEndCustomerData();
+        const defaultEndCustomer = settingsStore.getDefaultValueData('endCustomer') as Customer | null;
         if (defaultEndCustomer) {
             selectedCustomer.value = defaultEndCustomer;
             customerSearchQuery.value = getCustomerDisplayName(defaultEndCustomer);
+            // Upewnij się, że wybrany klient jest w suggestions
+            if (!customerSuggestions.value.find(c => c.id === defaultEndCustomer.id)) {
+                customerSuggestions.value = [defaultEndCustomer, ...customerSuggestions.value];
+            }
         }
     } else if (props.sectionName === 'finance') {
-        const defaultGasDistribution = settingsStore.getDefaultGasDistributionData();
+        const defaultGasDistribution = settingsStore.getDefaultValueData('gasDistribution') as GasDistribution | null;
         if (defaultGasDistribution) {
             selectedGasDistribution.value = defaultGasDistribution;
         }
     } else if (props.sectionName === 'team') {
-        const defaultDesigner = settingsStore.getDefaultDesignerData();
+        const defaultDesigner = settingsStore.getDefaultValueData('designer') as Designer | null;
         if (defaultDesigner) {
             selectedDesigner.value = defaultDesigner;
             designerSearchQuery.value = `${defaultDesigner.name} ${defaultDesigner.lastName}`;
+            // Upewnij się, że wybrany projektant jest w suggestions
+            if (!designerSuggestions.value.find(d => d.id === defaultDesigner.id)) {
+                designerSuggestions.value = [defaultDesigner, ...designerSuggestions.value];
+            }
         }
 
-        const defaultCoordinator = settingsStore.getDefaultCoordinatorData();
+        const defaultCoordinator = settingsStore.getDefaultValueData('coordinator') as Coordinator | null;
         if (defaultCoordinator) {
             selectedCoordinator.value = defaultCoordinator;
             coordinatorSearchQuery.value = `${defaultCoordinator.name} ${defaultCoordinator.lastName}`;
+            // Upewnij się, że wybrany koordynator jest w suggestions
+            if (!coordinatorSuggestions.value.find(c => c.id === defaultCoordinator.id)) {
+                coordinatorSuggestions.value = [defaultCoordinator, ...coordinatorSuggestions.value];
+            }
         }
 
-        const defaultCoordinatorProject = settingsStore.getDefaultCoordinatorProjectData();
+        const defaultCoordinatorProject = settingsStore.getDefaultValueData('coordinatorProject') as Coordinator | null;
         if (defaultCoordinatorProject) {
             selectedCoordinatorProject.value = defaultCoordinatorProject;
             coordinatorProjectSearchQuery.value = `${defaultCoordinatorProject.name} ${defaultCoordinatorProject.lastName}`;
+            // Upewnij się, że wybrany koordynator projektu jest w suggestions
+            if (!coordinatorProjectSuggestions.value.find(c => c.id === defaultCoordinatorProject.id)) {
+                coordinatorProjectSuggestions.value = [defaultCoordinatorProject, ...coordinatorProjectSuggestions.value];
+            }
         }
 
         try {
@@ -125,12 +151,6 @@ onMounted(() => {
             console.error('Błąd podczas wczytywania ustawień PGN:', error);
         }
     }
-
-    // Initialize suggestions
-    customerSuggestions.value = customersStore.getAllCustomers({ status: true });
-    designerSuggestions.value = designersStore.getAllDesigners({ status: true });
-    coordinatorSuggestions.value = coordinatorsStore.getAllCoordinators({ status: true });
-    coordinatorProjectSuggestions.value = coordinatorsStore.getAllCoordinators({ status: true });
 });
 
 // Customer display name
@@ -211,24 +231,24 @@ const handleCoordinatorProjectSelect = (coordinator: Coordinator | null) => {
 const handleSave = () => {
     if (props.sectionName === 'customer') {
         if (selectedCustomer.value) {
-            settingsStore.setDefaultCustomer(selectedCustomer.value.id);
+            settingsStore.setDefaultValue('customer', selectedCustomer.value.id);
         } else {
             // Jeśli wartość jest null, usuń domyślną wartość
-            settingsStore.removeDefaultCustomer();
+            settingsStore.removeDefaultValue('customer');
         }
     } else if (props.sectionName === 'endCustomer') {
         if (selectedCustomer.value) {
-            settingsStore.setDefaultEndCustomer(selectedCustomer.value.id);
+            settingsStore.setDefaultValue('endCustomer', selectedCustomer.value.id);
         } else {
             // Jeśli wartość jest null, usuń domyślną wartość
-            settingsStore.removeDefaultEndCustomer();
+            settingsStore.removeDefaultValue('endCustomer');
         }
     } else if (props.sectionName === 'finance') {
         if (selectedGasDistribution.value) {
-            settingsStore.setDefaultGasDistribution(selectedGasDistribution.value.id);
+            settingsStore.setDefaultValue('gasDistribution', selectedGasDistribution.value.id);
         } else {
             // Jeśli wartość jest null, usuń domyślną wartość
-            settingsStore.removeDefaultGasDistribution();
+            settingsStore.removeDefaultValue('gasDistribution');
         }
     } else if (props.sectionName === 'team') {
         settingsStore.setTeamDefaults({
@@ -271,7 +291,9 @@ const handleClose = () => {
                     <AutoComplete v-model="selectedCustomer" :suggestions="customerSuggestions"
                         @complete="searchCustomers" placeholder="Wybierz klienta..." class="w-full"
                         @item-select="(e) => handleCustomerSelect(e.value)" dropdown
-                        :optionLabel="(customer: Customer) => getCustomerDisplayName(customer)">
+                        :optionLabel="(customer: Customer) => getCustomerDisplayName(customer)"
+                        :inputValue="customerSearchQuery"
+                        @update:inputValue="(value: string) => customerSearchQuery = value">
                         <template #option="{ option }">
                             <div>{{ getCustomerDisplayName(option) }}</div>
                         </template>
@@ -313,7 +335,9 @@ const handleClose = () => {
                         <AutoComplete v-model="selectedDesigner" :suggestions="designerSuggestions"
                             @complete="searchDesigners" placeholder="Wybierz projektanta..." class="w-full"
                             @item-select="(e) => handleDesignerSelect(e.value)" dropdown
-                            :optionLabel="(designer: Designer) => `${designer.name} ${designer.lastName}`">
+                            :optionLabel="(designer: Designer) => `${designer.name} ${designer.lastName}`"
+                            :inputValue="designerSearchQuery"
+                            @update:inputValue="(value: string) => designerSearchQuery = value">
                             <template #option="{ option }">
                                 <div>{{ option.name }} {{ option.lastName }}</div>
                             </template>
@@ -335,7 +359,9 @@ const handleClose = () => {
                         <AutoComplete v-model="selectedCoordinator" :suggestions="coordinatorSuggestions"
                             @complete="searchCoordinators" placeholder="Wybierz koordynatora..." class="w-full"
                             @item-select="(e) => handleCoordinatorSelect(e.value)" dropdown
-                            :optionLabel="(coordinator: Coordinator) => `${coordinator.name} ${coordinator.lastName}`">
+                            :optionLabel="(coordinator: Coordinator) => `${coordinator.name} ${coordinator.lastName}`"
+                            :inputValue="coordinatorSearchQuery"
+                            @update:inputValue="(value: string) => coordinatorSearchQuery = value">
                             <template #option="{ option }">
                                 <div>{{ option.name }} {{ option.lastName }}</div>
                             </template>
@@ -357,7 +383,9 @@ const handleClose = () => {
                         <AutoComplete v-model="selectedCoordinatorProject" :suggestions="coordinatorProjectSuggestions"
                             @complete="searchCoordinatorProjects" placeholder="Wybierz koordynatora projektu..."
                             class="w-full" @item-select="(e) => handleCoordinatorProjectSelect(e.value)" dropdown
-                            :optionLabel="(coordinator: Coordinator) => `${coordinator.name} ${coordinator.lastName}`">
+                            :optionLabel="(coordinator: Coordinator) => `${coordinator.name} ${coordinator.lastName}`"
+                            :inputValue="coordinatorProjectSearchQuery"
+                            @update:inputValue="(value: string) => coordinatorProjectSearchQuery = value">
                             <template #option="{ option }">
                                 <div>{{ option.name }} {{ option.lastName }}</div>
                             </template>
@@ -406,17 +434,20 @@ const handleClose = () => {
                     <strong>Aktualne wartości domyślne:</strong>
                 </p>
                 <ul class="list-disc list-inside mt-1 space-y-1">
-                    <li v-if="settingsStore.getDefaultDesignerData()">
-                        Projektant: {{ settingsStore.getDefaultDesignerData()?.name }}
-                        {{ settingsStore.getDefaultDesignerData()?.lastName }}
+                    <li v-if="(settingsStore.getDefaultValueData('designer') as Designer | null)">
+                        Projektant: {{ (settingsStore.getDefaultValueData('designer') as Designer | null)?.name }}
+                        {{ (settingsStore.getDefaultValueData('designer') as Designer | null)?.lastName }}
                     </li>
-                    <li v-if="settingsStore.getDefaultCoordinatorData()">
-                        Koordynator: {{ settingsStore.getDefaultCoordinatorData()?.name }}
-                        {{ settingsStore.getDefaultCoordinatorData()?.lastName }}
+                    <li v-if="(settingsStore.getDefaultValueData('coordinator') as Coordinator | null)">
+                        Koordynator: {{ (settingsStore.getDefaultValueData('coordinator') as Coordinator | null)?.name
+                        }}
+                        {{ (settingsStore.getDefaultValueData('coordinator') as Coordinator | null)?.lastName }}
                     </li>
-                    <li v-if="settingsStore.getDefaultCoordinatorProjectData()">
-                        Koordynator projekt: {{ settingsStore.getDefaultCoordinatorProjectData()?.name }}
-                        {{ settingsStore.getDefaultCoordinatorProjectData()?.lastName }}
+                    <li v-if="(settingsStore.getDefaultValueData('coordinatorProject') as Coordinator | null)">
+                        Koordynator projekt: {{ (settingsStore.getDefaultValueData('coordinatorProject') as Coordinator
+                            |
+                            null)?.name }}
+                        {{ (settingsStore.getDefaultValueData('coordinatorProject') as Coordinator | null)?.lastName }}
                     </li>
                     <li v-if="settingsStore.getGasConnectionSettings?.defaults?.isPGN !== undefined">
                         PGN: {{ settingsStore.getGasConnectionSettings?.defaults?.isPGN ? 'Tak' : 'Nie' }}

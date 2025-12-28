@@ -11,6 +11,50 @@ import { useDesignersStore } from './designers';
 import { useCoordinatorsStore } from './coordinators';
 import { useGasDistributionsStore } from './gasDistributions';
 
+// Typy dla kluczy w defaults
+type DefaultValueKey = keyof GasConnectionDefaultSettings['defaults'];
+type IDBasedKey = 'customer' | 'endCustomer' | 'designer' | 'coordinator' | 'coordinatorProject' | 'gasDistribution';
+
+/**
+ * Mapa określająca, który store i metodę użyć do pobrania danych dla danego pola
+ */
+const DEFAULT_VALUE_RESOLVERS: Record<
+  IDBasedKey,
+  {
+    store: () =>
+      | ReturnType<typeof useCustomersStore>
+      | ReturnType<typeof useDesignersStore>
+      | ReturnType<typeof useCoordinatorsStore>
+      | ReturnType<typeof useGasDistributionsStore>;
+    getMethod: string;
+  }
+> = {
+  customer: {
+    store: () => useCustomersStore(),
+    getMethod: 'getCustomer',
+  },
+  endCustomer: {
+    store: () => useCustomersStore(),
+    getMethod: 'getCustomer',
+  },
+  designer: {
+    store: () => useDesignersStore(),
+    getMethod: 'getDesigner',
+  },
+  coordinator: {
+    store: () => useCoordinatorsStore(),
+    getMethod: 'getCoordinator',
+  },
+  coordinatorProject: {
+    store: () => useCoordinatorsStore(),
+    getMethod: 'getCoordinator',
+  },
+  gasDistribution: {
+    store: () => useGasDistributionsStore(),
+    getMethod: 'getGasDistribution',
+  },
+};
+
 export const useSettingsStore = defineStore('settings', () => {
   const loading = ref(false);
   const error = ref<string | null>(null);
@@ -23,16 +67,21 @@ export const useSettingsStore = defineStore('settings', () => {
   });
 
   /**
-   * Zapisuje domyślnego klienta (zleceniodawcę) dla GasConnection
+   * Generyczna metoda do ustawiania wartości domyślnej
    */
-  function setDefaultCustomer(customerId: number): void {
+  function setDefaultValue(key: DefaultValueKey, value: number | boolean | string): void {
     loading.value = true;
     error.value = null;
 
     try {
-      settingsService.updateModuleSetting<GasConnectionDefaultSettings>('gasConnection', () => ({
-        customer: { id: customerId },
-      }));
+      settingsService.updateModuleSetting<GasConnectionDefaultSettings>('gasConnection', () => {
+        // Dla pól opartych na ID (number) - zapis jako { [key]: { id: number } }
+        if (typeof value === 'number') {
+          return { [key]: { id: value } } as Partial<GasConnectionDefaultSettings['defaults']>;
+        }
+        // Dla pól boolean lub string - zapis bezpośredni jako wartość
+        return { [key]: value } as Partial<GasConnectionDefaultSettings['defaults']>;
+      });
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Błąd podczas zapisywania ustawień';
     } finally {
@@ -41,257 +90,17 @@ export const useSettingsStore = defineStore('settings', () => {
   }
 
   /**
-   * Usuwa domyślnego klienta
+   * Generyczna metoda do usuwania wartości domyślnej
    */
-  function removeDefaultCustomer(): void {
+  function removeDefaultValue(key: DefaultValueKey): void {
     loading.value = true;
     error.value = null;
 
     try {
       const currentSettings = getGasConnectionSettings.value;
       if (currentSettings) {
-        const { customer, ...rest } = currentSettings.defaults;
-        // Tworzymy nowy obiekt defaults bez customer
-        currentSettings.defaults = rest;
-        settingsService.saveModuleSettings(currentSettings);
-      }
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Błąd podczas usuwania ustawień';
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  /**
-   * Zapisuje domyślnego klienta końcowego dla GasConnection
-   */
-  function setDefaultEndCustomer(customerId: number): void {
-    loading.value = true;
-    error.value = null;
-
-    try {
-      settingsService.updateModuleSetting<GasConnectionDefaultSettings>('gasConnection', () => ({
-        endCustomer: { id: customerId },
-      }));
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Błąd podczas zapisywania ustawień';
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  /**
-   * Usuwa domyślnego klienta końcowego
-   */
-  function removeDefaultEndCustomer(): void {
-    loading.value = true;
-    error.value = null;
-
-    try {
-      const currentSettings = getGasConnectionSettings.value;
-      if (currentSettings) {
-        const { endCustomer, ...rest } = currentSettings.defaults;
-        // Tworzymy nowy obiekt defaults bez endCustomer
-        currentSettings.defaults = rest;
-        settingsService.saveModuleSettings(currentSettings);
-      }
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Błąd podczas usuwania ustawień';
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  /**
-   * Zapisuje domyślnego projektanta dla GasConnection
-   */
-  function setDefaultDesigner(designerId: number): void {
-    loading.value = true;
-    error.value = null;
-
-    try {
-      settingsService.updateModuleSetting<GasConnectionDefaultSettings>('gasConnection', () => ({
-        designer: { id: designerId },
-      }));
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Błąd podczas zapisywania ustawień';
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  /**
-   * Usuwa domyślnego projektanta
-   */
-  function removeDefaultDesigner(): void {
-    loading.value = true;
-    error.value = null;
-
-    try {
-      const currentSettings = getGasConnectionSettings.value;
-      if (currentSettings) {
-        const { designer, ...rest } = currentSettings.defaults;
-        // Tworzymy nowy obiekt defaults bez designer
-        currentSettings.defaults = rest;
-        settingsService.saveModuleSettings(currentSettings);
-      }
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Błąd podczas usuwania ustawień';
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  /**
-   * Zapisuje domyślnego koordynatora dla GasConnection
-   */
-  function setDefaultCoordinator(coordinatorId: number): void {
-    loading.value = true;
-    error.value = null;
-
-    try {
-      settingsService.updateModuleSetting<GasConnectionDefaultSettings>('gasConnection', () => ({
-        coordinator: { id: coordinatorId },
-      }));
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Błąd podczas zapisywania ustawień';
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  /**
-   * Usuwa domyślnego koordynatora
-   */
-  function removeDefaultCoordinator(): void {
-    loading.value = true;
-    error.value = null;
-
-    try {
-      const currentSettings = getGasConnectionSettings.value;
-      if (currentSettings) {
-        const { coordinator, ...rest } = currentSettings.defaults;
-        // Tworzymy nowy obiekt defaults bez coordinator
-        currentSettings.defaults = rest;
-        settingsService.saveModuleSettings(currentSettings);
-      }
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Błąd podczas usuwania ustawień';
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  /**
-   * Zapisuje domyślnego koordynatora projektu dla GasConnection
-   */
-  function setDefaultCoordinatorProject(coordinatorId: number): void {
-    loading.value = true;
-    error.value = null;
-
-    try {
-      settingsService.updateModuleSetting<GasConnectionDefaultSettings>('gasConnection', () => ({
-        coordinatorProject: { id: coordinatorId },
-      }));
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Błąd podczas zapisywania ustawień';
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  /**
-   * Usuwa domyślnego koordynatora projektu
-   */
-  function removeDefaultCoordinatorProject(): void {
-    loading.value = true;
-    error.value = null;
-
-    try {
-      const currentSettings = getGasConnectionSettings.value;
-      if (currentSettings) {
-        const { coordinatorProject, ...rest } = currentSettings.defaults;
-        // Tworzymy nowy obiekt defaults bez coordinatorProject
-        currentSettings.defaults = rest;
-        settingsService.saveModuleSettings(currentSettings);
-      }
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Błąd podczas usuwania ustawień';
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  /**
-   * Zapisuje domyślną jednostkę zlecającą dla GasConnection
-   */
-  function setDefaultGasDistribution(gasDistributionId: number): void {
-    loading.value = true;
-    error.value = null;
-
-    try {
-      settingsService.updateModuleSetting<GasConnectionDefaultSettings>('gasConnection', () => ({
-        gasDistribution: { id: gasDistributionId },
-      }));
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Błąd podczas zapisywania ustawień';
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  /**
-   * Usuwa domyślną jednostkę zlecającą
-   */
-  function removeDefaultGasDistribution(): void {
-    loading.value = true;
-    error.value = null;
-
-    try {
-      const currentSettings = getGasConnectionSettings.value;
-      if (currentSettings) {
-        const { gasDistribution, ...rest } = currentSettings.defaults;
-        // Tworzymy nowy obiekt defaults bez gasDistribution
-        currentSettings.defaults = rest;
-        settingsService.saveModuleSettings(currentSettings);
-      }
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Błąd podczas usuwania ustawień';
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  /**
-   * Zapisuje domyślną wartość PGN dla GasConnection
-   */
-  function setDefaultIsPGN(isPGN: boolean): void {
-    loading.value = true;
-    error.value = null;
-
-    try {
-      settingsService.updateModuleSetting<GasConnectionDefaultSettings>('gasConnection', () => ({
-        isPGN,
-      }));
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Błąd podczas zapisywania ustawień';
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  /**
-   * Usuwa domyślną wartość PGN
-   */
-  function removeDefaultIsPGN(): void {
-    loading.value = true;
-    error.value = null;
-
-    try {
-      const currentSettings = getGasConnectionSettings.value;
-      if (currentSettings) {
-        const { isPGN, ...rest } = currentSettings.defaults;
-        // Tworzymy nowy obiekt defaults bez isPGN
+        const { [key]: _, ...rest } = currentSettings.defaults;
+        // Tworzymy nowy obiekt defaults bez usuniętej właściwości
         currentSettings.defaults = rest;
         settingsService.saveModuleSettings(currentSettings);
       }
@@ -311,63 +120,30 @@ export const useSettingsStore = defineStore('settings', () => {
     coordinatorProjectId?: number;
     isPGN?: boolean;
   }): void {
-    loading.value = true;
-    error.value = null;
-
-    try {
-      const currentSettings = getGasConnectionSettings.value;
-      const currentDefaults = currentSettings?.defaults || {};
-
-      // Tworzymy nowy obiekt defaults, zaczynając od aktualnych wartości
-      let newDefaults: GasConnectionDefaultSettings['defaults'] = { ...currentDefaults };
-
-      // Aktualizujemy wartości - jeśli undefined, usuwamy właściwość
-      if (data.designerId !== undefined) {
-        if (data.designerId) {
-          newDefaults.designer = { id: data.designerId };
-        } else {
-          const { designer, ...rest } = newDefaults;
-          newDefaults = rest;
-        }
-      }
-      if (data.coordinatorId !== undefined) {
-        if (data.coordinatorId) {
-          newDefaults.coordinator = { id: data.coordinatorId };
-        } else {
-          const { coordinator, ...rest } = newDefaults;
-          newDefaults = rest;
-        }
-      }
-      if (data.coordinatorProjectId !== undefined) {
-        if (data.coordinatorProjectId) {
-          newDefaults.coordinatorProject = { id: data.coordinatorProjectId };
-        } else {
-          const { coordinatorProject, ...rest } = newDefaults;
-          newDefaults = rest;
-        }
-      }
-      if (data.isPGN !== undefined) {
-        newDefaults.isPGN = data.isPGN;
-      }
-
-      // Zapisujemy zaktualizowane ustawienia
-      if (currentSettings) {
-        currentSettings.defaults = newDefaults;
-        settingsService.saveModuleSettings(currentSettings);
+    // Używamy generycznych metod do ustawiania/usuwania wartości
+    if (data.designerId !== undefined) {
+      if (data.designerId) {
+        setDefaultValue('designer', data.designerId);
       } else {
-        // Jeśli nie ma ustawień, tworzymy nowe
-        const newSettings: GasConnectionDefaultSettings = {
-          moduleName: 'gasConnection',
-          version: '1.0.0',
-          updatedAt: new Date().toISOString(),
-          defaults: newDefaults,
-        };
-        settingsService.saveModuleSettings(newSettings);
+        removeDefaultValue('designer');
       }
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Błąd podczas zapisywania ustawień';
-    } finally {
-      loading.value = false;
+    }
+    if (data.coordinatorId !== undefined) {
+      if (data.coordinatorId) {
+        setDefaultValue('coordinator', data.coordinatorId);
+      } else {
+        removeDefaultValue('coordinator');
+      }
+    }
+    if (data.coordinatorProjectId !== undefined) {
+      if (data.coordinatorProjectId) {
+        setDefaultValue('coordinatorProject', data.coordinatorProjectId);
+      } else {
+        removeDefaultValue('coordinatorProject');
+      }
+    }
+    if (data.isPGN !== undefined) {
+      setDefaultValue('isPGN', data.isPGN);
     }
   }
 
@@ -394,69 +170,30 @@ export const useSettingsStore = defineStore('settings', () => {
   }
 
   /**
-   * Pobiera pełne dane domyślnego klienta (z store)
+   * Generyczna metoda do pobierania pełnych danych wartości domyślnej
    */
-  function getDefaultCustomerData() {
+  function getDefaultValueData(key: IDBasedKey) {
     const settings = getGasConnectionSettings.value;
-    if (!settings?.defaults.customer) return null;
+    if (!settings?.defaults[key]) return null;
 
-    const customersStore = useCustomersStore();
-    return customersStore.getCustomer(settings.defaults.customer.id);
-  }
+    const resolver = DEFAULT_VALUE_RESOLVERS[key];
+    if (!resolver) return null;
 
-  /**
-   * Pobiera pełne dane domyślnego klienta końcowego (z store)
-   */
-  function getDefaultEndCustomerData() {
-    const settings = getGasConnectionSettings.value;
-    if (!settings?.defaults.endCustomer) return null;
+    const store = resolver.store();
+    const id = (settings.defaults[key] as { id: number }).id;
 
-    const customersStore = useCustomersStore();
-    return customersStore.getCustomer(settings.defaults.endCustomer.id);
-  }
+    // Wywołanie odpowiedniej metody w zależności od klucza
+    if (key === 'customer' || key === 'endCustomer') {
+      return (store as ReturnType<typeof useCustomersStore>).getCustomer(id);
+    } else if (key === 'designer') {
+      return (store as ReturnType<typeof useDesignersStore>).getDesigner(id);
+    } else if (key === 'coordinator' || key === 'coordinatorProject') {
+      return (store as ReturnType<typeof useCoordinatorsStore>).getCoordinator(id);
+    } else if (key === 'gasDistribution') {
+      return (store as ReturnType<typeof useGasDistributionsStore>).getGasDistribution(id);
+    }
 
-  /**
-   * Pobiera pełne dane domyślnego projektanta (z store)
-   */
-  function getDefaultDesignerData() {
-    const settings = getGasConnectionSettings.value;
-    if (!settings?.defaults.designer) return null;
-
-    const designersStore = useDesignersStore();
-    return designersStore.getDesigner(settings.defaults.designer.id);
-  }
-
-  /**
-   * Pobiera pełne dane domyślnego koordynatora (z store)
-   */
-  function getDefaultCoordinatorData() {
-    const settings = getGasConnectionSettings.value;
-    if (!settings?.defaults.coordinator) return null;
-
-    const coordinatorsStore = useCoordinatorsStore();
-    return coordinatorsStore.getCoordinator(settings.defaults.coordinator.id);
-  }
-
-  /**
-   * Pobiera pełne dane domyślnego koordynatora projektu (z store)
-   */
-  function getDefaultCoordinatorProjectData() {
-    const settings = getGasConnectionSettings.value;
-    if (!settings?.defaults.coordinatorProject) return null;
-
-    const coordinatorsStore = useCoordinatorsStore();
-    return coordinatorsStore.getCoordinator(settings.defaults.coordinatorProject.id);
-  }
-
-  /**
-   * Pobiera pełne dane domyślnej jednostki zlecającej (z store)
-   */
-  function getDefaultGasDistributionData() {
-    const settings = getGasConnectionSettings.value;
-    if (!settings?.defaults.gasDistribution) return null;
-
-    const gasDistributionsStore = useGasDistributionsStore();
-    return gasDistributionsStore.getGasDistribution(settings.defaults.gasDistribution.id);
+    return null;
   }
 
   /**
@@ -466,11 +203,6 @@ export const useSettingsStore = defineStore('settings', () => {
   function getGasConnectionDefaults() {
     const settings = getGasConnectionSettings.value;
     if (!settings) return {};
-
-    const customersStore = useCustomersStore();
-    const designersStore = useDesignersStore();
-    const coordinatorsStore = useCoordinatorsStore();
-    const gasDistributionsStore = useGasDistributionsStore();
 
     const defaults: Partial<{
       customer: any;
@@ -483,22 +215,22 @@ export const useSettingsStore = defineStore('settings', () => {
     }> = {};
 
     if (settings.defaults.customer) {
-      defaults.customer = customersStore.getCustomer(settings.defaults.customer.id);
+      defaults.customer = getDefaultValueData('customer');
     }
     if (settings.defaults.endCustomer) {
-      defaults.endCustomer = customersStore.getCustomer(settings.defaults.endCustomer.id);
+      defaults.endCustomer = getDefaultValueData('endCustomer');
     }
     if (settings.defaults.designer) {
-      defaults.designer = designersStore.getDesigner(settings.defaults.designer.id);
+      defaults.designer = getDefaultValueData('designer');
     }
     if (settings.defaults.coordinator) {
-      defaults.coordinator = coordinatorsStore.getCoordinator(settings.defaults.coordinator.id);
+      defaults.coordinator = getDefaultValueData('coordinator');
     }
     if (settings.defaults.coordinatorProject) {
-      defaults.coordinatorProject = coordinatorsStore.getCoordinator(settings.defaults.coordinatorProject.id);
+      defaults.coordinatorProject = getDefaultValueData('coordinatorProject');
     }
     if (settings.defaults.gasDistribution) {
-      defaults.gasDistribution = gasDistributionsStore.getGasDistribution(settings.defaults.gasDistribution.id);
+      defaults.gasDistribution = getDefaultValueData('gasDistribution');
     }
     if (settings.defaults.isPGN !== undefined) {
       defaults.isPGN = settings.defaults.isPGN;
@@ -554,33 +286,10 @@ export const useSettingsStore = defineStore('settings', () => {
     // Computed
     getGasConnectionSettings,
     getGasConnectionTableSettings,
-    // Methods - Customer
-    setDefaultCustomer,
-    removeDefaultCustomer,
-    getDefaultCustomerData,
-    // Methods - End Customer
-    setDefaultEndCustomer,
-    removeDefaultEndCustomer,
-    getDefaultEndCustomerData,
-    // Methods - Designer
-    setDefaultDesigner,
-    removeDefaultDesigner,
-    getDefaultDesignerData,
-    // Methods - Coordinator
-    setDefaultCoordinator,
-    removeDefaultCoordinator,
-    getDefaultCoordinatorData,
-    // Methods - Coordinator Project
-    setDefaultCoordinatorProject,
-    removeDefaultCoordinatorProject,
-    getDefaultCoordinatorProjectData,
-    // Methods - Gas Distribution
-    setDefaultGasDistribution,
-    removeDefaultGasDistribution,
-    getDefaultGasDistributionData,
-    // Methods - PGN
-    setDefaultIsPGN,
-    removeDefaultIsPGN,
+    // Methods - Generic
+    setDefaultValue,
+    removeDefaultValue,
+    getDefaultValueData,
     // Methods - Team
     setTeamDefaults,
     removeTeamDefaults,
