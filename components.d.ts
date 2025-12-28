@@ -26,6 +26,7 @@ declare module 'vue' {
     Checkbox: typeof import('primevue/checkbox')['default']
     Column: typeof import('primevue/column')['default']
     ColumnGroup: typeof import('primevue/columngroup')['default']
+    ColumnSettingsDialog: typeof import('./src/components/tasks/ColumnSettingsDialog.vue')['default']
     ComponentCategory: typeof import('./src/components/device/ComponentCategory.vue')['default']
     ConfirmationDialog: typeof import('./src/components/ConfirmationDialog.vue')['default']
     CoordinatorFormDialog: typeof import('./src/components/tasks/CoordinatorFormDialog.vue')['default']

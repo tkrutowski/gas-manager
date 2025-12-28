@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import SidebarMenu from '@/components/tasks/SidebarMenu.vue';
+import SecondaryButton from '@/components/SecondaryButton.vue';
+import ColumnSettingsDialog from '@/components/tasks/ColumnSettingsDialog.vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import MultiSelect from 'primevue/multiselect';
@@ -40,6 +42,9 @@ const selectedRow = ref<GasConnection | null>(null);
 // Konfiguracja kolumn
 const allColumns = ref<GasConnectionTableColumnConfig[]>([]);
 const selectedColumns = ref<GasConnectionTableColumnConfig[]>([]);
+
+// Dialog ustawień kolumn
+const showColumnSettingsDialog = ref(false);
 
 // Filtry
 const filters = ref<Record<string, any>>({});
@@ -423,6 +428,23 @@ const saveColumnConfig = () => {
     settingsStore.saveGasConnectionTableSettings(allColumns.value);
 };
 
+// Otwarcie dialogu ustawień
+const handleOpenColumnSettings = () => {
+    showColumnSettingsDialog.value = true;
+};
+
+// Obsługa zapisu z dialogu
+const handleColumnSettingsSaved = (updatedColumns: GasConnectionTableColumnConfig[]) => {
+    // Aktualizujemy allColumns
+    allColumns.value = updatedColumns;
+
+    // Aktualizujemy selectedColumns
+    selectedColumns.value = updatedColumns.filter(col => col.visible);
+
+    // Zapisujemy konfigurację
+    saveColumnConfig();
+};
+
 // Ładowanie konfiguracji
 const loadColumnConfig = () => {
     try {
@@ -491,8 +513,12 @@ watch(
                                 placeholder="Wybierz kolumny" display="chip" class="w-80" :filter="true"
                                 filterPlaceholder="Szukaj kolumn..." @update:modelValue="onColumnToggle" />
                         </div>
-                        <Button label="Resetuj konfigurację" icon="pi pi-refresh" severity="secondary" outlined
-                            @click="resetColumnConfig($event)" />
+                        <div class="flex items-center gap-2">
+                            <SecondaryButton type="button" icon="pi pi-cog" @click="handleOpenColumnSettings"
+                                title="Ustawienia" />
+                            <Button label="Resetuj konfigurację" icon="pi pi-refresh" severity="secondary" outlined
+                                @click="resetColumnConfig($event)" />
+                        </div>
                     </div>
 
                     <!-- DataTable -->
@@ -612,5 +638,9 @@ watch(
                 </div>
             </div>
         </div>
+
+        <!-- Dialog ustawień kolumn -->
+        <ColumnSettingsDialog :visible="showColumnSettingsDialog" :columns="allColumns"
+            @update:visible="showColumnSettingsDialog = $event" @saved="handleColumnSettingsSaved" />
     </div>
 </template>
