@@ -56,6 +56,39 @@ function generateEmail(firstName: string, lastName: string): string {
   return `${name}@${['gmail.com', 'wp.pl', 'o2.pl', 'interia.pl', 'company.pl', 'design.pl'][Math.floor(Math.random() * 6)]}`;
 }
 
+// Klucz localStorage dla projektantów
+const STORAGE_KEY = 'gas-manager:designers';
+
+// Funkcja pomocnicza do ładowania danych z localStorage
+function loadFromLocalStorage(): Designer[] | null {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return null;
+    }
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) {
+      return null;
+    }
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch (err) {
+    console.warn('Błąd podczas ładowania projektantów z localStorage:', err);
+    return null;
+  }
+}
+
+// Funkcja pomocnicza do zapisywania danych do localStorage
+function saveToLocalStorage(data: Designer[]): void {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return;
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (err) {
+    console.warn('Błąd podczas zapisywania projektantów do localStorage:', err);
+  }
+}
+
 // Generowanie 30 mockowanych projektantów
 function generateMockDesigners(): Designer[] {
   const designers: Designer[] = [];
@@ -169,7 +202,16 @@ function generateMockDesigners(): Designer[] {
 }
 
 export const useDesignersStore = defineStore('designers', () => {
-  const designers = ref<Designer[]>(generateMockDesigners());
+  // Ładowanie danych z localStorage lub generowanie nowych
+  const loadedData = loadFromLocalStorage();
+  const initialData = loadedData ?? generateMockDesigners();
+  const designers = ref<Designer[]>(initialData);
+
+  // Zapisanie wygenerowanych danych do localStorage jeśli nie były tam wcześniej
+  if (!loadedData) {
+    saveToLocalStorage(designers.value);
+  }
+
   const loading = ref(false);
   const error = ref<string | null>(null);
 
@@ -244,6 +286,7 @@ export const useDesignersStore = defineStore('designers', () => {
       };
 
       designers.value.push(newDesigner);
+      saveToLocalStorage(designers.value);
       return newDesigner;
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Błąd podczas dodawania projektanta';
@@ -273,6 +316,7 @@ export const useDesignersStore = defineStore('designers', () => {
         updatedAt: new Date().toISOString(),
       };
 
+      saveToLocalStorage(designers.value);
       return designers.value[index];
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Błąd podczas aktualizacji projektanta';
@@ -304,6 +348,7 @@ export const useDesignersStore = defineStore('designers', () => {
         designers.value[index].updatedAt = new Date().toISOString();
       }
 
+      saveToLocalStorage(designers.value);
       return true;
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Błąd podczas usuwania projektanta';

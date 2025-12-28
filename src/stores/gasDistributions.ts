@@ -2,6 +2,39 @@ import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import type { GasDistribution } from '../types/GasDistribution';
 
+// Klucz localStorage dla jednostek zlecających
+const STORAGE_KEY = 'gas-manager:gasDistributions';
+
+// Funkcja pomocnicza do ładowania danych z localStorage
+function loadFromLocalStorage(): GasDistribution[] | null {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return null;
+    }
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) {
+      return null;
+    }
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch (err) {
+    console.warn('Błąd podczas ładowania jednostek zlecających z localStorage:', err);
+    return null;
+  }
+}
+
+// Funkcja pomocnicza do zapisywania danych do localStorage
+function saveToLocalStorage(data: GasDistribution[]): void {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return;
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (err) {
+    console.warn('Błąd podczas zapisywania jednostek zlecających do localStorage:', err);
+  }
+}
+
 // Generowanie mockowanych jednostek zlecających
 function generateMockGasDistributions(): GasDistribution[] {
   const names = [
@@ -87,7 +120,16 @@ function generateMockGasDistributions(): GasDistribution[] {
 }
 
 export const useGasDistributionsStore = defineStore('gasDistributions', () => {
-  const gasDistributions = ref<GasDistribution[]>(generateMockGasDistributions());
+  // Ładowanie danych z localStorage lub generowanie nowych
+  const loadedData = loadFromLocalStorage();
+  const initialData = loadedData ?? generateMockGasDistributions();
+  const gasDistributions = ref<GasDistribution[]>(initialData);
+
+  // Zapisanie wygenerowanych danych do localStorage jeśli nie były tam wcześniej
+  if (!loadedData) {
+    saveToLocalStorage(gasDistributions.value);
+  }
+
   const loading = ref(false);
   const error = ref<string | null>(null);
 
@@ -158,6 +200,7 @@ export const useGasDistributionsStore = defineStore('gasDistributions', () => {
       };
 
       gasDistributions.value.push(newGasDistribution);
+      saveToLocalStorage(gasDistributions.value);
       return newGasDistribution;
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Błąd podczas dodawania jednostki zlecającej';
@@ -190,6 +233,7 @@ export const useGasDistributionsStore = defineStore('gasDistributions', () => {
         updatedAt: new Date().toISOString(),
       };
 
+      saveToLocalStorage(gasDistributions.value);
       return gasDistributions.value[index];
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Błąd podczas aktualizacji jednostki zlecającej';
@@ -221,6 +265,7 @@ export const useGasDistributionsStore = defineStore('gasDistributions', () => {
         gasDistributions.value[index].updatedAt = new Date().toISOString();
       }
 
+      saveToLocalStorage(gasDistributions.value);
       return true;
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Błąd podczas usuwania jednostki zlecającej';

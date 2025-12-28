@@ -89,6 +89,39 @@ function generateCostType(id: number): CostType {
   };
 }
 
+// Klucz localStorage dla połączeń gazowych
+const STORAGE_KEY = 'gas-manager:gasConnections';
+
+// Funkcja pomocnicza do ładowania danych z localStorage
+function loadFromLocalStorage(): GasConnection[] | null {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return null;
+    }
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) {
+      return null;
+    }
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch (err) {
+    console.warn('Błąd podczas ładowania połączeń gazowych z localStorage:', err);
+    return null;
+  }
+}
+
+// Funkcja pomocnicza do zapisywania danych do localStorage
+function saveToLocalStorage(data: GasConnection[]): void {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return;
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (err) {
+    console.warn('Błąd podczas zapisywania połączeń gazowych do localStorage:', err);
+  }
+}
+
 // Generowanie mockowanych połączeń gazowych
 function generateMockGasConnections(): GasConnection[] {
   const customersStore = useCustomersStore();
@@ -382,7 +415,18 @@ function generateMockGasConnections(): GasConnection[] {
 }
 
 export const useGasConnectionsStore = defineStore('gasConnections', () => {
-  const gasConnections = ref<GasConnection[]>(generateMockGasConnections());
+  // Ładowanie danych z localStorage lub generowanie nowych
+  // Uwaga: generateMockGasConnections() wymaga załadowanych danych z innych store'ów
+  // więc jeśli nie ma danych w localStorage, musimy wygenerować nowe
+  const loadedData = loadFromLocalStorage();
+  const initialData = loadedData ?? generateMockGasConnections();
+  const gasConnections = ref<GasConnection[]>(initialData);
+
+  // Zapisanie wygenerowanych danych do localStorage jeśli nie były tam wcześniej
+  if (!loadedData) {
+    saveToLocalStorage(gasConnections.value);
+  }
+
   const loading = ref(false);
   const error = ref<string | null>(null);
 
@@ -461,6 +505,7 @@ export const useGasConnectionsStore = defineStore('gasConnections', () => {
       };
 
       gasConnections.value.push(newGasConnection);
+      saveToLocalStorage(gasConnections.value);
       return newGasConnection;
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Błąd podczas dodawania połączenia gazowego';
@@ -489,6 +534,7 @@ export const useGasConnectionsStore = defineStore('gasConnections', () => {
         ...updates,
       };
 
+      saveToLocalStorage(gasConnections.value);
       return gasConnections.value[index];
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Błąd podczas aktualizacji połączenia gazowego';
@@ -513,6 +559,7 @@ export const useGasConnectionsStore = defineStore('gasConnections', () => {
       }
 
       gasConnections.value.splice(index, 1);
+      saveToLocalStorage(gasConnections.value);
       return true;
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Błąd podczas usuwania połączenia gazowego';

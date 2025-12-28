@@ -73,6 +73,39 @@ function generateKRS(): string {
   return Array.from({ length: 10 }, () => Math.floor(Math.random() * 10)).join('');
 }
 
+// Klucz localStorage dla klientów
+const STORAGE_KEY = 'gas-manager:customers';
+
+// Funkcja pomocnicza do ładowania danych z localStorage
+function loadFromLocalStorage(): Customer[] | null {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return null;
+    }
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) {
+      return null;
+    }
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch (err) {
+    console.warn('Błąd podczas ładowania klientów z localStorage:', err);
+    return null;
+  }
+}
+
+// Funkcja pomocnicza do zapisywania danych do localStorage
+function saveToLocalStorage(data: Customer[]): void {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return;
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (err) {
+    console.warn('Błąd podczas zapisywania klientów do localStorage:', err);
+  }
+}
+
 // Generowanie 100 mockowanych klientów
 function generateMockCustomers(): Customer[] {
   const customers: Customer[] = [];
@@ -185,7 +218,16 @@ function generateMockCustomers(): Customer[] {
 }
 
 export const useCustomersStore = defineStore('customers', () => {
-  const customers = ref<Customer[]>(generateMockCustomers());
+  // Ładowanie danych z localStorage lub generowanie nowych
+  const loadedData = loadFromLocalStorage();
+  const initialData = loadedData ?? generateMockCustomers();
+  const customers = ref<Customer[]>(initialData);
+
+  // Zapisanie wygenerowanych danych do localStorage jeśli nie były tam wcześniej
+  if (!loadedData) {
+    saveToLocalStorage(customers.value);
+  }
+
   const loading = ref(false);
   const error = ref<string | null>(null);
 
@@ -260,6 +302,7 @@ export const useCustomersStore = defineStore('customers', () => {
       };
 
       customers.value.push(newCustomer);
+      saveToLocalStorage(customers.value);
       return newCustomer;
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Błąd podczas dodawania klienta';
@@ -289,6 +332,7 @@ export const useCustomersStore = defineStore('customers', () => {
         updatedAt: new Date().toISOString(),
       };
 
+      saveToLocalStorage(customers.value);
       return customers.value[index];
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Błąd podczas aktualizacji klienta';
@@ -320,6 +364,7 @@ export const useCustomersStore = defineStore('customers', () => {
         customers.value[index].updatedAt = new Date().toISOString();
       }
 
+      saveToLocalStorage(customers.value);
       return true;
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Błąd podczas usuwania klienta';

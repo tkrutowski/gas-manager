@@ -13,6 +13,39 @@ function generateEmail(firstName: string, lastName: string): string {
   return `${name}@${['gmail.com', 'wp.pl', 'o2.pl', 'interia.pl', 'company.pl'][Math.floor(Math.random() * 5)]}`;
 }
 
+// Klucz localStorage dla koordynatorów
+const STORAGE_KEY = 'gas-manager:coordinators';
+
+// Funkcja pomocnicza do ładowania danych z localStorage
+function loadFromLocalStorage(): Coordinator[] | null {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return null;
+    }
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) {
+      return null;
+    }
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch (err) {
+    console.warn('Błąd podczas ładowania koordynatorów z localStorage:', err);
+    return null;
+  }
+}
+
+// Funkcja pomocnicza do zapisywania danych do localStorage
+function saveToLocalStorage(data: Coordinator[]): void {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return;
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (err) {
+    console.warn('Błąd podczas zapisywania koordynatorów do localStorage:', err);
+  }
+}
+
 // Generowanie 20 mockowanych koordynatorów
 function generateMockCoordinators(): Coordinator[] {
   const coordinators: Coordinator[] = [];
@@ -101,7 +134,16 @@ function generateMockCoordinators(): Coordinator[] {
 }
 
 export const useCoordinatorsStore = defineStore('coordinators', () => {
-  const coordinators = ref<Coordinator[]>(generateMockCoordinators());
+  // Ładowanie danych z localStorage lub generowanie nowych
+  const loadedData = loadFromLocalStorage();
+  const initialData = loadedData ?? generateMockCoordinators();
+  const coordinators = ref<Coordinator[]>(initialData);
+
+  // Zapisanie wygenerowanych danych do localStorage jeśli nie były tam wcześniej
+  if (!loadedData) {
+    saveToLocalStorage(coordinators.value);
+  }
+
   const loading = ref(false);
   const error = ref<string | null>(null);
 
@@ -170,6 +212,7 @@ export const useCoordinatorsStore = defineStore('coordinators', () => {
       };
 
       coordinators.value.push(newCoordinator);
+      saveToLocalStorage(coordinators.value);
       return newCoordinator;
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Błąd podczas dodawania koordynatora';
@@ -199,6 +242,7 @@ export const useCoordinatorsStore = defineStore('coordinators', () => {
         updatedAt: new Date().toISOString(),
       };
 
+      saveToLocalStorage(coordinators.value);
       return coordinators.value[index];
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Błąd podczas aktualizacji koordynatora';
@@ -230,6 +274,7 @@ export const useCoordinatorsStore = defineStore('coordinators', () => {
         coordinators.value[index].updatedAt = new Date().toISOString();
       }
 
+      saveToLocalStorage(coordinators.value);
       return true;
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Błąd podczas usuwania koordynatora';

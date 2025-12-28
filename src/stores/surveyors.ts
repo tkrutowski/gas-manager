@@ -56,6 +56,39 @@ function generateEmail(firstName: string, lastName: string): string {
   return `${name}@${['gmail.com', 'wp.pl', 'o2.pl', 'interia.pl', 'company.pl', 'survey.pl'][Math.floor(Math.random() * 6)]}`;
 }
 
+// Klucz localStorage dla geodetów
+const STORAGE_KEY = 'gas-manager:surveyors';
+
+// Funkcja pomocnicza do ładowania danych z localStorage
+function loadFromLocalStorage(): Surveyor[] | null {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return null;
+    }
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) {
+      return null;
+    }
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch (err) {
+    console.warn('Błąd podczas ładowania geodetów z localStorage:', err);
+    return null;
+  }
+}
+
+// Funkcja pomocnicza do zapisywania danych do localStorage
+function saveToLocalStorage(data: Surveyor[]): void {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return;
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (err) {
+    console.warn('Błąd podczas zapisywania geodetów do localStorage:', err);
+  }
+}
+
 // Generowanie 25 mockowanych geodetów
 function generateMockSurveyors(): Surveyor[] {
   const surveyors: Surveyor[] = [];
@@ -157,7 +190,16 @@ function generateMockSurveyors(): Surveyor[] {
 }
 
 export const useSurveyorsStore = defineStore('surveyors', () => {
-  const surveyors = ref<Surveyor[]>(generateMockSurveyors());
+  // Ładowanie danych z localStorage lub generowanie nowych
+  const loadedData = loadFromLocalStorage();
+  const initialData = loadedData ?? generateMockSurveyors();
+  const surveyors = ref<Surveyor[]>(initialData);
+
+  // Zapisanie wygenerowanych danych do localStorage jeśli nie były tam wcześniej
+  if (!loadedData) {
+    saveToLocalStorage(surveyors.value);
+  }
+
   const loading = ref(false);
   const error = ref<string | null>(null);
 
@@ -226,6 +268,7 @@ export const useSurveyorsStore = defineStore('surveyors', () => {
       };
 
       surveyors.value.push(newSurveyor);
+      saveToLocalStorage(surveyors.value);
       return newSurveyor;
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Błąd podczas dodawania geodety';
@@ -255,6 +298,7 @@ export const useSurveyorsStore = defineStore('surveyors', () => {
         updatedAt: new Date().toISOString(),
       };
 
+      saveToLocalStorage(surveyors.value);
       return surveyors.value[index];
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Błąd podczas aktualizacji geodety';
@@ -286,6 +330,7 @@ export const useSurveyorsStore = defineStore('surveyors', () => {
         surveyors.value[index].updatedAt = new Date().toISOString();
       }
 
+      saveToLocalStorage(surveyors.value);
       return true;
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Błąd podczas usuwania geodety';
