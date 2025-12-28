@@ -1,0 +1,90 @@
+---
+alwaysApply: true
+---
+# Cursor Rules dla Projektu Vue
+
+## Kolorystyka - Obowiązujące Standardy
+
+### Tło
+- **Jasny motyw:** `bg-surface-50`
+- **Ciemny motyw:** `dark:bg-surface-900`
+- **Obramowania jasny:** `border-surface-200`
+- **Obramowania ciemny:** `dark:border-surface-700`
+
+**Pełna klasa tła:** `bg-surface-50 dark:bg-surface-900 border-surface-200 dark:border-surface-700`
+
+### Tekst
+- **Jasny motyw:** `text-surface-700`
+- **Ciemny motyw:** `dark:text-surface-300`
+
+**Pełna klasa tekstu:** `text-surface-700 dark:text-surface-300`
+
+---
+
+## Zasady Implementacji
+
+### 1. Domyślne Tła
+Przy tworzeniu jakichkolwiek kontenerów, kart, sekcji lub paneli **zawsze** używaj:
+```html
+<div class="bg-surface-50 dark:bg-surface-900 border-surface-200 dark:border-surface-700">
+```
+
+### 2. Domyślny Tekst
+Jeżeli kolor tekstu nie jest jawnie określony w projekcie, **zawsze** stosuj:
+```html
+<p class="text-surface-700 dark:text-surface-300">
+```
+
+### 3. Komponenty Vue
+W komponentach Vue przestrzegaj tych klas:
+```vue
+<template>
+  <div class="bg-surface-50 dark:bg-surface-900 border-surface-200 dark:border-surface-700">
+    <h1 class="text-surface-700 dark:text-surface-300">Tytuł</h1>
+    <p class="text-surface-600 dark:text-surface-400">Treść</p>
+  </div>
+</template>
+```
+
+### 4. Wyjątki
+- Jeżeli projekt wymaga **innego koloru** (np. akcenty, przyciski, alerty), użyj określonego koloru
+- W przypadku elementów interaktywnych (przyciski, linki) mogą być inne kolory, ale **bazowe tła i teksty** muszą być zgodne z powyższym standardem
+
+### 5. Priorytet
+Te klasy kolorystyczne mają **najwyższy priorytet** i powinny być stosowane konsekwentnie w całym projekcie, chyba że wyraźnie określono inaczej.
+
+---
+
+## Przykłady Użycia
+
+### Karta produktu
+```vue
+<div class="bg-surface-50 dark:bg-surface-900 border-surface-200 dark:border-surface-700 rounded-lg p-4">
+  <h3 class="text-surface-700 dark:text-surface-300 font-bold">Nazwa produktu</h3>
+  <p class="text-surface-600 dark:text-surface-400">Opis produktu</p>
+</div>
+```
+
+### Formularz
+```vue
+<form class="bg-surface-50 dark:bg-surface-900 border-surface-200 dark:border-surface-700 p-6">
+  <label class="text-surface-700 dark:text-surface-300">Email</label>
+</form>
+```
+
+### Modal
+```vue
+<div class="bg-surface-50 dark:bg-surface-900 border-surface-200 dark:border-surface-700 rounded-xl shadow-xl">
+  <h2 class="text-surface-700 dark:text-surface-300">Tytuł Modala</h2>
+  <p class="text-surface-600 dark:text-surface-400">Treść modala</p>
+</div>
+```
+
+---
+
+## Checklist
+Przed commitowaniem kodu, upewnij się że:
+- [ ] Wszystkie kontenery używają `bg-surface-50 dark:bg-surface-900`
+- [ ] Wszystkie obramowania używają `border-surface-200 dark:border-surface-700`
+- [ ] Cały tekst bez określonego koloru używa `text-surface-700 dark:text-surface-300`
+- [ ] Wyjątki są uzasadnione i udokumentowane
