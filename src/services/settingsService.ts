@@ -1,4 +1,4 @@
-import type { AppDefaultSettings, SettingsStorage, GasConnectionDefaultSettings } from '@/types/Settings';
+import type { AppDefaultSettings, SettingsStorage, GasConnectionDefaultSettings, GasConnectionTableSettings } from '@/types/Settings';
 
 const SETTINGS_STORAGE_KEY = 'appDefaultSettings';
 
@@ -103,6 +103,46 @@ class SettingsService {
       console.error('Błąd podczas importowania ustawień:', error);
       throw error;
     }
+  }
+
+  /**
+   * Pobiera ustawienia tabeli dla konkretnego modułu
+   */
+  getTableSettings(moduleName: string): GasConnectionTableSettings | null {
+    return this.getModuleSettings<GasConnectionTableSettings>(moduleName);
+  }
+
+  /**
+   * Zapisuje ustawienia tabeli
+   */
+  saveTableSettings(settings: GasConnectionTableSettings): void {
+    this.saveModuleSettings(settings);
+  }
+
+  /**
+   * Aktualizuje konfigurację kolumn tabeli
+   */
+  updateTableColumnConfig(
+    moduleName: string,
+    columns: GasConnectionTableSettings['columns']
+  ): void {
+    const currentSettings = this.getTableSettings(moduleName);
+    
+    if (!currentSettings) {
+      // Tworzymy nowe ustawienia jeśli nie istnieją
+      const newSettings: GasConnectionTableSettings = {
+        moduleName: 'gasConnectionTable',
+        version: '1.0.0',
+        updatedAt: new Date().toISOString(),
+        columns: columns,
+      };
+      this.saveTableSettings(newSettings);
+      return;
+    }
+
+    // Aktualizujemy istniejące ustawienia
+    currentSettings.columns = columns;
+    this.saveTableSettings(currentSettings);
   }
 }
 

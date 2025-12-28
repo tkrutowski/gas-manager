@@ -36,9 +36,31 @@ export interface GasConnectionDefaultSettings extends ModuleSettings {
 }
 
 /**
+ * Konfiguracja kolumny tabeli
+ */
+export interface GasConnectionTableColumnConfig {
+  field: string; // unikalny identyfikator kolumny
+  header: string; // nagłówek kolumny
+  visible: boolean; // czy kolumna jest widoczna
+  order: number; // kolejność kolumny
+  frozen: boolean; // czy kolumna jest przypięta do lewej
+  sortable?: boolean; // czy kolumna jest sortowalna (domyślnie true)
+  filterable?: boolean; // czy kolumna jest filtrowalna (domyślnie true)
+  width?: string; // szerokość kolumny
+}
+
+/**
+ * Ustawienia tabeli dla modułu GasConnection
+ */
+export interface GasConnectionTableSettings extends ModuleSettings {
+  moduleName: 'gasConnectionTable';
+  columns: GasConnectionTableColumnConfig[];
+}
+
+/**
  * Unia typów dla wszystkich modułów (łatwe rozszerzanie)
  */
-export type AppDefaultSettings = GasConnectionDefaultSettings; // | OtherModuleSettings | ...
+export type AppDefaultSettings = GasConnectionDefaultSettings | GasConnectionTableSettings; // | OtherModuleSettings | ...
 
 /**
  * Struktura przechowywania w localStorage
@@ -46,4 +68,3 @@ export type AppDefaultSettings = GasConnectionDefaultSettings; // | OtherModuleS
 export interface SettingsStorage {
   [moduleName: string]: AppDefaultSettings;
 }
-

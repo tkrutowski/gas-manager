@@ -1,7 +1,11 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import { settingsService } from '@/services/settingsService';
-import type { GasConnectionDefaultSettings } from '@/types/Settings';
+import type {
+  GasConnectionDefaultSettings,
+  GasConnectionTableSettings,
+  GasConnectionTableColumnConfig,
+} from '@/types/Settings';
 import { useCustomersStore } from './customers';
 import { useDesignersStore } from './designers';
 import { useCoordinatorsStore } from './coordinators';
@@ -313,10 +317,10 @@ export const useSettingsStore = defineStore('settings', () => {
     try {
       const currentSettings = getGasConnectionSettings.value;
       const currentDefaults = currentSettings?.defaults || {};
-      
+
       // Tworzymy nowy obiekt defaults, zaczynając od aktualnych wartości
       let newDefaults: GasConnectionDefaultSettings['defaults'] = { ...currentDefaults };
-      
+
       // Aktualizujemy wartości - jeśli undefined, usuwamy właściwość
       if (data.designerId !== undefined) {
         if (data.designerId) {
@@ -503,12 +507,53 @@ export const useSettingsStore = defineStore('settings', () => {
     return defaults;
   }
 
+  /**
+   * Pobiera ustawienia tabeli dla GasConnection
+   */
+  const getGasConnectionTableSettings = computed((): GasConnectionTableSettings | null => {
+    return settingsService.getTableSettings('gasConnectionTable');
+  });
+
+  /**
+   * Zapisuje konfigurację kolumn tabeli
+   */
+  function saveGasConnectionTableSettings(columns: GasConnectionTableColumnConfig[]): void {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      settingsService.updateTableColumnConfig('gasConnectionTable', columns);
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Błąd podczas zapisywania ustawień tabeli';
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  /**
+   * Przywraca domyślną konfigurację tabeli
+   */
+  function resetGasConnectionTableSettings(): void {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      // Domyślna konfiguracja zostanie utworzona w komponencie
+      settingsService.removeModuleSettings('gasConnectionTable');
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Błąd podczas resetowania ustawień tabeli';
+    } finally {
+      loading.value = false;
+    }
+  }
+
   return {
     // State
     loading,
     error,
     // Computed
     getGasConnectionSettings,
+    getGasConnectionTableSettings,
     // Methods - Customer
     setDefaultCustomer,
     removeDefaultCustomer,
@@ -541,6 +586,8 @@ export const useSettingsStore = defineStore('settings', () => {
     removeTeamDefaults,
     // Methods - All defaults
     getGasConnectionDefaults,
+    // Methods - Table Settings
+    saveGasConnectionTableSettings,
+    resetGasConnectionTableSettings,
   };
 });
-
