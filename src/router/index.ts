@@ -13,7 +13,25 @@ const router = createRouter({
     {
       path: '/',
       name: 'dashboard',
-      component: () => import('../components/Dashboard.vue'),
+      component: () => import('../views/Dashboard.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/tasks',
+      name: 'tasks-dashboard',
+      component: () => import('../views/tasks/TasksDashboard.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/tasks/gas-connections/new',
+      name: 'new-gas-connection',
+      component: () => import('../views/tasks/NewGasConnection.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/tasks/gas-connections',
+      name: 'gas-connections-list',
+      component: () => import('../views/tasks/GasConnectionsList.vue'),
       meta: { requiresAuth: true },
     },
     {
