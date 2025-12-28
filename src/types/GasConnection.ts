@@ -7,6 +7,7 @@ import { type UtilityCompanyType } from '@/types/Commons.ts';
 import { type Plot } from '@/types/Plot.ts';
 import { type WorkRangeConnection, type WorkRangeGasConnection, type WorkRangeGasStation } from '@/types/WorkRange.ts';
 import { type TaskType } from '@/types/TaskType.ts';
+import { type GasDistribution } from '@/types/GasDistribution.ts';
 
 export interface GasConnection {
   id: number;
@@ -26,7 +27,7 @@ export interface GasConnection {
   contractDate: undefined | Date;
   conditionNo: string;
   conditionDate: undefined | Date;
-  substationName: string; //todo zrobić enum
+  gasDistribution: GasDistribution | undefined;
   connectionAgreementNumber: string;
   sapUpNo: string;
   accelerationDate: undefined | Date;

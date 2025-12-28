@@ -46,6 +46,7 @@ declare module 'vue' {
     FileUploadDialog: typeof import('./src/components/FileUploadDialog.vue')['default']
     FloatLabel: typeof import('primevue/floatlabel')['default']
     GasConnectionForm: typeof import('./src/components/tasks/GasConnectionForm.vue')['default']
+    GasDistributionFormDialog: typeof import('./src/components/tasks/GasDistributionFormDialog.vue')['default']
     IconField: typeof import('primevue/iconfield')['default']
     Image: typeof import('primevue/image')['default']
     ImageButton: typeof import('./src/components/ImageButton.vue')['default']
