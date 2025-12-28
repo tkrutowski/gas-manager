@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
+import { useToast } from 'primevue/usetoast';
 import { useCustomersStore } from '@/stores/customers';
 import { useDesignersStore } from '@/stores/designers';
 import { useCoordinatorsStore } from '@/stores/coordinators';
 import { useGasDistributionsStore } from '@/stores/gasDistributions';
+import { useSettingsStore } from '@/stores/settings';
 import type { GasConnection } from '@/types/GasConnection';
 import type { Customer } from '@/types/Customer';
 import type { Designer } from '@/types/Designer';
@@ -15,7 +17,9 @@ import CustomerFormDialog from '@/components/CustomerFormDialog.vue';
 import DesignerFormDialog from '@/components/tasks/DesignerFormDialog.vue';
 import CoordinatorFormDialog from '@/components/tasks/CoordinatorFormDialog.vue';
 import GasDistributionFormDialog from '@/components/tasks/GasDistributionFormDialog.vue';
+import DefaultSettingsDialog from '@/components/tasks/DefaultSettingsDialog.vue';
 import PrimaryButton from '@/components/PrimaryButton.vue';
+import Button from 'primevue/button';
 import {
     UserIcon,
     MapPinIcon,
@@ -33,10 +37,12 @@ const emit = defineEmits<{
     cancel: [];
 }>();
 
+const toast = useToast();
 const customersStore = useCustomersStore();
 const designersStore = useDesignersStore();
 const coordinatorsStore = useCoordinatorsStore();
 const gasDistributionsStore = useGasDistributionsStore();
+const settingsStore = useSettingsStore();
 
 // Form data
 const formData = ref<Partial<GasConnection>>({
@@ -176,6 +182,8 @@ const showDesignerFormDialog = ref(false);
 const showCoordinatorFormDialog = ref(false);
 const showCoordinatorProjectFormDialog = ref(false);
 const showGasDistributionFormDialog = ref(false);
+const showDefaultSettingsDialog = ref(false);
+const currentSettingsSection = ref<'customer' | 'endCustomer' | 'finance' | 'team'>('customer');
 const selectedCustomerForDetails = ref<Customer | null>(null);
 const isNewEndCustomer = ref(false);
 
@@ -262,6 +270,8 @@ const loadDraft = () => {
             console.error('Błąd podczas wczytywania szkicu:', e);
         }
     }
+    // Always check if draft exists to update button state
+    checkDraftExists();
 };
 
 // Save draft to localStorage
@@ -278,6 +288,72 @@ const saveDraft = () => {
 const clearDraft = () => {
     const draftKey = 'gasConnectionDraft';
     localStorage.removeItem(draftKey);
+};
+
+// Check if draft exists
+const hasDraft = ref(false);
+const checkDraftExists = () => {
+    const draftKey = 'gasConnectionDraft';
+    hasDraft.value = !!localStorage.getItem(draftKey);
+};
+
+// Delete draft handler
+const handleDeleteDraft = () => {
+    clearDraft();
+    checkDraftExists();
+    toast.add({
+        severity: 'success',
+        summary: 'Szkic usunięty',
+        detail: 'Zapisany szkic został usunięty.',
+        life: 3000
+    });
+};
+
+// Load default values from settings
+const loadDefaultValues = () => {
+    const defaults = settingsStore.getGasConnectionDefaults();
+
+    if (defaults.customer) {
+        formData.value.customer = defaults.customer;
+        customerSearchQuery.value = getCustomerDisplayName(defaults.customer);
+    }
+    if (defaults.endCustomer) {
+        formData.value.endCustomer = defaults.endCustomer;
+        endCustomerSearchQuery.value = getCustomerDisplayName(defaults.endCustomer);
+    }
+    if (defaults.designer) {
+        formData.value.designer = defaults.designer;
+        designerSearchQuery.value = `${defaults.designer.name} ${defaults.designer.lastName}`;
+    }
+    if (defaults.coordinator) {
+        formData.value.coordinator = defaults.coordinator;
+        coordinatorSearchQuery.value = `${defaults.coordinator.name} ${defaults.coordinator.lastName}`;
+    }
+    if (defaults.coordinatorProject) {
+        coordinatorProjectSearchQuery.value = `${defaults.coordinatorProject.name} ${defaults.coordinatorProject.lastName}`;
+    }
+    if (defaults.gasDistribution) {
+        // Używamy obiektu z activeGasDistributions, aby PrimeVue Select mógł go poprawnie zidentyfikować
+        const gasDistributionFromList = gasDistributionsStore.activeGasDistributions.find(
+            gd => gd.id === defaults.gasDistribution.id
+        );
+        if (gasDistributionFromList) {
+            formData.value.gasDistribution = gasDistributionFromList;
+        }
+    }
+    if (defaults.isPGN !== undefined) {
+        formData.value.isPGN = defaults.isPGN;
+    }
+};
+
+// Settings dialog handlers
+const handleOpenSettings = (section: 'customer' | 'endCustomer' | 'finance' | 'team') => {
+    currentSettingsSection.value = section;
+    showDefaultSettingsDialog.value = true;
+};
+
+const handleSettingsSaved = () => {
+    // Optionally reload defaults if needed
 };
 
 // Initialize form
@@ -330,6 +406,15 @@ onMounted(() => {
 
     // Load gas distributions
     gasDistributionsStore.getAllGasDistributions({ isActive: true });
+
+    // Load default values from settings (only for new tasks, not when editing)
+    // Wywołujemy po załadowaniu wszystkich danych, aby mieć dostęp do activeGasDistributions
+    if (!props.gasConnection) {
+        loadDefaultValues();
+    }
+
+    // Check if draft exists on mount
+    checkDraftExists();
 });
 
 // Watch address fields and update formData
@@ -570,6 +655,13 @@ const handleSaveDraft = () => {
         formData.value.address.street = addressStreet.value;
     }
     saveDraft();
+    checkDraftExists();
+    toast.add({
+        severity: 'success',
+        summary: 'Szkic zapisany',
+        detail: 'Zmiany zostały zapisane i będą dostępne podczas ponownego otwarcia formularza.',
+        life: 3000
+    });
 };
 </script>
 
@@ -583,8 +675,12 @@ const handleSaveDraft = () => {
                     <p class="text-sm text-gray-600 dark:text-gray-400">Zarządzanie instalacjami gazowymi • Nowe
                         zlecenie</p>
                 </div>
-                <SecondaryButton type="button" @click="handleSaveDraft" text="Zapisz szkic" icon="pi pi-download"
-                    iconPos="left" iconSize="sm" title="Zapisz szkic formularza" />
+                <div class="flex items-center gap-2">
+                    <SecondaryButton type="button" @click="handleSaveDraft" text="Zapisz szkic" icon="pi pi-download"
+                        iconPos="left" iconSize="sm" title="Zapisz szkic formularza" />
+                    <Button type="button" icon="pi pi-trash" severity="danger" :disabled="!hasDraft" variant="outlined"
+                        @click="handleDeleteDraft" title="Usuń zapisany szkic" />
+                </div>
             </div>
 
             <!-- Form -->
@@ -592,11 +688,15 @@ const handleSaveDraft = () => {
                 <!-- Zleceniodawca -->
                 <div
                     class="bg-surface-50 dark:bg-surface-900 border  border-surface-200 dark:border-surface-700 rounded-xl p-6">
-                    <h2
-                        class="text-lg font-semibold text-surface-700 dark:text-surface-300 mb-4 flex items-center gap-2">
-                        <UserIcon class="w-5 h-5 text-primary-400" />
-                        Zleceniodawca
-                    </h2>
+                    <div class="flex items-center justify-between mb-4">
+                        <h2
+                            class="text-lg font-semibold text-surface-700 dark:text-surface-300 flex items-center gap-2">
+                            <UserIcon class="w-5 h-5 text-primary-400" />
+                            Zleceniodawca
+                        </h2>
+                        <SecondaryButton type="button" @click="handleOpenSettings('customer')" icon="pi pi-cog"
+                            title="Ustawienia domyślne" />
+                    </div>
                     <div class="grid grid-cols-1 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-surface-700 dark:text-surface-0 mb-2">
@@ -628,10 +728,14 @@ const handleSaveDraft = () => {
                 <!-- Klient i Lokalizacja -->
                 <div
                     class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                        <MapPinIcon class="w-5 h-5 text-primary-400" />
-                        Klient i Lokalizacja
-                    </h2>
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                            <MapPinIcon class="w-5 h-5 text-primary-400" />
+                            Klient i Lokalizacja
+                        </h2>
+                        <SecondaryButton type="button" @click="handleOpenSettings('endCustomer')" icon="pi pi-cog"
+                            title="Ustawienia domyślne" />
+                    </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -663,7 +767,7 @@ const handleSaveDraft = () => {
                             <InputText v-model="addressCommune" :class="{ 'border-red-500': errors.addressCommune }"
                                 class="w-full bg-white dark:bg-gray-800 border border-surface-200 dark:border-surface-700 text-gray-900 dark:text-white" />
                             <p v-if="errors.addressCommune" class="text-red-500 text-sm mt-1">{{ errors.addressCommune
-                            }}</p>
+                                }}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -717,7 +821,7 @@ const handleSaveDraft = () => {
                             <DatePicker v-model="formData.finishDeadline" dateFormat="mm/dd/yy"
                                 :class="{ 'border-red-500': errors.finishDeadline }" class="w-full" showIcon />
                             <p v-if="errors.finishDeadline" class="text-red-500 text-sm mt-1">{{ errors.finishDeadline
-                            }}</p>
+                                }}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -744,7 +848,7 @@ const handleSaveDraft = () => {
                                 :class="{ 'border-red-500': errors.wsgFinalPickupDate }" class="w-full" showIcon />
                             <p v-if="errors.wsgFinalPickupDate" class="text-red-500 text-sm mt-1">{{
                                 errors.wsgFinalPickupDate
-                                }}</p>
+                            }}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -760,7 +864,7 @@ const handleSaveDraft = () => {
                             <DatePicker v-model="formData.projectDeadline" dateFormat="mm/dd/yy"
                                 :class="{ 'border-red-500': errors.projectDeadline }" class="w-full" showIcon />
                             <p v-if="errors.projectDeadline" class="text-red-500 text-sm mt-1">{{ errors.projectDeadline
-                            }}</p>
+                                }}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Umowa
@@ -788,10 +892,14 @@ const handleSaveDraft = () => {
                     <!-- Finanse -->
                     <div
                         class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-6">
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                            <CurrencyDollarIcon class="w-5 h-5 text-primary-400" />
-                            Finanse
-                        </h2>
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                                <CurrencyDollarIcon class="w-5 h-5 text-primary-400" />
+                                Finanse
+                            </h2>
+                            <SecondaryButton type="button" @click="handleOpenSettings('finance')" icon="pi pi-cog"
+                                title="Ustawienia domyślne" />
+                        </div>
                         <div class="grid grid-cols-1 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -814,7 +922,7 @@ const handleSaveDraft = () => {
                                     <span class="text-gray-600 dark:text-gray-400">PLN</span>
                                 </div>
                                 <p v-if="errors.projectValue" class="text-red-500 text-sm mt-1">{{ errors.projectValue
-                                    }}
+                                }}
                                 </p>
                             </div>
                             <div>
@@ -837,7 +945,7 @@ const handleSaveDraft = () => {
                                     <Select v-model="formData.gasDistribution"
                                         :options="gasDistributionsStore.activeGasDistributions"
                                         placeholder="Wybierz jednostkę..." class="flex-1" optionLabel="name"
-                                        :filter="true" filterPlaceholder="Szukaj jednostki..."
+                                        :filter="true" filterPlaceholder="Szukaj jednostki..." :showClear="true"
                                         :class="{ 'border-red-500': errors.gasDistribution }" />
                                     <PrimaryButton type="button" @click="handleNewGasDistribution"
                                         title="Dodaj nową jednostkę zlecającą">
@@ -853,10 +961,14 @@ const handleSaveDraft = () => {
                     <!-- Zespół Projektowy -->
                     <div
                         class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-6">
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                            <UserGroupIcon class="w-5 h-5 text-primary-400" />
-                            Zespół Projektowy
-                        </h2>
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                                <UserGroupIcon class="w-5 h-5 text-primary-400" />
+                                Zespół Projektowy
+                            </h2>
+                            <SecondaryButton type="button" @click="handleOpenSettings('team')" icon="pi pi-cog"
+                                title="Ustawienia domyślne" />
+                        </div>
                         <div class="grid grid-cols-1 gap-4">
                             <div>
                                 <label
@@ -925,8 +1037,7 @@ const handleSaveDraft = () => {
                                         (PGN)</label>
                                 </div>
                                 <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Zaznacz jeśli zlecenie wymaga
-                                    specjalnego
-                                    nadzoru.
+                                    prac gazoniebezpiecznych.
                                 </p>
                             </div>
                             <div>
@@ -971,5 +1082,13 @@ const handleSaveDraft = () => {
             @coordinator-added="handleCoordinatorProjectAdded" />
         <GasDistributionFormDialog v-if="showGasDistributionFormDialog" @close="showGasDistributionFormDialog = false"
             @gas-distribution-added="handleGasDistributionAdded" />
+        <DefaultSettingsDialog v-if="showDefaultSettingsDialog" :section-name="currentSettingsSection" :title="currentSettingsSection === 'customer'
+            ? 'Ustawienia domyślne - Zleceniodawca'
+            : currentSettingsSection === 'endCustomer'
+                ? 'Ustawienia domyślne - Klient'
+                : currentSettingsSection === 'finance'
+                    ? 'Ustawienia domyślne - Finanse'
+                    : 'Ustawienia domyślne - Zespół Projektowy'
+            " @close="showDefaultSettingsDialog = false" @saved="handleSettingsSaved" />
     </div>
 </template>

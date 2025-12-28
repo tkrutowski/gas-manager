@@ -66,9 +66,7 @@ function generateMockGasDistributions(): GasDistribution[] {
   let id = 1;
 
   for (const name of names) {
-    const distributionNumber = Math.random() > 0.3 
-      ? `RD-${String(id).padStart(3, '0')}` 
-      : undefined;
+    const distributionNumber = Math.random() > 0.3 ? `RD-${String(id).padStart(3, '0')}` : undefined;
     const representative = representatives[Math.floor(Math.random() * representatives.length)] || undefined;
     const info = infoOptions[Math.floor(Math.random() * infoOptions.length)] || undefined;
     const isActive = Math.random() > 0.1; // 90% aktywnych
@@ -144,7 +142,9 @@ export const useGasDistributionsStore = defineStore('gasDistributions', () => {
   /**
    * Dodaje nową jednostkę zlecającą
    */
-  function addGasDistribution(gasDistribution: Omit<GasDistribution, 'id' | 'createdAt' | 'updatedAt'>): GasDistribution {
+  function addGasDistribution(
+    gasDistribution: Omit<GasDistribution, 'id' | 'createdAt' | 'updatedAt'>
+  ): GasDistribution {
     loading.value = true;
     error.value = null;
 
@@ -170,7 +170,10 @@ export const useGasDistributionsStore = defineStore('gasDistributions', () => {
   /**
    * Aktualizuje istniejącą jednostkę zlecającą
    */
-  function updateGasDistribution(id: number, updates: Partial<Omit<GasDistribution, 'id' | 'createdAt'>>): GasDistribution | null {
+  function updateGasDistribution(
+    id: number,
+    updates: Partial<Omit<GasDistribution, 'id' | 'createdAt'>>
+  ): GasDistribution | null {
     loading.value = true;
     error.value = null;
 
@@ -264,4 +267,3 @@ export const useGasDistributionsStore = defineStore('gasDistributions', () => {
     searchGasDistributions,
   };
 });
-

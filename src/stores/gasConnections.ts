@@ -351,7 +351,10 @@ function generateMockGasConnections(): GasConnection[] {
         contractDate: phase !== Phase.NONE ? randomPastDate(250) : undefined,
         conditionNo: phase !== Phase.NONE ? `WAR/${new Date().getFullYear()}/${String(id - 1).padStart(3, '0')}` : '',
         conditionDate: phase !== Phase.NONE ? randomPastDate(240) : undefined,
-        gasDistribution: gasDistributions.length > 0 ? gasDistributions[Math.floor(Math.random() * gasDistributions.length)] : undefined,
+        gasDistribution:
+          gasDistributions.length > 0
+            ? gasDistributions[Math.floor(Math.random() * gasDistributions.length)]
+            : undefined,
         connectionAgreementNumber:
           phase !== Phase.NONE ? `UM/${new Date().getFullYear()}/${String(id - 1).padStart(3, '0')}` : '',
         sapUpNo: phase !== Phase.NONE ? `SAP-${String(id - 1).padStart(5, '0')}` : '',
