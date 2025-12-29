@@ -5,24 +5,26 @@ import PickList from 'primevue/picklist';
 import Button from 'primevue/button';
 import Select from 'primevue/select';
 import SecondaryButton from '@/components/SecondaryButton.vue';
-import type { GasConnectionTableColumnConfig } from '@/types/Settings';
+import type { GasConnectionTableColumnConfig, GasConnectionTableFilter } from '@/types/Settings';
 
 const props = defineProps<{
     visible: boolean;
     columns: GasConnectionTableColumnConfig[];
     defaultSortField?: string;
     defaultSortOrder?: number;
+    defaultFilter?: GasConnectionTableFilter;
 }>();
 
 const emit = defineEmits<{
     'update:visible': [value: boolean];
-    saved: [columns: GasConnectionTableColumnConfig[], defaultSortField?: string, defaultSortOrder?: number];
+    saved: [columns: GasConnectionTableColumnConfig[], defaultSortField?: string, defaultSortOrder?: number, defaultFilter?: GasConnectionTableFilter];
     close: [];
 }>();
 
 const pickListColumns = ref<[GasConnectionTableColumnConfig[], GasConnectionTableColumnConfig[]]>([[], []]);
 const selectedSortField = ref<string | null>(null);
 const selectedSortOrder = ref<number | null>(null);
+const selectedFilter = ref<GasConnectionTableFilter>('all');
 
 // Sortowalne kolumny (tylko te z sortable !== false)
 const sortableColumns = computed(() => {
@@ -34,6 +36,16 @@ const sortOrderOptions = [
     { label: 'Brak', value: null },
     { label: 'Rosnąco', value: 1 },
     { label: 'Malejąco', value: -1 },
+];
+
+// Opcje filtru
+const filterOptions = [
+    { label: 'Wszystkie', value: 'all' as GasConnectionTableFilter },
+    { label: 'Zrealizowane', value: 'finished' as GasConnectionTableFilter },
+    { label: 'Niezrealizowane', value: 'unfinished' as GasConnectionTableFilter },
+    { label: 'Niezrealizowane - odbiór techniczny', value: 'unfinished-technical' as GasConnectionTableFilter },
+    { label: 'Niezrealizowane - odbiór końcowy', value: 'unfinished-final' as GasConnectionTableFilter },
+    { label: 'Przeterminowane', value: 'overdue' as GasConnectionTableFilter },
 ];
 
 // Inicjalizacja danych dla PickList
@@ -63,14 +75,17 @@ watch(() => props.visible, (newValue) => {
         // Inicjalizuj sortowanie
         selectedSortField.value = props.defaultSortField || null;
         selectedSortOrder.value = props.defaultSortOrder ?? null;
+        // Inicjalizuj filtr
+        selectedFilter.value = props.defaultFilter || 'all';
     }
 }, { immediate: true });
 
-// Watch na props sortowania
-watch([() => props.defaultSortField, () => props.defaultSortOrder], ([field, order]) => {
+// Watch na props sortowania i filtru
+watch([() => props.defaultSortField, () => props.defaultSortOrder, () => props.defaultFilter], ([field, order, filter]) => {
     if (props.visible) {
         selectedSortField.value = field || null;
         selectedSortOrder.value = order ?? null;
+        selectedFilter.value = filter || 'all';
     }
 });
 
@@ -117,10 +132,11 @@ const handleSave = () => {
         }
     });
 
-    // Emitujemy zaktualizowane kolumny i sortowanie
+    // Emitujemy zaktualizowane kolumny, sortowanie i filtr
     const sortField = selectedSortField.value || undefined;
     const sortOrder = selectedSortOrder.value ?? undefined;
-    emit('saved', updatedColumns, sortField, sortOrder);
+    const filter = selectedFilter.value;
+    emit('saved', updatedColumns, sortField, sortOrder, filter);
     emit('update:visible', false);
 };
 
@@ -174,6 +190,18 @@ const handleCancel = () => {
                         optionValue="value" placeholder="Wybierz kierunek..." :showClear="false" class="w-full"
                         :disabled="!selectedSortField" />
                 </div>
+            </div>
+        </div>
+
+        <!-- Domyślny filtr -->
+        <div class="mb-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+            <h3 class="text-lg font-semibold text-surface-700 dark:text-surface-300 mb-4">Domyślny filtr</h3>
+            <div>
+                <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                    Filtr
+                </label>
+                <Select v-model="selectedFilter" :options="filterOptions" optionLabel="label" optionValue="value"
+                    class="w-full" />
             </div>
         </div>
 

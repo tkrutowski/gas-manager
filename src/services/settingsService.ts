@@ -1,8 +1,4 @@
-import type {
-  AppDefaultSettings,
-  SettingsStorage,
-  GasConnectionTableSettings,
-} from '@/types/Settings';
+import type { AppDefaultSettings, SettingsStorage, GasConnectionTableSettings } from '@/types/Settings';
 
 const SETTINGS_STORAGE_KEY = 'appDefaultSettings';
 
@@ -147,11 +143,13 @@ class SettingsService {
   }
 
   /**
-   * Aktualizuje pełne ustawienia tabeli (kolumny + sortowanie)
+   * Aktualizuje pełne ustawienia tabeli (kolumny + sortowanie + filtr)
    */
   updateTableSettings(
     moduleName: string,
-    settings: Partial<Pick<GasConnectionTableSettings, 'columns' | 'defaultSortField' | 'defaultSortOrder'>>
+    settings: Partial<
+      Pick<GasConnectionTableSettings, 'columns' | 'defaultSortField' | 'defaultSortOrder' | 'defaultFilter'>
+    >
   ): void {
     const currentSettings = this.getTableSettings(moduleName);
 
@@ -164,6 +162,7 @@ class SettingsService {
         columns: settings.columns || [],
         defaultSortField: settings.defaultSortField,
         defaultSortOrder: settings.defaultSortOrder,
+        defaultFilter: settings.defaultFilter,
       };
       this.saveTableSettings(newSettings);
       return;
@@ -178,6 +177,9 @@ class SettingsService {
     }
     if (settings.defaultSortOrder !== undefined) {
       currentSettings.defaultSortOrder = settings.defaultSortOrder;
+    }
+    if (settings.defaultFilter !== undefined) {
+      currentSettings.defaultFilter = settings.defaultFilter;
     }
     this.saveTableSettings(currentSettings);
   }

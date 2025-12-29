@@ -50,6 +50,17 @@ export interface GasConnectionTableColumnConfig {
 }
 
 /**
+ * Typ dla domyślnego filtru tabeli
+ */
+export type GasConnectionTableFilter =
+  | 'all'
+  | 'finished'
+  | 'unfinished'
+  | 'unfinished-technical'
+  | 'unfinished-final'
+  | 'overdue';
+
+/**
  * Ustawienia tabeli dla modułu GasConnection
  */
 export interface GasConnectionTableSettings extends ModuleSettings {
@@ -57,6 +68,7 @@ export interface GasConnectionTableSettings extends ModuleSettings {
   columns: GasConnectionTableColumnConfig[];
   defaultSortField?: string; // pole kolumny do domyślnego sortowania
   defaultSortOrder?: number; // kierunek sortowania (1 = rosnąco, -1 = malejąco)
+  defaultFilter?: GasConnectionTableFilter; // domyślny filtr tabeli
 }
 
 /**

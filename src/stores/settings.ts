@@ -252,7 +252,8 @@ export const useSettingsStore = defineStore('settings', () => {
   function saveGasConnectionTableSettings(
     columns: GasConnectionTableColumnConfig[],
     defaultSortField?: string,
-    defaultSortOrder?: number
+    defaultSortOrder?: number,
+    defaultFilter?: import('@/types/Settings').GasConnectionTableFilter
   ): void {
     loading.value = true;
     error.value = null;
@@ -262,6 +263,7 @@ export const useSettingsStore = defineStore('settings', () => {
         columns,
         defaultSortField,
         defaultSortOrder,
+        defaultFilter,
       });
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Błąd podczas zapisywania ustawień tabeli';

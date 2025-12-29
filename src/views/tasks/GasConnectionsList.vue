@@ -12,13 +12,19 @@ import InputText from 'primevue/inputtext';
 import InputNumber from 'primevue/inputnumber';
 import DatePicker from 'primevue/datepicker';
 import Select from 'primevue/select';
+import SplitButton from 'primevue/splitbutton';
 import ConfirmPopup from 'primevue/confirmpopup';
 import { useConfirm } from 'primevue/useconfirm';
 import { useGasConnectionsStore } from '@/stores/gasConnections';
 import { useSettingsStore } from '@/stores/settings';
+import { useDesignersStore } from '@/stores/designers';
+import { useCoordinatorsStore } from '@/stores/coordinators';
+import { useGasDistributionsStore } from '@/stores/gasDistributions';
 import { settingsService } from '@/services/settingsService';
 import type { GasConnection } from '@/types/GasConnection';
-import type { GasConnectionTableColumnConfig } from '@/types/Settings';
+import { Phase } from '@/types/GasConnection';
+import type { Customer } from '@/types/Customer';
+import type { GasConnectionTableColumnConfig, GasConnectionTableFilter } from '@/types/Settings';
 import { getDefaultTableColumns } from '@/utils/gasConnectionTableColumns';
 import {
     formatDate,
@@ -32,12 +38,19 @@ import {
 
 const gasConnectionsStore = useGasConnectionsStore();
 const settingsStore = useSettingsStore();
+const designersStore = useDesignersStore();
+const coordinatorsStore = useCoordinatorsStore();
+const gasDistributionsStore = useGasDistributionsStore();
 const confirm = useConfirm();
 
 // Dane
 const gasConnections = ref<GasConnection[]>([]);
 const loading = ref(false);
 const selectedRow = ref<GasConnection | null>(null);
+
+// Filtr tabeli
+const selectedFilter = ref<GasConnectionTableFilter>('all');
+const defaultFilter = ref<GasConnectionTableFilter | undefined>(undefined);
 
 // Konfiguracja kolumn
 const allColumns = ref<GasConnectionTableColumnConfig[]>([]);
@@ -85,75 +98,8 @@ const customSortFunction = (field: string) => {
     };
 };
 
-// Custom filter function dla kolumn z "Imię Nazwisko"
-const customFilterFunction = (field: string) => {
-    return (_value: any, filter: any) => {
-        if (!filter || !filter.value) return true;
-        const filterValue = String(filter.value).toLowerCase();
-        return (value: GasConnection) => {
-            const cellValue = formatCellValue(value, { field } as GasConnectionTableColumnConfig).toLowerCase();
-            if (filter.matchMode === 'contains') {
-                return cellValue.includes(filterValue);
-            } else if (filter.matchMode === 'startsWith') {
-                return cellValue.startsWith(filterValue);
-            } else if (filter.matchMode === 'endsWith') {
-                return cellValue.endsWith(filterValue);
-            } else if (filter.matchMode === 'equals') {
-                return cellValue === filterValue;
-            }
-            return true;
-        };
-    };
-};
-
-// Custom filter function dla boolean
-const booleanFilterFunction = (field: string) => {
-    return (_value: any, filter: any) => {
-        if (filter.value === null || filter.value === undefined) return true;
-        return (value: GasConnection) => {
-            const boolValue = getNestedValue(value, field);
-            if (filter.matchMode === 'equals') {
-                return boolValue === filter.value;
-            }
-            return true;
-        };
-    };
-};
-
-// Custom filter function dla dat
-const dateFilterFunction = (field: string) => {
-    return (_value: any, filter: any) => {
-        if (!filter || !filter.value) return true;
-        const filterDate = new Date(filter.value);
-        if (isNaN(filterDate.getTime())) return true;
-
-        return (value: GasConnection) => {
-            const dateValue = getNestedValue(value, field);
-            if (!dateValue) return false;
-
-            const rowDate = new Date(dateValue);
-            if (isNaN(rowDate.getTime())) return false;
-
-            // Porównujemy tylko daty (bez czasu)
-            const filterDateOnly = new Date(filterDate.getFullYear(), filterDate.getMonth(), filterDate.getDate());
-            const rowDateOnly = new Date(rowDate.getFullYear(), rowDate.getMonth(), rowDate.getDate());
-
-            if (filter.matchMode === 'dateIs') {
-                return filterDateOnly.getTime() === rowDateOnly.getTime();
-            } else if (filter.matchMode === 'dateIsNot') {
-                return filterDateOnly.getTime() !== rowDateOnly.getTime();
-            } else if (filter.matchMode === 'dateBefore') {
-                return rowDateOnly < filterDateOnly;
-            } else if (filter.matchMode === 'dateAfter') {
-                return rowDateOnly > filterDateOnly;
-            }
-            return true;
-        };
-    };
-};
-
 // Funkcja do określenia typu filtru na podstawie pola
-const getFilterType = (field: string): 'text' | 'date' | 'numeric' | 'boolean' => {
+const getFilterType = (field: string): 'text' | 'date' | 'numeric' | 'boolean' | 'multiselect' => {
     const dateFields = [
         'contractDate',
         'conditionDate',
@@ -340,21 +286,87 @@ const formatCellValue = (rowData: GasConnection, column: GasConnectionTableColum
     return String(value);
 };
 
+// Menu dla SplitButton "Niezrealizowane"
+const unfinishedMenuItems = [
+    {
+        label: 'Odbiór techniczny',
+        command: () => {
+            selectedFilter.value = 'unfinished-technical';
+        }
+    },
+    {
+        label: 'Odbiór końcowy',
+        command: () => {
+            selectedFilter.value = 'unfinished-final';
+        }
+    }
+];
+
+// Funkcja do obsługi kliknięcia przycisku filtru
+const handleFilterClick = (filter: GasConnectionTableFilter) => {
+    selectedFilter.value = filter;
+};
+
+// Funkcja pomocnicza do porównywania dat (tylko data, bez czasu)
+const compareDatesOnly = (date1: Date | undefined, date2: Date): boolean => {
+    if (!date1) return false;
+    const d1 = new Date(date1);
+    d1.setHours(0, 0, 0, 0);
+    const d2 = new Date(date2);
+    d2.setHours(0, 0, 0, 0);
+    return d1 < d2;
+};
+
+// Filtrowane połączenia gazowe
+const filteredGasConnections = computed(() => {
+    let filtered = [...gasConnections.value];
+
+    switch (selectedFilter.value) {
+        case 'finished':
+            filtered = filtered.filter(gc => gc.isFinished === true);
+            break;
+        case 'unfinished':
+            filtered = filtered.filter(gc => gc.isFinished === false);
+            break;
+        case 'unfinished-technical':
+            filtered = filtered.filter(gc =>
+                gc.isFinished === false &&
+                gc.gasConnectionBuild?.wsgTechnicalAcceptanceDate !== undefined &&
+                gc.gasConnectionBuild?.wsgFinalAcceptanceDate === undefined
+            );
+            break;
+        case 'unfinished-final':
+            filtered = filtered.filter(gc =>
+                gc.isFinished === false &&
+                gc.gasConnectionBuild?.wsgFinalAcceptanceSubmissionDate !== undefined
+            );
+            break;
+        case 'overdue':
+            const today = new Date();
+            filtered = filtered.filter(gc => {
+                // Użycie bracket notation, ponieważ w typie jest błąd w nazwie pola
+                const finishDeadline = (gc as any).finishDeadline as Date | undefined;
+                return (
+                    gc.isFinished === false &&
+                    finishDeadline !== undefined &&
+                    compareDatesOnly(finishDeadline, today)
+                );
+            });
+            break;
+        case 'all':
+        default:
+            // Wszystkie - bez filtrowania
+            break;
+    }
+
+    return filtered;
+});
+
 // Sortowane kolumny (widoczne, posortowane po order)
 const sortedColumns = computed(() => {
     return [...allColumns.value]
         .filter(col => col.visible)
         .sort((a, b) => a.order - b.order);
-});
-
-// Kolumny przypięte
-const frozenColumns = computed(() => {
-    return sortedColumns.value.filter(col => col.frozen);
-});
-
-// Kolumny nieprzypięte
-const unfrozenColumns = computed(() => {
-    return sortedColumns.value.filter(col => !col.frozen);
 });
 
 // Obsługa zmiany widoczności kolumn
@@ -424,6 +436,8 @@ const resetColumnConfig = (event: Event) => {
             selectedColumns.value = allColumns.value.filter(col => col.visible);
             defaultSortField.value = undefined;
             defaultSortOrder.value = undefined;
+            defaultFilter.value = undefined;
+            selectedFilter.value = 'all';
             saveColumnConfig();
         }
     });
@@ -434,7 +448,8 @@ const saveColumnConfig = () => {
     settingsStore.saveGasConnectionTableSettings(
         allColumns.value,
         defaultSortField.value,
-        defaultSortOrder.value
+        defaultSortOrder.value,
+        selectedFilter.value
     );
 };
 
@@ -447,7 +462,8 @@ const handleOpenColumnSettings = () => {
 const handleColumnSettingsSaved = (
     updatedColumns: GasConnectionTableColumnConfig[],
     sortField?: string,
-    sortOrder?: number
+    sortOrder?: number,
+    filter?: GasConnectionTableFilter
 ) => {
     // Aktualizujemy allColumns
     allColumns.value = updatedColumns;
@@ -458,6 +474,12 @@ const handleColumnSettingsSaved = (
     // Aktualizujemy sortowanie
     defaultSortField.value = sortField;
     defaultSortOrder.value = sortOrder;
+
+    // Aktualizujemy filtr jeśli został zmieniony
+    if (filter !== undefined) {
+        defaultFilter.value = filter;
+        selectedFilter.value = filter;
+    }
 
     // Zapisujemy konfigurację
     saveColumnConfig();
@@ -474,12 +496,17 @@ const loadColumnConfig = () => {
             // Ładujemy sortowanie
             defaultSortField.value = saved.defaultSortField;
             defaultSortOrder.value = saved.defaultSortOrder;
+            // Ładujemy filtr
+            defaultFilter.value = saved.defaultFilter;
+            selectedFilter.value = saved.defaultFilter || 'all';
         } else {
             // Domyślna konfiguracja
             allColumns.value = getDefaultTableColumns();
             selectedColumns.value = allColumns.value.filter(col => col.visible);
             defaultSortField.value = undefined;
             defaultSortOrder.value = undefined;
+            defaultFilter.value = undefined;
+            selectedFilter.value = 'all';
             saveColumnConfig();
         }
     } catch (error) {
@@ -489,6 +516,8 @@ const loadColumnConfig = () => {
         selectedColumns.value = allColumns.value.filter(col => col.visible);
         defaultSortField.value = undefined;
         defaultSortOrder.value = undefined;
+        defaultFilter.value = undefined;
+        selectedFilter.value = 'all';
         saveColumnConfig();
     }
 };
@@ -512,6 +541,14 @@ watch(
         initializeFilters();
     },
     { deep: true }
+);
+
+// Watch na zmiany filtru - zapisujemy do ustawień
+watch(
+    () => selectedFilter.value,
+    () => {
+        saveColumnConfig();
+    }
 );
 </script>
 
@@ -537,6 +574,21 @@ watch(
                             <MultiSelect v-model="selectedColumns" :options="allColumns" optionLabel="header"
                                 placeholder="Wybierz kolumny" display="chip" class="w-80" :filter="true"
                                 filterPlaceholder="Szukaj kolumn..." @update:modelValue="onColumnToggle" />
+                            <div class="flex items-center gap-2 ml-8">
+                                <Button label="Wszystkie" :outlined="selectedFilter !== 'all'"
+                                    :severity="selectedFilter === 'all' ? undefined : 'secondary'"
+                                    @click="handleFilterClick('all')" />
+                                <Button label="Zrealizowane" :outlined="selectedFilter !== 'finished'"
+                                    :severity="selectedFilter === 'finished' ? undefined : 'secondary'"
+                                    @click="handleFilterClick('finished')" />
+                                <SplitButton label="Niezrealizowane"
+                                    :outlined="selectedFilter !== 'unfinished' && selectedFilter !== 'unfinished-technical' && selectedFilter !== 'unfinished-final'"
+                                    :severity="(selectedFilter === 'unfinished' || selectedFilter === 'unfinished-technical' || selectedFilter === 'unfinished-final') ? undefined : 'secondary'"
+                                    :model="unfinishedMenuItems" @click="handleFilterClick('unfinished')" />
+                                <Button label="Przeterminowane" :outlined="selectedFilter !== 'overdue'"
+                                    :severity="selectedFilter === 'overdue' ? undefined : 'secondary'"
+                                    @click="handleFilterClick('overdue')" />
+                            </div>
                         </div>
                         <div class="flex items-center gap-2">
                             <SecondaryButton type="button" icon="pi pi-cog" @click="handleOpenColumnSettings"
@@ -547,9 +599,9 @@ watch(
                     </div>
 
                     <!-- DataTable -->
-                    <DataTable :value="gasConnections" :loading="loading" :reorderableColumns="true"
+                    <DataTable :value="filteredGasConnections" :loading="loading" :reorderableColumns="true"
                         @columnReorder="onColumnReorder" :scrollable="true" scrollHeight="calc(100vh - 300px)"
-                        v-model:filters="filters" filterDisplay="row" stripedRows showGridlines class="p-datatable-sm"
+                        v-model:filters="filters" filterDisplay="menu" stripedRows showGridlines class="p-datatable-sm"
                         v-model:selection="selectedRow" selectionMode="single" rowHover :sortField="defaultSortField"
                         :sortOrder="defaultSortOrder" :pt="{
                             root: { class: 'bg-surface-0 dark:bg-surface-900' },
@@ -667,7 +719,7 @@ watch(
 
         <!-- Dialog ustawień kolumn -->
         <ColumnSettingsDialog :visible="showColumnSettingsDialog" :columns="allColumns"
-            :defaultSortField="defaultSortField" :defaultSortOrder="defaultSortOrder"
+            :defaultSortField="defaultSortField" :defaultSortOrder="defaultSortOrder" :defaultFilter="defaultFilter"
             @update:visible="showColumnSettingsDialog = $event" @saved="handleColumnSettingsSaved" />
     </div>
 </template>
