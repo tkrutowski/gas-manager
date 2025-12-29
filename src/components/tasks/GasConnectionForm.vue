@@ -19,6 +19,7 @@ import CoordinatorFormDialog from '@/components/tasks/CoordinatorFormDialog.vue'
 import GasDistributionFormDialog from '@/components/tasks/GasDistributionFormDialog.vue';
 import DefaultSettingsDialog from '@/components/tasks/DefaultSettingsDialog.vue';
 import PrimaryButton from '@/components/PrimaryButton.vue';
+import SecondaryButton from '@/components/SecondaryButton.vue';
 import Button from 'primevue/button';
 import {
     UserIcon,
@@ -358,25 +359,18 @@ const handleSettingsSaved = () => {
 
 // Initialize form
 onMounted(() => {
+    // Initialize suggestions
+    customerSuggestions.value = customersStore.getAllCustomers({ status: true });
+    endCustomerSuggestions.value = customersStore.getAllCustomers({ status: true });
+    designerSuggestions.value = designersStore.getAllDesigners({ status: true });
+    coordinatorSuggestions.value = coordinatorsStore.getAllCoordinators({ status: true });
+    coordinatorProjectSuggestions.value = coordinatorsStore.getAllCoordinators({ status: true });
+
+    // Load gas distributions
+    gasDistributionsStore.getAllGasDistributions({ isActive: true });
+
     if (props.gasConnection) {
-        formData.value = { ...props.gasConnection };
-        if (formData.value.address) {
-            addressCommune.value = formData.value.address.commune || '';
-            addressCity.value = formData.value.address.city || '';
-            addressStreet.value = formData.value.address.street || '';
-        }
-        if (formData.value.customer) {
-            customerSearchQuery.value = getCustomerDisplayName(formData.value.customer);
-        }
-        if (formData.value.endCustomer) {
-            endCustomerSearchQuery.value = getCustomerDisplayName(formData.value.endCustomer);
-        }
-        if (formData.value.designer) {
-            designerSearchQuery.value = `${formData.value.designer.name} ${formData.value.designer.lastName}`;
-        }
-        if (formData.value.coordinator) {
-            coordinatorSearchQuery.value = `${formData.value.coordinator.name} ${formData.value.coordinator.lastName}`;
-        }
+        initializeFormData();
     } else {
         loadDraft();
         if (formData.value.address) {
@@ -396,26 +390,27 @@ onMounted(() => {
         if (formData.value.coordinator) {
             coordinatorSearchQuery.value = `${formData.value.coordinator.name} ${formData.value.coordinator.lastName}`;
         }
-    }
-    // Initialize suggestions
-    customerSuggestions.value = customersStore.getAllCustomers({ status: true });
-    endCustomerSuggestions.value = customersStore.getAllCustomers({ status: true });
-    designerSuggestions.value = designersStore.getAllDesigners({ status: true });
-    coordinatorSuggestions.value = coordinatorsStore.getAllCoordinators({ status: true });
-    coordinatorProjectSuggestions.value = coordinatorsStore.getAllCoordinators({ status: true });
-
-    // Load gas distributions
-    gasDistributionsStore.getAllGasDistributions({ isActive: true });
-
-    // Load default values from settings (only for new tasks, not when editing)
-    // Wywołujemy po załadowaniu wszystkich danych, aby mieć dostęp do activeGasDistributions
-    if (!props.gasConnection) {
+        // Load default values from settings (only for new tasks, not when editing)
         loadDefaultValues();
     }
 
     // Check if draft exists on mount
     checkDraftExists();
 });
+
+// Watch for changes in props.gasConnection
+watch(() => props.gasConnection, (newValue) => {
+    if (newValue) {
+        // Ensure stores are loaded
+        customerSuggestions.value = customersStore.getAllCustomers({ status: true });
+        endCustomerSuggestions.value = customersStore.getAllCustomers({ status: true });
+        designerSuggestions.value = designersStore.getAllDesigners({ status: true });
+        coordinatorSuggestions.value = coordinatorsStore.getAllCoordinators({ status: true });
+        gasDistributionsStore.getAllGasDistributions({ isActive: true });
+
+        initializeFormData();
+    }
+}, { deep: true, immediate: false });
 
 // Watch address fields and update formData
 watch([addressCommune, addressCity, addressStreet], () => {
@@ -767,7 +762,7 @@ const handleSaveDraft = () => {
                             <InputText v-model="addressCommune" :class="{ 'border-red-500': errors.addressCommune }"
                                 class="w-full bg-white dark:bg-gray-800 border border-surface-200 dark:border-surface-700 text-gray-900 dark:text-white" />
                             <p v-if="errors.addressCommune" class="text-red-500 text-sm mt-1">{{ errors.addressCommune
-                                }}</p>
+                            }}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -821,7 +816,7 @@ const handleSaveDraft = () => {
                             <DatePicker v-model="formData.finishDeadline" dateFormat="mm/dd/yy"
                                 :class="{ 'border-red-500': errors.finishDeadline }" class="w-full" showIcon />
                             <p v-if="errors.finishDeadline" class="text-red-500 text-sm mt-1">{{ errors.finishDeadline
-                                }}</p>
+                            }}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -848,7 +843,7 @@ const handleSaveDraft = () => {
                                 :class="{ 'border-red-500': errors.wsgFinalPickupDate }" class="w-full" showIcon />
                             <p v-if="errors.wsgFinalPickupDate" class="text-red-500 text-sm mt-1">{{
                                 errors.wsgFinalPickupDate
-                            }}</p>
+                                }}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -864,7 +859,7 @@ const handleSaveDraft = () => {
                             <DatePicker v-model="formData.projectDeadline" dateFormat="mm/dd/yy"
                                 :class="{ 'border-red-500': errors.projectDeadline }" class="w-full" showIcon />
                             <p v-if="errors.projectDeadline" class="text-red-500 text-sm mt-1">{{ errors.projectDeadline
-                                }}</p>
+                            }}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Umowa
@@ -922,7 +917,7 @@ const handleSaveDraft = () => {
                                     <span class="text-gray-600 dark:text-gray-400">PLN</span>
                                 </div>
                                 <p v-if="errors.projectValue" class="text-red-500 text-sm mt-1">{{ errors.projectValue
-                                }}
+                                    }}
                                 </p>
                             </div>
                             <div>

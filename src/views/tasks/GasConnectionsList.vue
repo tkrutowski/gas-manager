@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import SidebarMenu from '@/components/tasks/SidebarMenu.vue';
 import SecondaryButton from '@/components/SecondaryButton.vue';
 import ColumnSettingsDialog from '@/components/tasks/ColumnSettingsDialog.vue';
@@ -36,6 +37,7 @@ import {
     getPersonDisplayName,
 } from '@/utils/tableFormatters';
 
+const router = useRouter();
 const gasConnectionsStore = useGasConnectionsStore();
 const settingsStore = useSettingsStore();
 const designersStore = useDesignersStore();
@@ -415,6 +417,72 @@ const toggleFrozen = (column: GasConnectionTableColumnConfig) => {
     saveColumnConfig();
 };
 
+// Obsługa przycisków akcji
+const handleNew = () => {
+    router.push('/tasks/gas-connections/new');
+};
+
+const handleEdit = () => {
+    if (selectedRow.value) {
+        router.push(`/tasks/gas-connections/new?id=${selectedRow.value.id}`);
+    }
+};
+
+const handleDelete = (event: Event) => {
+    if (!selectedRow.value) return;
+
+    confirm.require({
+        target: event.currentTarget as HTMLElement,
+        message: `Czy na pewno chcesz usunąć połączenie gazowe "${selectedRow.value.taskNo}"?`,
+        icon: 'pi pi-exclamation-triangle',
+        rejectProps: {
+            label: 'Anuluj',
+            severity: 'secondary',
+            outlined: true
+        },
+        acceptProps: {
+            label: 'Usuń',
+            severity: 'danger'
+        },
+        accept: () => {
+            const success = gasConnectionsStore.deleteGasConnection(selectedRow.value!.id);
+            if (success) {
+                // Odświeżenie danych
+                const rawData = gasConnectionsStore.getAllGasConnections();
+                gasConnections.value = rawData.map(conn => ({
+                    ...conn,
+                    _designerId: conn.designer?.id ?? null,
+                    _coordinatorId: conn.coordinator?.id ?? null,
+                    _gasDistributionId: conn.gasDistribution?.id ?? null,
+                    _customerText: getCustomerText(conn.customer) || '',
+                    _endCustomerText: getCustomerText(conn.endCustomer) || '',
+                    _designerTrafficText: (getPersonDisplayName(conn.gasConnectionDesign?.designerTraffic) || '').toLowerCase(),
+                    _gasDistributionText: (conn.gasDistribution?.name || '').toLowerCase(),
+                    _utilityCompanyTypeText: (conn.gasConnectionDesign?.utilityCompanyType?.name || '').toLowerCase(),
+                    _workRangeGasConnectionsText: (formatWorkRangeGasConnections(conn.workRangeGasConnections) || '').toLowerCase(),
+                    _workRangeGasStationsText: (formatWorkRangeGasStations(conn.workRangeGasStations) || '').toLowerCase(),
+                    _workRangeConnectionText: (formatWorkRangeConnection(conn.workRangeConnection) || '').toLowerCase(),
+                    _phaseText: (formatPhase(conn.phase) || '').toLowerCase(),
+                }));
+                // Wyczyszczenie zaznaczenia
+                selectedRow.value = null;
+            }
+        }
+    });
+};
+
+const handleViewDetails = () => {
+    if (selectedRow.value) {
+        router.push(`/tasks/gas-connections/details?id=${selectedRow.value.id}`);
+    }
+};
+
+const handleViewDetailsReadonly = () => {
+    if (selectedRow.value) {
+        router.push(`/tasks/gas-connections/details?id=${selectedRow.value.id}&readonly=true`);
+    }
+};
+
 // Reset konfiguracji do domyślnej
 const resetColumnConfig = (event: Event) => {
     confirm.require({
@@ -561,9 +629,22 @@ watch(
         <!-- Main Content -->
         <div class="flex-1 overflow-y-auto p-6">
             <div class="max-w-full mx-auto">
-                <div class="mb-6">
-                    <h1 class="text-3xl font-bold text-surface-700 dark:text-surface-300 mb-2">Lista Przyłączy Gazu</h1>
-                    <p class="text-sm text-surface-600 dark:text-surface-400">Zarządzanie instalacjami gazowymi</p>
+                <div class="mb-6 flex items-start justify-between gap-4">
+                    <div>
+                        <h1 class="text-3xl font-bold text-surface-700 dark:text-surface-300 mb-2">Lista Przyłączy Gazu
+                        </h1>
+                        <p class="text-sm text-surface-600 dark:text-surface-400">Zarządzanie instalacjami gazowymi</p>
+                    </div>
+                    <!-- Grupa przycisków akcji -->
+                    <div
+                        class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-4">
+                        <div class="flex items-center gap-2">
+                            <Button label="Nowy" icon="pi pi-plus" severity="success" @click="handleNew" />
+                            <Button label="Edycja" icon="pi pi-pencil" :disabled="!selectedRow" @click="handleEdit" />
+                            <Button label="Usuń" icon="pi pi-trash" severity="danger" :disabled="!selectedRow"
+                                @click="handleDelete($event)" />
+                        </div>
+                    </div>
                 </div>
 
                 <div

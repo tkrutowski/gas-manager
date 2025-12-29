@@ -1,11 +1,29 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import SidebarMenu from '@/components/tasks/SidebarMenu.vue';
 import GasConnectionForm from '@/components/tasks/GasConnectionForm.vue';
+import { useGasConnectionsStore } from '@/stores/gasConnections';
 import type { GasConnection } from '@/types/GasConnection';
 
 const router = useRouter();
+const route = useRoute();
+const gasConnectionsStore = useGasConnectionsStore();
+
+const gasConnection = ref<GasConnection | undefined>(undefined);
+
+onMounted(() => {
+    const id = route.query.id;
+    if (id) {
+        const connectionId = typeof id === 'string' ? parseInt(id, 10) : Number(id);
+        if (!isNaN(connectionId)) {
+            const connection = gasConnectionsStore.getGasConnection(connectionId);
+            if (connection) {
+                gasConnection.value = connection;
+            }
+        }
+    }
+});
 
 const handleSubmit = (data: GasConnection) => {
     console.log('Zapisano dane:', data);
@@ -19,14 +37,13 @@ const handleCancel = () => {
 </script>
 
 <template>
-    <div class="flex h-screen bg-[#0a0a0a] overflow-hidden">
+    <div class="flex h-screen bg-surface-50 dark:bg-surface-900 overflow-hidden">
         <!-- Sidebar Menu -->
         <SidebarMenu />
 
         <!-- Main Content -->
         <div class="flex-1 overflow-y-auto">
-            <GasConnectionForm @submit="handleSubmit" @cancel="handleCancel" />
+            <GasConnectionForm :gasConnection="gasConnection" @submit="handleSubmit" @cancel="handleCancel" />
         </div>
     </div>
 </template>
-
