@@ -46,6 +46,10 @@ const selectedColumns = ref<GasConnectionTableColumnConfig[]>([]);
 // Dialog ustawień kolumn
 const showColumnSettingsDialog = ref(false);
 
+// Domyślne sortowanie
+const defaultSortField = ref<string | undefined>(undefined);
+const defaultSortOrder = ref<number | undefined>(undefined);
+
 // Filtry
 const filters = ref<Record<string, any>>({});
 
@@ -418,6 +422,8 @@ const resetColumnConfig = (event: Event) => {
             settingsStore.resetGasConnectionTableSettings();
             allColumns.value = getDefaultTableColumns();
             selectedColumns.value = allColumns.value.filter(col => col.visible);
+            defaultSortField.value = undefined;
+            defaultSortOrder.value = undefined;
             saveColumnConfig();
         }
     });
@@ -425,7 +431,11 @@ const resetColumnConfig = (event: Event) => {
 
 // Zapisywanie konfiguracji
 const saveColumnConfig = () => {
-    settingsStore.saveGasConnectionTableSettings(allColumns.value);
+    settingsStore.saveGasConnectionTableSettings(
+        allColumns.value,
+        defaultSortField.value,
+        defaultSortOrder.value
+    );
 };
 
 // Otwarcie dialogu ustawień
@@ -434,12 +444,20 @@ const handleOpenColumnSettings = () => {
 };
 
 // Obsługa zapisu z dialogu
-const handleColumnSettingsSaved = (updatedColumns: GasConnectionTableColumnConfig[]) => {
+const handleColumnSettingsSaved = (
+    updatedColumns: GasConnectionTableColumnConfig[],
+    sortField?: string,
+    sortOrder?: number
+) => {
     // Aktualizujemy allColumns
     allColumns.value = updatedColumns;
 
     // Aktualizujemy selectedColumns
     selectedColumns.value = updatedColumns.filter(col => col.visible);
+
+    // Aktualizujemy sortowanie
+    defaultSortField.value = sortField;
+    defaultSortOrder.value = sortOrder;
 
     // Zapisujemy konfigurację
     saveColumnConfig();
@@ -453,10 +471,15 @@ const loadColumnConfig = () => {
         if (saved && saved.columns && saved.columns.length > 0) {
             allColumns.value = saved.columns;
             selectedColumns.value = saved.columns.filter(col => col.visible);
+            // Ładujemy sortowanie
+            defaultSortField.value = saved.defaultSortField;
+            defaultSortOrder.value = saved.defaultSortOrder;
         } else {
             // Domyślna konfiguracja
             allColumns.value = getDefaultTableColumns();
             selectedColumns.value = allColumns.value.filter(col => col.visible);
+            defaultSortField.value = undefined;
+            defaultSortOrder.value = undefined;
             saveColumnConfig();
         }
     } catch (error) {
@@ -464,6 +487,8 @@ const loadColumnConfig = () => {
         // Domyślna konfiguracja w przypadku błędu
         allColumns.value = getDefaultTableColumns();
         selectedColumns.value = allColumns.value.filter(col => col.visible);
+        defaultSortField.value = undefined;
+        defaultSortOrder.value = undefined;
         saveColumnConfig();
     }
 };
@@ -525,7 +550,8 @@ watch(
                     <DataTable :value="gasConnections" :loading="loading" :reorderableColumns="true"
                         @columnReorder="onColumnReorder" :scrollable="true" scrollHeight="calc(100vh - 300px)"
                         v-model:filters="filters" filterDisplay="row" stripedRows showGridlines class="p-datatable-sm"
-                        v-model:selection="selectedRow" selectionMode="single" rowHover :pt="{
+                        v-model:selection="selectedRow" selectionMode="single" rowHover :sortField="defaultSortField"
+                        :sortOrder="defaultSortOrder" :pt="{
                             root: { class: 'bg-surface-0 dark:bg-surface-900' },
                             header: { class: 'bg-surface-50 dark:bg-surface-900 border-b border-surface-200 dark:border-surface-700' },
                             thead: {
@@ -641,6 +667,7 @@ watch(
 
         <!-- Dialog ustawień kolumn -->
         <ColumnSettingsDialog :visible="showColumnSettingsDialog" :columns="allColumns"
+            :defaultSortField="defaultSortField" :defaultSortOrder="defaultSortOrder"
             @update:visible="showColumnSettingsDialog = $event" @saved="handleColumnSettingsSaved" />
     </div>
 </template>

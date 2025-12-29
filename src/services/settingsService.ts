@@ -1,4 +1,8 @@
-import type { AppDefaultSettings, SettingsStorage, GasConnectionDefaultSettings, GasConnectionTableSettings } from '@/types/Settings';
+import type {
+  AppDefaultSettings,
+  SettingsStorage,
+  GasConnectionTableSettings,
+} from '@/types/Settings';
 
 const SETTINGS_STORAGE_KEY = 'appDefaultSettings';
 
@@ -122,12 +126,9 @@ class SettingsService {
   /**
    * Aktualizuje konfigurację kolumn tabeli
    */
-  updateTableColumnConfig(
-    moduleName: string,
-    columns: GasConnectionTableSettings['columns']
-  ): void {
+  updateTableColumnConfig(moduleName: string, columns: GasConnectionTableSettings['columns']): void {
     const currentSettings = this.getTableSettings(moduleName);
-    
+
     if (!currentSettings) {
       // Tworzymy nowe ustawienia jeśli nie istnieją
       const newSettings: GasConnectionTableSettings = {
@@ -144,7 +145,42 @@ class SettingsService {
     currentSettings.columns = columns;
     this.saveTableSettings(currentSettings);
   }
+
+  /**
+   * Aktualizuje pełne ustawienia tabeli (kolumny + sortowanie)
+   */
+  updateTableSettings(
+    moduleName: string,
+    settings: Partial<Pick<GasConnectionTableSettings, 'columns' | 'defaultSortField' | 'defaultSortOrder'>>
+  ): void {
+    const currentSettings = this.getTableSettings(moduleName);
+
+    if (!currentSettings) {
+      // Tworzymy nowe ustawienia jeśli nie istnieją
+      const newSettings: GasConnectionTableSettings = {
+        moduleName: 'gasConnectionTable',
+        version: '1.0.0',
+        updatedAt: new Date().toISOString(),
+        columns: settings.columns || [],
+        defaultSortField: settings.defaultSortField,
+        defaultSortOrder: settings.defaultSortOrder,
+      };
+      this.saveTableSettings(newSettings);
+      return;
+    }
+
+    // Aktualizujemy istniejące ustawienia
+    if (settings.columns !== undefined) {
+      currentSettings.columns = settings.columns;
+    }
+    if (settings.defaultSortField !== undefined) {
+      currentSettings.defaultSortField = settings.defaultSortField;
+    }
+    if (settings.defaultSortOrder !== undefined) {
+      currentSettings.defaultSortOrder = settings.defaultSortOrder;
+    }
+    this.saveTableSettings(currentSettings);
+  }
 }
 
 export const settingsService = new SettingsService();
-

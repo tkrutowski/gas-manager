@@ -55,6 +55,8 @@ export interface GasConnectionTableColumnConfig {
 export interface GasConnectionTableSettings extends ModuleSettings {
   moduleName: 'gasConnectionTable';
   columns: GasConnectionTableColumnConfig[];
+  defaultSortField?: string; // pole kolumny do domyślnego sortowania
+  defaultSortOrder?: number; // kierunek sortowania (1 = rosnąco, -1 = malejąco)
 }
 
 /**

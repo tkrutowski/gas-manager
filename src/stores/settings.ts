@@ -249,12 +249,20 @@ export const useSettingsStore = defineStore('settings', () => {
   /**
    * Zapisuje konfigurację kolumn tabeli
    */
-  function saveGasConnectionTableSettings(columns: GasConnectionTableColumnConfig[]): void {
+  function saveGasConnectionTableSettings(
+    columns: GasConnectionTableColumnConfig[],
+    defaultSortField?: string,
+    defaultSortOrder?: number
+  ): void {
     loading.value = true;
     error.value = null;
 
     try {
-      settingsService.updateTableColumnConfig('gasConnectionTable', columns);
+      settingsService.updateTableSettings('gasConnectionTable', {
+        columns,
+        defaultSortField,
+        defaultSortOrder,
+      });
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Błąd podczas zapisywania ustawień tabeli';
     } finally {
