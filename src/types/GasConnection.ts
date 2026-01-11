@@ -3,7 +3,7 @@ import { type Designer, type DesignerTraffic } from '@/types/Designer.ts';
 import { type Coordinator } from '@/types/Coordinator.ts';
 import { type Address } from '@/types/Address.ts';
 import { type Surveyor } from '@/types/Surveyor.ts';
-import { type UtilityCompanyType } from '@/types/Commons.ts';
+import { type UtilityCompanyType, MapDeliveredBy } from '@/types/Commons.ts';
 import { type Plot } from '@/types/Plot.ts';
 import { type WorkRangeConnection, type WorkRangeGasConnection, type WorkRangeGasStation } from '@/types/WorkRange.ts';
 import { type TaskType } from '@/types/TaskType.ts';
@@ -56,7 +56,7 @@ export interface GasConnectionDesign {
   proxyReceiptDate: undefined | Date;
   mapSubmissionDate: undefined | Date;
   mapReceiptDate: undefined | Date;
-  mapDeliveredBy: number;
+  mapDeliveredBy: undefined | MapDeliveredBy;
   mapSurveyor: Surveyor | null;
   extractSubmissionDate: undefined | Date;
   extractReceiptDate: undefined | Date;

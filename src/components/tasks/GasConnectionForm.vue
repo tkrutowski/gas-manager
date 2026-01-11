@@ -105,7 +105,7 @@ const formData = ref<Partial<GasConnection>>({
         proxyReceiptDate: undefined,
         mapSubmissionDate: undefined,
         mapReceiptDate: undefined,
-        mapDeliveredBy: 0,
+        mapDeliveredBy: undefined,
         mapSurveyor: null,
         extractSubmissionDate: undefined,
         extractReceiptDate: undefined,
@@ -244,6 +244,91 @@ const getCustomerDisplayName = (customer: Customer | undefined): string => {
         return `${customer.firstName || ''} ${customer.lastName || ''}`.trim();
     }
     return customer.companyName || '';
+};
+
+// Deep clone and convert date strings to Date objects
+const deepCloneWithDateConversion = (obj: any): any => {
+    if (obj === null || obj === undefined) return obj;
+    if (obj instanceof Date) return new Date(obj);
+    if (typeof obj === 'string' && obj.match(/^\d{4}-\d{2}-\d{2}/)) {
+        return new Date(obj);
+    }
+    if (Array.isArray(obj)) {
+        return obj.map(item => deepCloneWithDateConversion(item));
+    }
+    if (typeof obj === 'object') {
+        const cloned: any = {};
+        for (const key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                cloned[key] = deepCloneWithDateConversion(obj[key]);
+            }
+        }
+        return cloned;
+    }
+    return obj;
+};
+
+// Match objects from props with objects from lists (for AutoComplete and Select)
+const matchObjectFromList = <T extends { id: number }>(
+    obj: T | undefined,
+    list: T[]
+): T | undefined => {
+    if (!obj) return undefined;
+    return list.find(item => item.id === obj.id) || obj;
+};
+
+// Initialize form data from gasConnection prop
+const initializeFormData = () => {
+    if (!props.gasConnection) return;
+
+    // Deep clone with date conversion
+    const cloned = deepCloneWithDateConversion(props.gasConnection);
+
+    // Match objects with lists from stores
+    cloned.customer = matchObjectFromList(
+        cloned.customer,
+        customersStore.getAllCustomers({ status: true })
+    );
+    cloned.endCustomer = matchObjectFromList(
+        cloned.endCustomer,
+        customersStore.getAllCustomers({ status: true })
+    );
+    cloned.designer = matchObjectFromList(
+        cloned.designer,
+        designersStore.getAllDesigners({ status: true })
+    );
+    cloned.coordinator = matchObjectFromList(
+        cloned.coordinator,
+        coordinatorsStore.getAllCoordinators({ status: true })
+    );
+    cloned.gasDistribution = matchObjectFromList(
+        cloned.gasDistribution,
+        gasDistributionsStore.activeGasDistributions
+    );
+
+    // Update formData
+    formData.value = { ...formData.value, ...cloned };
+
+    // Update address fields
+    if (formData.value.address) {
+        addressCommune.value = formData.value.address.commune || '';
+        addressCity.value = formData.value.address.city || '';
+        addressStreet.value = formData.value.address.street || '';
+    }
+
+    // Update search queries
+    if (formData.value.customer) {
+        customerSearchQuery.value = getCustomerDisplayName(formData.value.customer);
+    }
+    if (formData.value.endCustomer) {
+        endCustomerSearchQuery.value = getCustomerDisplayName(formData.value.endCustomer);
+    }
+    if (formData.value.designer) {
+        designerSearchQuery.value = `${formData.value.designer.name} ${formData.value.designer.lastName}`;
+    }
+    if (formData.value.coordinator) {
+        coordinatorSearchQuery.value = `${formData.value.coordinator.name} ${formData.value.coordinator.lastName}`;
+    }
 };
 
 // Load draft from localStorage

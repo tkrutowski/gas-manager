@@ -19,6 +19,7 @@ import { useCoordinatorsStore } from './coordinators';
 import { useSurveyorsStore } from './surveyors';
 import { useGasDistributionsStore } from './gasDistributions';
 import type { Address } from '../types/Address';
+import { MapDeliveredBy } from '../types/Commons';
 
 // Funkcja pomocnicza do generowania losowych adresów
 function generateMockAddress(id: number): Address {
@@ -108,6 +109,32 @@ function loadFromLocalStorage(): GasConnection[] | null {
     console.warn('Błąd podczas ładowania połączeń gazowych z localStorage:', err);
     return null;
   }
+}
+
+// Funkcja pomocnicza do walidacji i naprawy wartości mapDeliveredBy
+// Zwraca zaktualizowane dane oraz informację, czy coś zostało zmienione
+function validateMapDeliveredBy(data: GasConnection[]): { data: GasConnection[]; changed: boolean } {
+  let changed = false;
+  const validatedData = data.map(connection => {
+    if (
+      connection.gasConnectionDesign?.mapDeliveredBy !== undefined &&
+      connection.gasConnectionDesign?.mapDeliveredBy !== null
+    ) {
+      const value = connection.gasConnectionDesign.mapDeliveredBy;
+      // Sprawdzamy czy wartość jest zgodna z enum (0, 1, 2)
+      if (value > 2 || value < 0) {
+        console.warn(
+          `Naprawiono nieprawidłową wartość mapDeliveredBy (${value}) dla połączenia ${connection.id}. Ustawiono na undefined.`
+        );
+        if (connection.gasConnectionDesign) {
+          connection.gasConnectionDesign.mapDeliveredBy = undefined;
+          changed = true;
+        }
+      }
+    }
+    return connection;
+  });
+  return { data: validatedData, changed };
 }
 
 // Funkcja pomocnicza do zapisywania danych do localStorage
@@ -273,7 +300,12 @@ function generateMockGasConnections(): GasConnection[] {
         proxyReceiptDate: phase !== Phase.NONE ? randomPastDate(120) : undefined,
         mapSubmissionDate: phase !== Phase.NONE ? randomPastDate(100) : undefined,
         mapReceiptDate: phase !== Phase.NONE ? randomPastDate(80) : undefined,
-        mapDeliveredBy: Math.floor(Math.random() * 100) + 1,
+        mapDeliveredBy:
+          phase !== Phase.NONE && Math.random() > 0.3
+            ? ([MapDeliveredBy.Geodeta, MapDeliveredBy.Klient, MapDeliveredBy.Ośrodek][
+                Math.floor(Math.random() * 3)
+              ] as MapDeliveredBy)
+            : undefined,
         mapSurveyor: mapSurveyor,
         extractSubmissionDate: phase !== Phase.NONE ? randomPastDate(90) : undefined,
         extractReceiptDate: phase !== Phase.NONE ? randomPastDate(70) : undefined,
@@ -367,6 +399,12 @@ function generateMockGasConnections(): GasConnection[] {
         costList: costList,
       };
 
+      // Obliczanie wartości - wartość zadania = wartość projektu + wartość wykonawstwa
+      const projectValue = Math.floor(Math.random() * 100000) + 10000;
+      const constructionValue =
+        phase === Phase.WORK || phase === Phase.FINANSE ? Math.floor(Math.random() * 150000) + 15000 : 0;
+      const taskValue = projectValue + constructionValue;
+
       gasConnections.push({
         id: id++,
         designer: designer,
@@ -392,13 +430,12 @@ function generateMockGasConnections(): GasConnection[] {
           phase !== Phase.NONE ? `UM/${new Date().getFullYear()}/${String(id - 1).padStart(3, '0')}` : '',
         sapUpNo: phase !== Phase.NONE ? `SAP-${String(id - 1).padStart(5, '0')}` : '',
         accelerationDate: Math.random() > 0.7 ? randomFutureDate(30) : undefined,
-        taskValue: Math.floor(Math.random() * 200000) + 20000,
+        taskValue: taskValue,
         finishDeadline: randomFutureDate(180),
         projectDeadline: phase !== Phase.NONE ? randomFutureDate(120) : undefined,
-        projectValue: Math.floor(Math.random() * 100000) + 10000,
+        projectValue: projectValue,
         wsgFinalPickupDate: phase === Phase.FINANSE ? randomPastDate(5) : undefined,
-        constructionValue:
-          phase === Phase.WORK || phase === Phase.FINANSE ? Math.floor(Math.random() * 150000) + 15000 : 0,
+        constructionValue: constructionValue,
         isPGN: Math.random() > 0.5,
         info: Math.random() > 0.5 ? 'Dodatkowe informacje o połączeniu' : '',
         isFinished: phase === Phase.FINANSE,
@@ -419,8 +456,14 @@ export const useGasConnectionsStore = defineStore('gasConnections', () => {
   // Uwaga: generateMockGasConnections() wymaga załadowanych danych z innych store'ów
   // więc jeśli nie ma danych w localStorage, musimy wygenerować nowe
   const loadedData = loadFromLocalStorage();
-  const initialData = loadedData ?? generateMockGasConnections();
+  const validationResult = loadedData ? validateMapDeliveredBy(loadedData) : null;
+  const initialData = validationResult?.data ?? generateMockGasConnections();
   const gasConnections = ref<GasConnection[]>(initialData);
+
+  // Jeśli dane zostały naprawione, zapisz je z powrotem do localStorage
+  if (validationResult?.changed) {
+    saveToLocalStorage(validationResult.data);
+  }
 
   // Zapisanie wygenerowanych danych do localStorage jeśli nie były tam wcześniej
   if (!loadedData) {

@@ -1,4 +1,4 @@
-import type { AppDefaultSettings, SettingsStorage, GasConnectionTableSettings } from '@/types/Settings';
+import type { AppDefaultSettings, SettingsStorage, GasConnectionTableSettings, GasConnectionStageSettings, StageCardConfig } from '@/types/Settings';
 
 const SETTINGS_STORAGE_KEY = 'appDefaultSettings';
 
@@ -182,6 +182,52 @@ class SettingsService {
       currentSettings.defaultFilter = settings.defaultFilter;
     }
     this.saveTableSettings(currentSettings);
+  }
+
+  /**
+   * Pobiera ustawienia etapów dla modułu GasConnection
+   */
+  getStageSettings(): GasConnectionStageSettings | null {
+    return this.getModuleSettings<GasConnectionStageSettings>('gasConnectionStages');
+  }
+
+  /**
+   * Pobiera konfigurację Cardów dla konkretnego etapu
+   */
+  getStageCardConfigs(stageId: string): StageCardConfig[] | null {
+    const stageSettings = this.getStageSettings();
+    if (!stageSettings || !stageSettings.stages) {
+      return null;
+    }
+    return stageSettings.stages[stageId] || null;
+  }
+
+  /**
+   * Zapisuje konfigurację Cardów dla konkretnego etapu
+   */
+  saveStageSettings(stageId: string, cards: StageCardConfig[]): void {
+    const currentSettings = this.getStageSettings();
+
+    if (!currentSettings) {
+      // Tworzymy nowe ustawienia jeśli nie istnieją
+      const newSettings: GasConnectionStageSettings = {
+        moduleName: 'gasConnectionStages',
+        version: '1.0.0',
+        updatedAt: new Date().toISOString(),
+        stages: {
+          [stageId]: cards,
+        },
+      };
+      this.saveModuleSettings(newSettings);
+      return;
+    }
+
+    // Aktualizujemy istniejące ustawienia
+    currentSettings.stages = {
+      ...currentSettings.stages,
+      [stageId]: cards,
+    };
+    this.saveModuleSettings(currentSettings);
   }
 }
 

@@ -68,6 +68,81 @@ const defaultSortOrder = ref<number | undefined>(undefined);
 // Filtry
 const filters = ref<Record<string, any>>({});
 
+// Opcje dla MultiSelect filtrów
+const designerOptions = computed(() => {
+    return designersStore.getAllDesigners({ status: true }).map(designer => ({
+        label: getPersonDisplayName(designer),
+        value: designer.id
+    }));
+});
+
+const coordinatorOptions = computed(() => {
+    return coordinatorsStore.getAllCoordinators({ status: true }).map(coordinator => ({
+        label: getPersonDisplayName(coordinator),
+        value: coordinator.id
+    }));
+});
+
+const gasDistributionOptions = computed(() => {
+    return gasDistributionsStore.getAllGasDistributions({ isActive: true }).map(dist => ({
+        label: dist.name,
+        value: dist.id
+    }));
+});
+
+const phaseOptions = computed(() => {
+    return [
+        { label: 'Brak', value: Phase.NONE },
+        { label: 'Projekt', value: Phase.PROJECT },
+        { label: 'Praca', value: Phase.WORK },
+        { label: 'Finanse', value: Phase.FINANSE },
+    ];
+});
+
+// Funkcja pomocnicza do pobierania opcji MultiSelect dla danego pola
+const getMultiSelectOptions = (field: string) => {
+    if (field === 'designer') {
+        return designerOptions.value;
+    } else if (field === 'coordinator') {
+        return coordinatorOptions.value;
+    } else if (field === 'gasDistribution') {
+        return gasDistributionOptions.value;
+    } else if (field === 'phase') {
+        return phaseOptions.value;
+    }
+    return [];
+};
+
+// Funkcja pomocnicza do formatowania tekstu customera (dla filtrowania)
+const getCustomerText = (customer: Customer | null | undefined): string => {
+    if (!customer) return '';
+    if (customer.customerType === 'person') {
+        return `${customer.firstName || ''} ${customer.lastName || ''}`.trim().toLowerCase();
+    }
+    return (customer.companyName || '').toLowerCase();
+};
+
+// Funkcja pomocnicza do określenia filterField
+const getFilterField = (field: string): string => {
+    // Multiselect - używamy płaskich pól ID
+    if (field === 'designer') return '_designerId';
+    if (field === 'coordinator') return '_coordinatorId';
+    if (field === 'gasDistribution') return '_gasDistributionId';
+
+    // Pola wymagające formatowania - używamy płaskich pól tekstowych
+    if (field === 'customer') return '_customerText';
+    if (field === 'endCustomer') return '_endCustomerText';
+    if (field === 'gasConnectionDesign.designerTraffic') return '_designerTrafficText';
+    if (field === 'workRangeGasConnections') return '_workRangeGasConnectionsText';
+    if (field === 'workRangeGasStations') return '_workRangeGasStationsText';
+    if (field === 'workRangeConnection') return '_workRangeConnectionText';
+    if (field === 'gasConnectionDesign.utilityCompanyType') return '_utilityCompanyTypeText';
+    if (field === 'phase') return '_phaseText';
+
+    // Domyślnie używamy oryginalnego pola
+    return field;
+};
+
 // Funkcja sprawdzająca, czy kolumna wymaga custom sortowania/filtrowania (dla pól z "Imię Nazwisko")
 const requiresCustomSortFilter = (field: string): boolean => {
     const customFields = [
@@ -156,6 +231,11 @@ const getFilterType = (field: string): 'text' | 'date' | 'numeric' | 'boolean' |
         return 'boolean';
     }
 
+    const multiselectFields = ['designer', 'coordinator', 'gasDistribution', 'phase'];
+    if (multiselectFields.includes(field)) {
+        return 'multiselect';
+    }
+
     return 'text';
 };
 
@@ -166,16 +246,27 @@ const initializeFilters = () => {
     allColumns.value.forEach(col => {
         if (col.filterable !== false) {
             const filterType = getFilterType(col.field);
+            let matchMode: string;
 
             if (filterType === 'date') {
-                newFilters[col.field] = { value: null, matchMode: 'dateIs' };
+                matchMode = 'dateIs';
             } else if (filterType === 'numeric') {
-                newFilters[col.field] = { value: null, matchMode: 'equals' };
+                matchMode = 'equals';
             } else if (filterType === 'boolean') {
-                newFilters[col.field] = { value: null, matchMode: 'equals' };
+                matchMode = 'equals';
+            } else if (filterType === 'multiselect') {
+                matchMode = 'in';
             } else {
-                newFilters[col.field] = { value: null, matchMode: 'contains' };
+                matchMode = 'contains';
             }
+
+            // Dla filterDisplay="menu" PrimeVue oczekuje struktury z operator i constraints
+            newFilters[col.field] = {
+                operator: 'and',
+                constraints: [
+                    { value: null, matchMode }
+                ]
+            };
         }
     });
 
@@ -593,7 +684,29 @@ const loadColumnConfig = () => {
 // Inicjalizacja
 onMounted(() => {
     loading.value = true;
-    gasConnections.value = gasConnectionsStore.getAllGasConnections();
+    const rawData = gasConnectionsStore.getAllGasConnections();
+
+    // Mapujemy dane, dodając płaskie pola dla filtrów
+    gasConnections.value = rawData.map(conn => ({
+        ...conn,
+        // Pola dla multiselect (ID) - tylko designer, coordinator, gasDistribution
+        _designerId: conn.designer?.id ?? null,
+        _coordinatorId: conn.coordinator?.id ?? null,
+        _gasDistributionId: conn.gasDistribution?.id ?? null,
+
+        // Pola dla filtrowania tekstowego (sformatowane wartości)
+        // Customer i endCustomer - uwzględniają firstName+lastName lub companyName
+        _customerText: getCustomerText(conn.customer) || '',
+        _endCustomerText: getCustomerText(conn.endCustomer) || '',
+        _designerTrafficText: (getPersonDisplayName(conn.gasConnectionDesign?.designerTraffic) || '').toLowerCase(),
+        _gasDistributionText: (conn.gasDistribution?.name || '').toLowerCase(),
+        _utilityCompanyTypeText: (conn.gasConnectionDesign?.utilityCompanyType?.name || '').toLowerCase(),
+        _workRangeGasConnectionsText: (formatWorkRangeGasConnections(conn.workRangeGasConnections) || '').toLowerCase(),
+        _workRangeGasStationsText: (formatWorkRangeGasStations(conn.workRangeGasStations) || '').toLowerCase(),
+        _workRangeConnectionText: (formatWorkRangeConnection(conn.workRangeConnection) || '').toLowerCase(),
+        _phaseText: (formatPhase(conn.phase) || '').toLowerCase(),
+    }));
+
     loadColumnConfig();
     // Inicjalizuj filtry po załadowaniu kolumn
     initializeFilters();
@@ -671,11 +784,23 @@ watch(
                                     @click="handleFilterClick('overdue')" />
                             </div>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <SecondaryButton type="button" icon="pi pi-cog" @click="handleOpenColumnSettings"
-                                title="Ustawienia" />
-                            <Button label="Resetuj konfigurację" icon="pi pi-refresh" severity="secondary" outlined
-                                @click="resetColumnConfig($event)" />
+                        <div class="flex items-center gap-4">
+                            <!-- Pole wyszukiwania z przyciskami -->
+                            <div class="flex items-center gap-2 flex-1 max-w-md">
+                                <div class="flex items-center gap-1">
+                                    <Button icon="pi pi-eye" text severity="secondary" :disabled="!selectedRow"
+                                        title="Szczegóły przyłącza" @click="handleViewDetails" />
+                                    <Button icon="pi pi-eye-slash" text severity="secondary" :disabled="!selectedRow"
+                                        title="Szczegóły przyłącza - tylko do odczytu"
+                                        @click="handleViewDetailsReadonly" />
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <SecondaryButton type="button" icon="pi pi-cog" @click="handleOpenColumnSettings"
+                                    title="Ustawienia" />
+                                <Button label="Resetuj konfigurację" icon="pi pi-refresh" severity="secondary" outlined
+                                    @click="resetColumnConfig($event)" />
+                            </div>
                         </div>
                     </div>
 
@@ -694,17 +819,17 @@ watch(
                                 class: '[&>tr>td]:text-center [&>tr>td]:align-middle'
                             }
                         }">
-                        <!-- Przypięte kolumny -->
-                        <Column v-for="col in frozenColumns" :key="`frozen-${col.field}`" :field="col.field"
-                            :sortable="col.sortable !== false" :frozen="true"
+                        <!-- Kolumny -->
+                        <Column v-for="col in sortedColumns" :key="col.field" :field="col.field"
+                            :filterMenuStyle="{ width: '18rem' }"
+                            :showFilterMatchModes="getFilterType(col.field) === 'multiselect' ? false : true as boolean"
+                            :sortable="col.sortable !== false" :frozen="col.frozen"
                             :style="{ width: col.width || 'auto', whiteSpace: 'nowrap' }"
                             :headerStyle="{ textAlign: 'center' }" :bodyStyle="{ textAlign: 'center' }"
-                            :filter="col.filterable !== false"
-                            :dataType="getFilterType(col.field) === 'date' ? 'date' : getFilterType(col.field) === 'numeric' ? 'numeric' : getFilterType(col.field) === 'boolean' ? 'boolean' : 'text'"
-                            :filterMatchMode="getFilterType(col.field) === 'date' ? 'dateIs' : getFilterType(col.field) === 'numeric' ? 'equals' : getFilterType(col.field) === 'boolean' ? 'equals' : 'contains'"
-                            :filterField="col.field"
-                            :sortFunction="requiresCustomSortFilter(col.field) ? customSortFunction(col.field) : undefined"
-                            :filterFunction="getFilterType(col.field) === 'date' ? dateFilterFunction(col.field) : getFilterType(col.field) === 'boolean' ? booleanFilterFunction(col.field) : requiresCustomSortFilter(col.field) ? customFilterFunction(col.field) : undefined">
+                            :dataType="getFilterType(col.field) === 'date' ? 'date' : getFilterType(col.field) === 'numeric' ? 'numeric' : getFilterType(col.field) === 'boolean' ? 'boolean' : getFilterType(col.field) === 'multiselect' ? 'text' : 'text'"
+                            :filterMatchMode="getFilterType(col.field) === 'date' ? 'dateIs' : getFilterType(col.field) === 'numeric' ? 'equals' : getFilterType(col.field) === 'boolean' ? 'equals' : getFilterType(col.field) === 'multiselect' ? 'in' : 'contains'"
+                            :filterField="getFilterField(col.field)"
+                            :sortFunction="requiresCustomSortFilter(col.field) ? customSortFunction(col.field) : undefined">
                             <template #body="{ data }">
                                 <span v-if="col.field === 'isPGN'" class="whitespace-nowrap">
                                     <Checkbox :modelValue="data.isPGN" :binary="true" disabled />
@@ -738,53 +863,11 @@ watch(
                                         { label: 'Nie', value: false }
                                     ]" optionLabel="label" optionValue="value" @update:modelValue="filterCallback()"
                                     placeholder="Wybierz" class="p-column-filter" />
-                            </template>
-                        </Column>
-
-                        <!-- Nieprzypięte kolumny -->
-                        <Column v-for="col in unfrozenColumns" :key="col.field" :field="col.field"
-                            :sortable="col.sortable !== false"
-                            :style="{ width: col.width || 'auto', whiteSpace: 'nowrap' }"
-                            :headerStyle="{ textAlign: 'center' }" :bodyStyle="{ textAlign: 'center' }"
-                            :filter="col.filterable !== false"
-                            :dataType="getFilterType(col.field) === 'date' ? 'date' : getFilterType(col.field) === 'numeric' ? 'numeric' : getFilterType(col.field) === 'boolean' ? 'boolean' : 'text'"
-                            :filterMatchMode="getFilterType(col.field) === 'date' ? 'dateIs' : getFilterType(col.field) === 'numeric' ? 'equals' : getFilterType(col.field) === 'boolean' ? 'equals' : 'contains'"
-                            :filterField="col.field"
-                            :sortFunction="requiresCustomSortFilter(col.field) ? customSortFunction(col.field) : undefined"
-                            :filterFunction="getFilterType(col.field) === 'date' ? dateFilterFunction(col.field) : getFilterType(col.field) === 'boolean' ? booleanFilterFunction(col.field) : requiresCustomSortFilter(col.field) ? customFilterFunction(col.field) : undefined">
-                            <template #body="{ data }">
-                                <span v-if="col.field === 'isPGN'" class="whitespace-nowrap">
-                                    <Checkbox :modelValue="data.isPGN" :binary="true" disabled />
-                                </span>
-                                <span v-else class="whitespace-nowrap">
-                                    {{ formatCellValue(data, col) }}
-                                </span>
-                            </template>
-                            <template #header>
-                                <div class="flex items-center justify-center gap-2 w-full">
-                                    <span>{{ col.header }}</span>
-                                    <Button :icon="col.frozen ? 'pi pi-lock' : 'pi pi-lock-open'" text rounded
-                                        size="small" @click.stop="toggleFrozen(col)"
-                                        :title="col.frozen ? 'Odepnij kolumnę' : 'Przypnij kolumnę'" />
-                                </div>
-                            </template>
-                            <template #filter="{ filterModel, filterCallback }" v-if="col.filterable !== false">
-                                <InputText v-if="getFilterType(col.field) === 'text'" v-model="filterModel.value"
-                                    type="text" @input="filterCallback()"
-                                    :placeholder="`Filtruj ${col.header.toLowerCase()}...`" class="p-column-filter" />
-                                <DatePicker v-else-if="getFilterType(col.field) === 'date'" v-model="filterModel.value"
-                                    dateFormat="yyyy-mm-dd" @update:modelValue="filterCallback()"
-                                    placeholder="Wybierz datę" showIcon />
-                                <InputNumber v-else-if="getFilterType(col.field) === 'numeric'"
-                                    v-model="filterModel.value" @update:modelValue="filterCallback()"
-                                    :placeholder="`Filtruj ${col.header.toLowerCase()}...`" class="p-column-filter" />
-                                <Select v-else-if="getFilterType(col.field) === 'boolean'" v-model="filterModel.value"
-                                    :options="[
-                                        { label: 'Wszystkie', value: null },
-                                        { label: 'Tak', value: true },
-                                        { label: 'Nie', value: false }
-                                    ]" optionLabel="label" optionValue="value" @update:modelValue="filterCallback()"
-                                    placeholder="Wybierz" class="p-column-filter" />
+                                <MultiSelect v-else-if="getFilterType(col.field) === 'multiselect'"
+                                    v-model="filterModel.value" :options="getMultiSelectOptions(col.field)"
+                                    optionLabel="label" optionValue="value" @update:modelValue="filterCallback()"
+                                    placeholder="Dowolne" filterPlaceholder="Szukaj..."
+                                    class="p-column-filter w-full" />
                             </template>
                         </Column>
 

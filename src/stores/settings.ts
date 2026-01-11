@@ -5,6 +5,7 @@ import type {
   GasConnectionDefaultSettings,
   GasConnectionTableSettings,
   GasConnectionTableColumnConfig,
+  StageCardConfig,
 } from '@/types/Settings';
 import { useCustomersStore } from './customers';
 import { useDesignersStore } from './designers';
@@ -289,6 +290,29 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   }
 
+  /**
+   * Pobiera konfigurację Cardów dla konkretnego etapu
+   */
+  function getStageSettings(stageId: string): StageCardConfig[] | null {
+    return settingsService.getStageCardConfigs(stageId);
+  }
+
+  /**
+   * Zapisuje konfigurację Cardów dla konkretnego etapu
+   */
+  function saveStageSettings(stageId: string, cards: StageCardConfig[]): void {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      settingsService.saveStageSettings(stageId, cards);
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Błąd podczas zapisywania ustawień etapu';
+    } finally {
+      loading.value = false;
+    }
+  }
+
   return {
     // State
     loading,
@@ -308,5 +332,8 @@ export const useSettingsStore = defineStore('settings', () => {
     // Methods - Table Settings
     saveGasConnectionTableSettings,
     resetGasConnectionTableSettings,
+    // Methods - Stage Settings
+    getStageSettings,
+    saveStageSettings,
   };
 });

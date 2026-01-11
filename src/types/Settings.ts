@@ -72,9 +72,33 @@ export interface GasConnectionTableSettings extends ModuleSettings {
 }
 
 /**
+ * Konfiguracja Card w etapie
+ */
+export interface StageCardConfig {
+  id: string; // unikalny identyfikator Card
+  title: string; // tytuł Card z headera
+  required: boolean; // czy Card jest obowiązkowy
+}
+
+/**
+ * Ustawienia etapów - mapa stageId => lista Cardów
+ */
+export interface StageSettings {
+  [stageId: string]: StageCardConfig[];
+}
+
+/**
+ * Ustawienia etapów dla modułu GasConnection
+ */
+export interface GasConnectionStageSettings extends ModuleSettings {
+  moduleName: 'gasConnectionStages';
+  stages: StageSettings;
+}
+
+/**
  * Unia typów dla wszystkich modułów (łatwe rozszerzanie)
  */
-export type AppDefaultSettings = GasConnectionDefaultSettings | GasConnectionTableSettings; // | OtherModuleSettings | ...
+export type AppDefaultSettings = GasConnectionDefaultSettings | GasConnectionTableSettings | GasConnectionStageSettings; // | OtherModuleSettings | ...
 
 /**
  * Struktura przechowywania w localStorage
