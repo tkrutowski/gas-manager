@@ -71,6 +71,7 @@ declare module 'vue' {
     PrimaryButton: typeof import('./src/components/PrimaryButton.vue')['default']
     ProgressBar: typeof import('primevue/progressbar')['default']
     ProgressSpinner: typeof import('primevue/progressspinner')['default']
+    ProjectTab: typeof import('./src/components/tasks/ProjectTab.vue')['default']
     Purchase: typeof import('./src/components/finance/Purchase.vue')['default']
     PurchaseCurrentItem: typeof import('./src/components/finance/PurchaseCurrentItem.vue')['default']
     PurchaseCurrentItemGroup: typeof import('./src/components/finance/PurchaseCurrentItemGroup.vue')['default']
