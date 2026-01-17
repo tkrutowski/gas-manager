@@ -108,4 +108,7 @@ declare module 'vue' {
     UserBookSmall: typeof import('./src/components/library/UserBookSmall.vue')['default']
     UserPayments: typeof import('./src/components/finance/UserPayments.vue')['default']
   }
+  export interface ComponentCustomProperties {
+    Tooltip: typeof import('primevue/tooltip')['default']
+  }
 }

@@ -28,6 +28,8 @@ import DatePicker from 'primevue/datepicker';
 import Select from 'primevue/select';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
+import Checkbox from 'primevue/checkbox';
+import type { UtilityCompanyType } from '@/types/Commons';
 
 const router = useRouter();
 const route = useRoute();
@@ -40,6 +42,14 @@ const mapDeliveredByOptions = [
     { label: 'Geodeta', value: MapDeliveredBy.Geodeta },
     { label: 'Klient', value: MapDeliveredBy.Klient },
     { label: 'Ośrodek', value: MapDeliveredBy.Ośrodek },
+];
+
+// Opcje dla Select "ZAKŁAD" (ETAP 2)
+const utilityCompanyTypeOptions = [
+    { label: 'Komunalny', value: { id: 1, name: 'Komunalny' } as UtilityCompanyType },
+    { label: 'Archeolog', value: { id: 2, name: 'Archeolog' } as UtilityCompanyType },
+    { label: 'Konserwator zabytków', value: { id: 3, name: 'Konserwator zabytków' } as UtilityCompanyType },
+    { label: 'Spółki wodne', value: { id: 4, name: 'Spółki wodne' } as UtilityCompanyType },
 ];
 
 // Lista geodetów dla Select "Geodeta"
@@ -60,10 +70,259 @@ const isGeodetaSelectDisabled = computed(() => {
     return deliveredBy !== MapDeliveredBy.Geodeta;
 });
 
+// Sprawdza czy pola dat ZUDP powinny być disabled (ETAP 2)
+const isZudpDateFieldsDisabled = computed(() => {
+    if (isReadonly.value) return true;
+    return gasConnection.value?.gasConnectionDesign?.withoutZud === true;
+});
+
+// Sprawdza czy pola dat ZAKŁAD powinny być disabled (ETAP 2)
+const isUtilityCompanyDateFieldsDisabled = computed(() => {
+    if (isReadonly.value) return true;
+    const utilityCompanyType = gasConnection.value?.gasConnectionDesign?.utilityCompanyType;
+    return utilityCompanyType === null || utilityCompanyType === undefined;
+});
+
+// Status etapu 2
+const stage2Status = computed(() => {
+    // Używamy klucza re-renderu, aby wymusić odświeżenie po zapisaniu ustawień
+    stage2SettingsKey.value;
+
+    const stageSettings = settingsStore.getStageSettings('stage2');
+    if (!stageSettings) {
+        return { text: 'STATUS: UKOŃCZONO (0/0)', color: 'default' };
+    }
+
+    const requiredCards = stageSettings.filter(c => c.required);
+    const requiredCount = requiredCards.length;
+
+    if (requiredCount === 0) {
+        return { text: 'STATUS: UKOŃCZONO (0/0)', color: 'default' };
+    }
+
+    // Liczymy zielone Cardy (tylko obowiązkowe)
+    const greenRequiredCards = requiredCards.filter(card => getCardColor(card.id, 'stage2') === 'green');
+    const greenCount = greenRequiredCards.length;
+
+    if (greenCount > 0) {
+        return { text: `STATUS: UKOŃCZONO (${greenCount}/${requiredCount})`, color: 'default' };
+    }
+
+    return { text: `STATUS: UKOŃCZONO (0/${requiredCount})`, color: 'default' };
+});
+
+// Status etapu 3
+const stage3Status = computed(() => {
+    // Używamy klucza re-renderu, aby wymusić odświeżenie po zapisaniu ustawień
+    stage3SettingsKey.value;
+
+    const stageSettings = settingsStore.getStageSettings('stage3');
+    if (!stageSettings) {
+        return { text: 'STATUS: UKOŃCZONO (0/0)', color: 'default' };
+    }
+
+    const requiredCards = stageSettings.filter(c => c.required);
+    const requiredCount = requiredCards.length;
+
+    if (requiredCount === 0) {
+        return { text: 'STATUS: UKOŃCZONO (0/0)', color: 'default' };
+    }
+
+    // Liczymy zielone Cardy (tylko obowiązkowe)
+    const greenRequiredCards = requiredCards.filter(card => getCardColor(card.id, 'stage3') === 'green');
+    const greenCount = greenRequiredCards.length;
+
+    if (greenCount > 0) {
+        return { text: `STATUS: UKOŃCZONO (${greenCount}/${requiredCount})`, color: 'default' };
+    }
+
+    return { text: `STATUS: UKOŃCZONO (0/${requiredCount})`, color: 'default' };
+});
+
+// Klasy CSS dla statusu etapu 2
+const stage2StatusClasses = computed(() => {
+    const color = stage2Status.value.color;
+    const baseClasses = 'text-sm';
+
+    switch (color) {
+        case 'yellow':
+            return `${baseClasses} text-yellow-600 dark:text-yellow-400`;
+        default:
+            return `${baseClasses} text-surface-600 dark:text-surface-400`;
+    }
+});
+
+// Klasy CSS dla statusu etapu 3
+const stage3StatusClasses = computed(() => {
+    const color = stage3Status.value.color;
+    const baseClasses = 'text-sm';
+
+    switch (color) {
+        case 'yellow':
+            return `${baseClasses} text-yellow-600 dark:text-yellow-400`;
+        default:
+            return `${baseClasses} text-surface-600 dark:text-surface-400`;
+    }
+});
+
+// Kolor ikony checkmark dla ETAP 2
+const checkmark2Color = computed(() => {
+    // Używamy klucza re-renderu, aby wymusić odświeżenie po zapisaniu ustawień
+    stage2SettingsKey.value;
+
+    const stageSettings = settingsStore.getStageSettings('stage2');
+    if (!stageSettings) return 'green';
+
+    const requiredCards = stageSettings.filter(c => c.required);
+    if (requiredCards.length === 0) return 'green';
+
+    // Sprawdzamy kolory wszystkich obowiązkowych Cardów
+    const requiredCardColors = requiredCards.map(card => getCardColor(card.id, 'stage2'));
+
+    // Jeśli wszystkie obowiązkowe Cardy są zielone → zielony
+    if (requiredCardColors.every(color => color === 'green')) {
+        return 'green';
+    }
+
+    // Jeśli wszystkie obowiązkowe Cardy są czerwone → czerwony
+    if (requiredCardColors.every(color => color === 'red')) {
+        return 'red';
+    }
+
+    // W przeciwnym razie (mieszanka: żółty + cokolwiek, zielony + czerwony, itp.) → żółty
+    return 'yellow';
+});
+
+// Klasy CSS dla ikony checkmark ETAP 2
+const checkmark2Classes = computed(() => {
+    const color = checkmark2Color.value;
+    const baseClasses = 'w-10 h-10 rounded-full border flex items-center justify-center shrink-0 ring-1';
+
+    switch (color) {
+        case 'red':
+            return `${baseClasses} border-red-400 bg-red-400/10 shadow-[0_0_8px_rgba(239,68,68,0.5)] ring-red-400/50`;
+        case 'yellow':
+            return `${baseClasses} border-yellow-400 bg-yellow-400/10 shadow-[0_0_8px_rgba(234,179,8,0.5)] ring-yellow-400/50`;
+        case 'green':
+            return `${baseClasses} border-green-400 bg-green-400/10 shadow-[0_0_8px_rgba(34,197,94,0.5)] ring-green-400/50`;
+        default:
+            return `${baseClasses} border-green-400 bg-green-400/10 shadow-[0_0_8px_rgba(34,197,94,0.5)] ring-green-400/50`;
+    }
+});
+
+// Klasy CSS dla ikony checkmark ETAP 2 (ikona wewnątrz)
+const checkmark2IconClasses = computed(() => {
+    const color = checkmark2Color.value;
+    const baseClasses = 'w-5 h-5';
+
+    switch (color) {
+        case 'red':
+            return `${baseClasses} text-red-400`;
+        case 'yellow':
+            return `${baseClasses} text-yellow-400`;
+        case 'green':
+            return `${baseClasses} text-green-400`;
+        default:
+            return `${baseClasses} text-green-400`;
+    }
+});
+
+// Kolor ikony checkmark dla ETAP 3
+const checkmark3Color = computed(() => {
+    // Używamy klucza re-renderu, aby wymusić odświeżenie po zapisaniu ustawień
+    stage3SettingsKey.value;
+
+    const stageSettings = settingsStore.getStageSettings('stage3');
+    if (!stageSettings) return 'red';
+
+    const requiredCards = stageSettings.filter(c => c.required);
+    if (requiredCards.length === 0) return 'red';
+
+    // Sprawdzamy kolory wszystkich obowiązkowych Cardów
+    const requiredCardColors = requiredCards.map(card => getCardColor(card.id, 'stage3'));
+
+    // Jeśli wszystkie obowiązkowe Cardy są zielone → zielony
+    if (requiredCardColors.every(color => color === 'green')) {
+        return 'green';
+    }
+
+    // Jeśli wszystkie obowiązkowe Cardy są czerwone → czerwony
+    if (requiredCardColors.every(color => color === 'red')) {
+        return 'red';
+    }
+
+    // W przeciwnym razie (mieszanka: żółty + cokolwiek, zielony + czerwony, itp.) → żółty
+    return 'yellow';
+});
+
+// Klasy CSS dla ikony checkmark ETAP 3
+const checkmark3Classes = computed(() => {
+    const color = checkmark3Color.value;
+    const baseClasses = 'w-10 h-10 rounded-full border flex items-center justify-center shrink-0 ring-1';
+
+    switch (color) {
+        case 'red':
+            return `${baseClasses} border-red-400 bg-red-400/10 shadow-[0_0_8px_rgba(239,68,68,0.5)] ring-red-400/50`;
+        case 'yellow':
+            return `${baseClasses} border-yellow-400 bg-yellow-400/10 shadow-[0_0_8px_rgba(234,179,8,0.5)] ring-yellow-400/50`;
+        case 'green':
+            return `${baseClasses} border-green-400 bg-green-400/10 shadow-[0_0_8px_rgba(34,197,94,0.5)] ring-green-400/50`;
+        default:
+            return `${baseClasses} border-green-400 bg-green-400/10 shadow-[0_0_8px_rgba(34,197,94,0.5)] ring-green-400/50`;
+    }
+});
+
+// Klasy CSS dla ikony checkmark ETAP 3 (ikona wewnątrz)
+const checkmark3IconClasses = computed(() => {
+    const color = checkmark3Color.value;
+    const baseClasses = 'w-5 h-5';
+
+    switch (color) {
+        case 'red':
+            return `${baseClasses} text-red-400`;
+        case 'yellow':
+            return `${baseClasses} text-yellow-400`;
+        case 'green':
+            return `${baseClasses} text-green-400`;
+        default:
+            return `${baseClasses} text-green-400`;
+    }
+});
+
+// Oblicza stan dla "+ właściciele działek" (ETAP 2)
+// TODO: Ta metoda będzie uzupełniona w późniejszym terminie
+const getPlotOwnersStatus = (): 'red' | 'yellow' | 'green' | 'default' => {
+    // Użyj funkcji getCardColor dla plotOwners
+    return getCardColor('plotOwners', 'stage2');
+};
+
+// Zwraca klasy CSS dla "+ właściciele działek" na podstawie stanu
+const getPlotOwnersClasses = (): string => {
+    const status = getPlotOwnersStatus();
+    const baseClasses = 'inline-flex items-center gap-2 px-4 py-2 rounded-lg border font-medium text-sm transition-colors';
+
+    switch (status) {
+        case 'red':
+            return `${baseClasses} bg-red-50 dark:bg-red-900/20 border-red-400 dark:border-red-500 text-red-700 dark:text-red-300`;
+        case 'yellow':
+            return `${baseClasses} bg-yellow-50 dark:bg-yellow-900/20 border-yellow-400 dark:border-yellow-500 text-yellow-700 dark:text-yellow-300`;
+        case 'green':
+            return `${baseClasses} bg-green-50 dark:bg-green-900/20 border-green-400 dark:border-green-500 text-green-700 dark:text-green-300`;
+        default:
+            return `${baseClasses} bg-surface-50 dark:bg-surface-900 border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300`;
+    }
+};
+
 const gasConnection = ref<GasConnection | undefined>(undefined);
 const isReadonly = computed(() => route.query.readonly === 'true');
 const activeTab = ref<string>('projekt');
 const stageSettingsDialogVisible = ref(false);
+const stage2SettingsDialogVisible = ref(false);
+const stage3SettingsDialogVisible = ref(false);
+// Klucz do wymuszenia re-renderu Cardów po zmianie ustawień
+const stage1SettingsKey = ref(0);
+const stage2SettingsKey = ref(0);
+const stage3SettingsKey = ref(0);
 
 // Lista Cardów dla etapu 1
 const stage1Cards = [
@@ -74,14 +333,36 @@ const stage1Cards = [
     { id: 'coordinates', title: 'Współrzędne' },
 ];
 
+// Lista Cardów dla etapu 2
+const stage2Cards = [
+    { id: 'zudp', title: 'ZUDP' },
+    { id: 'utilityCompany', title: 'ZAKŁAD' },
+    { id: 'plotOwners', title: 'Właściciele działek' },
+];
+
+// Lista Cardów dla etapu 3
+const stage3Cards = [
+    { id: 'wsgAgreement', title: 'UZGODNIENIE WSG' },
+    { id: 'wsgAgreementPointScheme', title: 'UZG. SCHEMATU PUNKTU W WSG' },
+];
+
 // Mapowanie pól dla każdego Card
-const getCardFields = (cardId: string): string[] => {
+// Parametr _stage jest przekazywany dla spójności z innymi funkcjami, ale obecnie nie jest używany w ciele funkcji
+const getCardFields = (cardId: string, _stage: 'stage1' | 'stage2' | 'stage3' = 'stage1'): string[] => {
     const fieldMap: Record<string, string[]> = {
+        // Stage 1
         projectOrder: ['gasConnectionDesign.projectOrderSubmissionDate', 'gasConnectionDesign.projectOrderConfirmationDate'],
         proxy: ['gasConnectionDesign.proxySubmissionDate', 'gasConnectionDesign.proxyReceiptDate'],
         extract: ['gasConnectionDesign.extractSubmissionDate', 'gasConnectionDesign.extractReceiptDate'],
         map: ['gasConnectionDesign.mapSubmissionDate', 'gasConnectionDesign.mapReceiptDate', 'gasConnectionDesign.mapDeliveredBy', 'gasConnectionDesign.mapSurveyor'],
         coordinates: ['address.coordinates.latitude', 'address.coordinates.longitude'],
+        // Stage 2
+        zudp: ['gasConnectionDesign.zudpSubmissionDate', 'gasConnectionDesign.zudpReceiptDate', 'gasConnectionDesign.withoutZud'],
+        utilityCompany: ['gasConnectionDesign.utilityCompanyType', 'gasConnectionDesign.utilityCompanySubmissionDate', 'gasConnectionDesign.utilityCompanyReceiptDate'],
+        plotOwners: [], // TODO: będzie uzupełnione w późniejszym terminie
+        // Stage 3
+        wsgAgreement: ['gasConnectionDesign.wsgAgreementSubmissionDate', 'gasConnectionDesign.wsgAgreementReceiptDate', 'gasConnectionDesign.wsgAgreementAgreementDate', 'gasConnectionDesign.wsgAgreementNo'],
+        wsgAgreementPointScheme: ['gasConnectionDesign.wsgAgreementPointSchemeSubmissionDate', 'gasConnectionDesign.wsgAgreementPointSchemeReceiptDate'],
     };
     return fieldMap[cardId] || [];
 };
@@ -114,42 +395,79 @@ const isFieldEmpty = (fieldPath: string): boolean => {
 };
 
 // Sprawdza czy wszystkie obowiązkowe pola Card są puste
-const isCardFieldEmpty = (cardId: string): boolean => {
-    const stageSettings = settingsStore.getStageSettings('stage1');
+const isCardFieldEmpty = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' = 'stage1'): boolean => {
+    const stageSettings = settingsStore.getStageSettings(stage);
     if (!stageSettings) return false;
 
     const cardConfig = stageSettings.find(c => c.id === cardId);
     if (!cardConfig || !cardConfig.required) return false;
 
-    const fields = getCardFields(cardId);
+    const fields = getCardFields(cardId, stage);
+
+    // Dla ZUDP - jeśli withoutZud jest true, to Card jest uzupełniony
+    if (cardId === 'zudp' && gasConnection.value?.gasConnectionDesign?.withoutZud === true) {
+        return false;
+    }
+
+    // Dla ZUDP - jeśli withoutZud nie jest true, sprawdzamy tylko daty (ignorujemy withoutZud)
+    if (cardId === 'zudp') {
+        const dateFields = fields.filter(field => field !== 'gasConnectionDesign.withoutZud');
+        return dateFields.every(field => isFieldEmpty(field));
+    }
+
     const requiredFields = fields; // Wszystkie pola są sprawdzane, ale tylko dla obowiązkowych Cardów
 
     return requiredFields.every(field => isFieldEmpty(field));
 };
 
 // Sprawdza czy wszystkie obowiązkowe pola Card są uzupełnione
-const isCardFieldComplete = (cardId: string): boolean => {
-    const stageSettings = settingsStore.getStageSettings('stage1');
+const isCardFieldComplete = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' = 'stage1'): boolean => {
+    const stageSettings = settingsStore.getStageSettings(stage);
     if (!stageSettings) return false;
 
     const cardConfig = stageSettings.find(c => c.id === cardId);
     if (!cardConfig || !cardConfig.required) return false;
 
-    const fields = getCardFields(cardId);
+    const fields = getCardFields(cardId, stage);
+
+    // Dla ZUDP - jeśli withoutZud jest true, to Card jest uzupełniony
+    if (cardId === 'zudp' && gasConnection.value?.gasConnectionDesign?.withoutZud === true) {
+        return true;
+    }
+
+    // Dla ZUDP - jeśli withoutZud nie jest true, sprawdzamy tylko daty (ignorujemy withoutZud)
+    if (cardId === 'zudp') {
+        const dateFields = fields.filter(field => field !== 'gasConnectionDesign.withoutZud');
+        return dateFields.every(field => !isFieldEmpty(field));
+    }
+
     const requiredFields = fields; // Wszystkie pola są sprawdzane, ale tylko dla obowiązkowych Cardów
 
     return requiredFields.every(field => !isFieldEmpty(field));
 };
 
 // Sprawdza czy którekolwiek obowiązkowe pole Card jest wypełnione (ale nie wszystkie)
-const isCardFieldPartial = (cardId: string): boolean => {
-    const stageSettings = settingsStore.getStageSettings('stage1');
+const isCardFieldPartial = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' = 'stage1'): boolean => {
+    const stageSettings = settingsStore.getStageSettings(stage);
     if (!stageSettings) return false;
 
     const cardConfig = stageSettings.find(c => c.id === cardId);
     if (!cardConfig || !cardConfig.required) return false;
 
-    const fields = getCardFields(cardId);
+    const fields = getCardFields(cardId, stage);
+
+    // Dla ZUDP - jeśli withoutZud jest true, to Card jest uzupełniony (nie partial)
+    if (cardId === 'zudp' && gasConnection.value?.gasConnectionDesign?.withoutZud === true) {
+        return false;
+    }
+
+    // Dla ZUDP - jeśli withoutZud nie jest true, sprawdzamy tylko daty (ignorujemy withoutZud)
+    if (cardId === 'zudp') {
+        const dateFields = fields.filter(field => field !== 'gasConnectionDesign.withoutZud');
+        const filledFields = dateFields.filter(field => !isFieldEmpty(field));
+        return filledFields.length > 0 && filledFields.length < dateFields.length;
+    }
+
     const requiredFields = fields;
 
     const filledFields = requiredFields.filter(field => !isFieldEmpty(field));
@@ -157,23 +475,23 @@ const isCardFieldPartial = (cardId: string): boolean => {
 };
 
 // Zwraca kolor Card na podstawie stanu
-const getCardColor = (cardId: string): 'red' | 'yellow' | 'green' | 'default' => {
-    const stageSettings = settingsStore.getStageSettings('stage1');
+const getCardColor = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' = 'stage1'): 'red' | 'yellow' | 'green' | 'default' => {
+    const stageSettings = settingsStore.getStageSettings(stage);
     if (!stageSettings) return 'default';
 
     const cardConfig = stageSettings.find(c => c.id === cardId);
     if (!cardConfig || !cardConfig.required) return 'default';
 
-    if (isCardFieldComplete(cardId)) return 'green';
-    if (isCardFieldPartial(cardId)) return 'yellow';
-    if (isCardFieldEmpty(cardId)) return 'red';
+    if (isCardFieldComplete(cardId, stage)) return 'green';
+    if (isCardFieldPartial(cardId, stage)) return 'yellow';
+    if (isCardFieldEmpty(cardId, stage)) return 'red';
 
     return 'default';
 };
 
 // Zwraca klasy CSS dla headera Card na podstawie koloru
-const getCardHeaderClasses = (cardId: string): string => {
-    const color = getCardColor(cardId);
+const getCardHeaderClasses = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' = 'stage1'): string => {
+    const color = getCardColor(cardId, stage);
     const baseClasses = 'flex items-center gap-2 px-4 py-3 border-b rounded-t-xl';
 
     switch (color) {
@@ -189,8 +507,8 @@ const getCardHeaderClasses = (cardId: string): string => {
 };
 
 // Zwraca klasy CSS dla tekstu w headerze Card na podstawie koloru
-const getCardHeaderTextClasses = (cardId: string): string => {
-    const color = getCardColor(cardId);
+const getCardHeaderTextClasses = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' = 'stage1'): string => {
+    const color = getCardColor(cardId, stage);
     const baseClasses = 'text-sm font-bold uppercase m-0';
 
     switch (color) {
@@ -206,8 +524,8 @@ const getCardHeaderTextClasses = (cardId: string): string => {
 };
 
 // Zwraca klasy CSS dla obramowania Card na podstawie koloru
-const getCardBorderClasses = (cardId: string): string => {
-    const color = getCardColor(cardId);
+const getCardBorderClasses = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' = 'stage1'): string => {
+    const color = getCardColor(cardId, stage);
 
     switch (color) {
         case 'red':
@@ -223,6 +541,9 @@ const getCardBorderClasses = (cardId: string): string => {
 
 // Status etapu
 const stageStatus = computed(() => {
+    // Używamy klucza re-renderu, aby wymusić odświeżenie po zapisaniu ustawień
+    stage1SettingsKey.value;
+
     const stageSettings = settingsStore.getStageSettings('stage1');
     if (!stageSettings) {
         return { text: 'STATUS: UKOŃCZONO (0/0)', color: 'default' };
@@ -262,6 +583,9 @@ const stageStatusClasses = computed(() => {
 
 // Kolor ikony checkmark
 const checkmarkColor = computed(() => {
+    // Używamy klucza re-renderu, aby wymusić odświeżenie po zapisaniu ustawień
+    stage1SettingsKey.value;
+
     const stageSettings = settingsStore.getStageSettings('stage1');
     if (!stageSettings) return 'green';
 
@@ -271,22 +595,18 @@ const checkmarkColor = computed(() => {
     // Sprawdzamy kolory wszystkich obowiązkowych Cardów
     const requiredCardColors = requiredCards.map(card => getCardColor(card.id));
 
-    // Jeśli chociaż jeden Card jest żółty
-    if (requiredCardColors.some(color => color === 'yellow')) {
-        return 'yellow';
-    }
-
-    // Jeśli wszystkie obowiązkowe Cardy są zielone
+    // Jeśli wszystkie obowiązkowe Cardy są zielone → zielony
     if (requiredCardColors.every(color => color === 'green')) {
         return 'green';
     }
 
-    // Jeśli wszystkie obowiązkowe Cardy są czerwone
+    // Jeśli wszystkie obowiązkowe Cardy są czerwone → czerwony
     if (requiredCardColors.every(color => color === 'red')) {
         return 'red';
     }
 
-    return 'green';
+    // W przeciwnym razie (mieszanka: żółty + cokolwiek, zielony + czerwony, itp.) → żółty
+    return 'yellow';
 });
 
 // Klasy CSS dla ikony checkmark
@@ -588,7 +908,7 @@ const streetAndPlot = computed(() => {
                             <TabPanels>
                                 <!-- Zakładka Projekt -->
                                 <TabPanel value="projekt">
-                                    <Panel toggleable>
+                                    <Panel :key="stage1SettingsKey" toggleable>
                                         <template #header>
                                             <div class="flex items-center justify-between w-full">
                                                 <div class="flex items-center gap-4">
@@ -627,7 +947,8 @@ const streetAndPlot = computed(() => {
                                                 <!-- Lewa kolumna -->
                                                 <div class="space-y-6">
                                                     <!-- Karta ZLECENIE PROJEKTU -->
-                                                    <Card data-card-id="projectOrder"
+                                                    <Card :key="`projectOrder-${stage1SettingsKey}`"
+                                                        data-card-id="projectOrder"
                                                         :class="`border ${getCardBorderClasses('projectOrder')} overflow-hidden`">
                                                         <template #header>
                                                             <div :class="getCardHeaderClasses('projectOrder')">
@@ -676,7 +997,7 @@ const streetAndPlot = computed(() => {
                                                     </Card>
 
                                                     <!-- Karta PEŁNOMOCNICTWO -->
-                                                    <Card data-card-id="proxy"
+                                                    <Card :key="`proxy-${stage1SettingsKey}`" data-card-id="proxy"
                                                         :class="`border ${getCardBorderClasses('proxy')} overflow-hidden`">
                                                         <template #header>
                                                             <div :class="getCardHeaderClasses('proxy')">
@@ -725,7 +1046,7 @@ const streetAndPlot = computed(() => {
                                                     </Card>
 
                                                     <!-- Karta WYPIS -->
-                                                    <Card data-card-id="extract"
+                                                    <Card :key="`extract-${stage1SettingsKey}`" data-card-id="extract"
                                                         :class="`border ${getCardBorderClasses('extract')} overflow-hidden`">
                                                         <template #header>
                                                             <div :class="getCardHeaderClasses('extract')">
@@ -779,7 +1100,7 @@ const streetAndPlot = computed(() => {
                                                 <div class="space-y-6 col-span-2">
 
                                                     <!-- Karta MAPA -->
-                                                    <Card data-card-id="map"
+                                                    <Card :key="`map-${stage1SettingsKey}`" data-card-id="map"
                                                         :class="`border ${getCardBorderClasses('map')} overflow-hidden`">
                                                         <template #header>
                                                             <div :class="getCardHeaderClasses('map')">
@@ -871,7 +1192,8 @@ const streetAndPlot = computed(() => {
 
 
                                                     <!-- Karta WSPÓŁRZĘDNE -->
-                                                    <Card data-card-id="coordinates"
+                                                    <Card :key="`coordinates-${stage1SettingsKey}`"
+                                                        data-card-id="coordinates"
                                                         :class="`border ${getCardBorderClasses('coordinates')} overflow-hidden`">
                                                         <template #header>
                                                             <div :class="getCardHeaderClasses('coordinates')">
@@ -931,12 +1253,429 @@ const streetAndPlot = computed(() => {
                                             </div>
                                         </div>
                                     </Panel>
+
+                                    <!-- ETAP 2 -->
+                                    <Panel :key="stage2SettingsKey" toggleable class="mt-6">
+                                        <template #header>
+                                            <div class="flex items-center justify-between w-full">
+                                                <div class="flex items-center gap-4">
+                                                    <!-- Żółta ikona clipboard -->
+                                                    <div
+                                                        class="w-12 h-12 bg-yellow-400/70 rounded-full flex items-center justify-center shrink-0">
+                                                        <ClipboardDocumentIcon class="w-8 h-8 text-white" />
+                                                    </div>
+                                                    <!-- Tekst -->
+                                                    <div>
+                                                        <div
+                                                            class="text-lg font-bold uppercase text-surface-700 dark:text-surface-300">
+                                                            ETAP 2
+                                                        </div>
+                                                        <div :class="stage2StatusClasses">
+                                                            {{ stage2Status.text }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <!-- Ikony po prawej stronie -->
+                                                <div class="flex items-center gap-2">
+                                                    <!-- Ikona checkmark -->
+                                                    <div :class="checkmark2Classes">
+                                                        <CheckIcon :class="checkmark2IconClasses" />
+                                                    </div>
+                                                    <!-- Ikona ustawień -->
+                                                    <Button icon="pi pi-cog" text severity="secondary" rounded
+                                                        @click="stage2SettingsDialogVisible = true" />
+                                                </div>
+                                            </div>
+                                        </template>
+
+                                        <!-- Karty w dwóch kolumnach -->
+                                        <div class="p-6">
+                                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                                <!-- Lewa kolumna - ZUDP -->
+                                                <Card :key="`zudp-${stage2SettingsKey}`" data-card-id="zudp"
+                                                    :class="`border ${getCardBorderClasses('zudp', 'stage2')} overflow-hidden`">
+                                                    <template #header>
+                                                        <div :class="getCardHeaderClasses('zudp', 'stage2')">
+                                                            <DocumentIcon class="w-5 h-5 text-primary-400" />
+                                                            <h4 :class="getCardHeaderTextClasses('zudp', 'stage2')">
+                                                                ZUDP
+                                                            </h4>
+                                                        </div>
+                                                    </template>
+                                                    <template #content>
+                                                        <div class="space-y-4">
+                                                            <!-- Checkbox "uzgodnienie bez ZUD" -->
+                                                            <div class="flex items-center gap-2">
+                                                                <Checkbox
+                                                                    :modelValue="gasConnection?.gasConnectionDesign?.withoutZud"
+                                                                    @update:modelValue="(val) => {
+                                                                        if (gasConnection?.gasConnectionDesign) {
+                                                                            gasConnection.gasConnectionDesign.withoutZud = val as boolean;
+                                                                            // Jeśli checkbox jest zaznaczony, wyczyść daty
+                                                                            if (val) {
+                                                                                gasConnection.gasConnectionDesign.zudpSubmissionDate = undefined;
+                                                                                gasConnection.gasConnectionDesign.zudpReceiptDate = undefined;
+                                                                            }
+                                                                        }
+                                                                    }" :binary="true" inputId="withoutZud"
+                                                                    :disabled="isReadonly" />
+                                                                <label for="withoutZud"
+                                                                    class="text-sm font-medium text-surface-700 dark:text-surface-300 cursor-pointer">
+                                                                    uzgodnienie bez ZUD
+                                                                </label>
+                                                            </div>
+
+                                                            <!-- Data złożenia -->
+                                                            <div>
+                                                                <label
+                                                                    class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                                                                    Data złożenia
+                                                                </label>
+                                                                <div class="flex items-center gap-2">
+                                                                    <DatePicker
+                                                                        :modelValue="gasConnection?.gasConnectionDesign?.zudpSubmissionDate"
+                                                                        @update:modelValue="(val) => {
+                                                                            if (gasConnection?.gasConnectionDesign) {
+                                                                                gasConnection.gasConnectionDesign.zudpSubmissionDate = val as Date | undefined;
+                                                                                // Jeśli wyczyszczono datę złożenia, wyczyść datę otrzymania
+                                                                                if (!val) {
+                                                                                    gasConnection.gasConnectionDesign.zudpReceiptDate = undefined;
+                                                                                }
+                                                                            }
+                                                                        }" :disabled="isZudpDateFieldsDisabled"
+                                                                        :manualInput="false" showButtonBar showIcon
+                                                                        dateFormat="dd.mm.yy" class="flex-1" />
+                                                                    <Button icon="pi pi-file-word" severity="info" text
+                                                                        rounded
+                                                                        :disabled="isReadonly || isZudpDateFieldsDisabled"
+                                                                        v-tooltip.top="'Generuj dokument Word'" />
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Data otrzymania -->
+                                                            <div>
+                                                                <label
+                                                                    class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                                                                    Data otrzymania
+                                                                </label>
+                                                                <DatePicker
+                                                                    :modelValue="gasConnection?.gasConnectionDesign?.zudpReceiptDate"
+                                                                    @update:modelValue="(val) => {
+                                                                        if (gasConnection?.gasConnectionDesign) {
+                                                                            gasConnection.gasConnectionDesign.zudpReceiptDate = val as Date | undefined;
+                                                                        }
+                                                                    }"
+                                                                    :disabled="isZudpDateFieldsDisabled || !gasConnection?.gasConnectionDesign?.zudpSubmissionDate"
+                                                                    :inputReadonly="true" showIcon :manualInput="false"
+                                                                    showButtonBar dateFormat="dd.mm.yy"
+                                                                    class="w-full" />
+                                                            </div>
+                                                        </div>
+                                                    </template>
+                                                </Card>
+
+                                                <!-- Prawa kolumna - ZAKŁAD -->
+                                                <Card :key="`utilityCompany-${stage2SettingsKey}`"
+                                                    data-card-id="utilityCompany"
+                                                    :class="`border ${getCardBorderClasses('utilityCompany', 'stage2')} overflow-hidden`">
+                                                    <template #header>
+                                                        <div :class="getCardHeaderClasses('utilityCompany', 'stage2')">
+                                                            <DocumentIcon class="w-5 h-5 text-primary-400" />
+                                                            <h4
+                                                                :class="getCardHeaderTextClasses('utilityCompany', 'stage2')">
+                                                                ZAKŁAD ...
+                                                            </h4>
+                                                        </div>
+                                                    </template>
+                                                    <template #content>
+                                                        <div class="space-y-4">
+                                                            <!-- Select "Rodzaj" -->
+                                                            <div>
+                                                                <label
+                                                                    class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                                                                    Rodzaj
+                                                                </label>
+                                                                <Select
+                                                                    :modelValue="gasConnection?.gasConnectionDesign?.utilityCompanyType"
+                                                                    :showClear="true" @update:modelValue="(val) => {
+                                                                        if (gasConnection?.gasConnectionDesign) {
+                                                                            gasConnection.gasConnectionDesign.utilityCompanyType = val as UtilityCompanyType | null;
+                                                                            // Jeśli wyczyszczono wybór, wyczyść daty
+                                                                            if (!val) {
+                                                                                gasConnection.gasConnectionDesign.utilityCompanySubmissionDate = undefined;
+                                                                                gasConnection.gasConnectionDesign.utilityCompanyReceiptDate = undefined;
+                                                                            }
+                                                                        }
+                                                                    }" :options="utilityCompanyTypeOptions"
+                                                                    optionLabel="label" optionValue="value"
+                                                                    placeholder="brak" class="w-full"
+                                                                    :disabled="isReadonly" />
+                                                            </div>
+
+                                                            <!-- Data złożenia -->
+                                                            <div>
+                                                                <label
+                                                                    class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                                                                    Data złożenia
+                                                                </label>
+                                                                <div class="flex items-center gap-2">
+                                                                    <DatePicker
+                                                                        :modelValue="gasConnection?.gasConnectionDesign?.utilityCompanySubmissionDate"
+                                                                        @update:modelValue="(val) => {
+                                                                            if (gasConnection?.gasConnectionDesign) {
+                                                                                gasConnection.gasConnectionDesign.utilityCompanySubmissionDate = val as Date | undefined;
+                                                                                // Jeśli wyczyszczono datę złożenia, wyczyść datę otrzymania
+                                                                                if (!val) {
+                                                                                    gasConnection.gasConnectionDesign.utilityCompanyReceiptDate = undefined;
+                                                                                }
+                                                                            }
+                                                                        }"
+                                                                        :disabled="isUtilityCompanyDateFieldsDisabled"
+                                                                        :manualInput="false" showButtonBar showIcon
+                                                                        dateFormat="dd.mm.yy" class="flex-1" />
+                                                                    <Button icon="pi pi-file-word" severity="info" text
+                                                                        rounded
+                                                                        :disabled="isReadonly || isUtilityCompanyDateFieldsDisabled"
+                                                                        v-tooltip.top="'Generuj dokument Word'" />
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Data otrzymania -->
+                                                            <div>
+                                                                <label
+                                                                    class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                                                                    Data otrzymania
+                                                                </label>
+                                                                <DatePicker
+                                                                    :modelValue="gasConnection?.gasConnectionDesign?.utilityCompanyReceiptDate"
+                                                                    @update:modelValue="(val) => {
+                                                                        if (gasConnection?.gasConnectionDesign) {
+                                                                            gasConnection.gasConnectionDesign.utilityCompanyReceiptDate = val as Date | undefined;
+                                                                        }
+                                                                    }"
+                                                                    :disabled="isUtilityCompanyDateFieldsDisabled || !gasConnection?.gasConnectionDesign?.utilityCompanySubmissionDate"
+                                                                    :inputReadonly="true" showIcon :manualInput="false"
+                                                                    showButtonBar dateFormat="dd.mm.yy"
+                                                                    class="w-full" />
+                                                            </div>
+                                                        </div>
+                                                    </template>
+                                                </Card>
+                                            </div>
+
+                                            <!-- Element "+ właściciele działek" -->
+                                            <div class="mt-6">
+                                                <button :class="getPlotOwnersClasses()" :disabled="isReadonly"
+                                                    @click="() => { }">
+                                                    <span class="text-lg font-bold">+</span>
+                                                    <span>właściciele działek</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </Panel>
+
+                                    <!-- ETAP 3 -->
+                                    <Panel :key="stage3SettingsKey" toggleable class="mt-6">
+                                        <template #header>
+                                            <div class="flex items-center justify-between w-full">
+                                                <div class="flex items-center gap-4">
+                                                    <!-- Żółta ikona clipboard -->
+                                                    <div
+                                                        class="w-12 h-12 bg-yellow-400/70 rounded-full flex items-center justify-center shrink-0">
+                                                        <ClipboardDocumentIcon class="w-8 h-8 text-white" />
+                                                    </div>
+                                                    <!-- Tekst -->
+                                                    <div>
+                                                        <div
+                                                            class="text-lg font-bold uppercase text-surface-700 dark:text-surface-300">
+                                                            ETAP 3
+                                                        </div>
+                                                        <div :class="stage3StatusClasses">
+                                                            {{ stage3Status.text }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <!-- Ikony po prawej stronie -->
+                                                <div class="flex items-center gap-2">
+                                                    <!-- Ikona checkmark -->
+                                                    <div :class="checkmark3Classes">
+                                                        <CheckIcon :class="checkmark3IconClasses" />
+                                                    </div>
+                                                    <!-- Ikona ustawień -->
+                                                    <Button icon="pi pi-cog" text severity="secondary" rounded
+                                                        @click="stage3SettingsDialogVisible = true" />
+                                                </div>
+                                            </div>
+                                        </template>
+
+                                        <!-- Karty w dwóch kolumnach -->
+                                        <div class="p-6">
+                                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                                <!-- Lewa kolumna - UZGODNIENIE WSG -->
+                                                <Card :key="`wsgAgreement-${stage3SettingsKey}`"
+                                                    data-card-id="wsgAgreement"
+                                                    :class="`border ${getCardBorderClasses('wsgAgreement', 'stage3')} overflow-hidden`">
+                                                    <template #header>
+                                                        <div :class="getCardHeaderClasses('wsgAgreement', 'stage3')">
+                                                            <DocumentIcon class="w-5 h-5 text-primary-400" />
+                                                            <h4
+                                                                :class="getCardHeaderTextClasses('wsgAgreement', 'stage3')">
+                                                                UZGODNIENIE WSG
+                                                            </h4>
+                                                        </div>
+                                                    </template>
+                                                    <template #content>
+                                                        <div class="space-y-4">
+                                                            <!-- Data złożenia -->
+                                                            <div>
+                                                                <label
+                                                                    class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                                                                    Data złożenia
+                                                                </label>
+                                                                <DatePicker
+                                                                    :modelValue="gasConnection?.gasConnectionDesign?.wsgAgreementSubmissionDate"
+                                                                    @update:modelValue="(val) => {
+                                                                        if (gasConnection?.gasConnectionDesign) {
+                                                                            gasConnection.gasConnectionDesign.wsgAgreementSubmissionDate = val as Date | undefined;
+                                                                            // Jeśli wyczyszczono datę złożenia, wyczyść datę otrzymania
+                                                                            if (!val) {
+                                                                                gasConnection.gasConnectionDesign.wsgAgreementReceiptDate = undefined;
+                                                                                gasConnection.gasConnectionDesign.wsgAgreementAgreementDate = undefined;
+                                                                            }
+                                                                        }
+                                                                    }" :disabled="isReadonly" :manualInput="false"
+                                                                    showButtonBar showIcon dateFormat="dd.mm.yy"
+                                                                    class="w-full" />
+                                                            </div>
+
+                                                            <!-- Data otrzymania -->
+                                                            <div>
+                                                                <label
+                                                                    class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                                                                    Data otrzymania
+                                                                </label>
+                                                                <DatePicker
+                                                                    :modelValue="gasConnection?.gasConnectionDesign?.wsgAgreementReceiptDate"
+                                                                    @update:modelValue="(val) => {
+                                                                        if (gasConnection?.gasConnectionDesign) {
+                                                                            gasConnection.gasConnectionDesign.wsgAgreementReceiptDate = val as Date | undefined;
+                                                                        }
+                                                                    }"
+                                                                    :disabled="isReadonly || !gasConnection?.gasConnectionDesign?.wsgAgreementSubmissionDate"
+                                                                    :inputReadonly="true" showIcon :manualInput="false"
+                                                                    showButtonBar dateFormat="dd.mm.yy"
+                                                                    class="w-full" />
+                                                            </div>
+
+                                                            <!-- Data uzgodnienia -->
+                                                            <div>
+                                                                <label
+                                                                    class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                                                                    Data uzgodnienia
+                                                                </label>
+                                                                <DatePicker
+                                                                    :modelValue="gasConnection?.gasConnectionDesign?.wsgAgreementAgreementDate"
+                                                                    @update:modelValue="(val) => {
+                                                                        if (gasConnection?.gasConnectionDesign) {
+                                                                            gasConnection.gasConnectionDesign.wsgAgreementAgreementDate = val as Date | undefined;
+                                                                        }
+                                                                    }" :disabled="isReadonly" :manualInput="false"
+                                                                    showButtonBar showIcon dateFormat="dd.mm.yy"
+                                                                    class="w-full" />
+                                                            </div>
+
+                                                            <!-- Nr uzgodnienia -->
+                                                            <div>
+                                                                <label
+                                                                    class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                                                                    Nr uzgodnienia
+                                                                </label>
+                                                                <InputText
+                                                                    :modelValue="gasConnection?.gasConnectionDesign?.wsgAgreementNo"
+                                                                    @update:modelValue="(val) => {
+                                                                        if (gasConnection?.gasConnectionDesign) {
+                                                                            gasConnection.gasConnectionDesign.wsgAgreementNo = val as string;
+                                                                        }
+                                                                    }" placeholder="" class="w-full"
+                                                                    :disabled="isReadonly" />
+                                                            </div>
+                                                        </div>
+                                                    </template>
+                                                </Card>
+
+                                                <!-- Prawa kolumna - UZG. SCHEMATU PUNKTU W WSG -->
+                                                <Card :key="`wsgAgreementPointScheme-${stage3SettingsKey}`"
+                                                    data-card-id="wsgAgreementPointScheme"
+                                                    :class="`border ${getCardBorderClasses('wsgAgreementPointScheme', 'stage3')} overflow-hidden`">
+                                                    <template #header>
+                                                        <div
+                                                            :class="getCardHeaderClasses('wsgAgreementPointScheme', 'stage3')">
+                                                            <DocumentIcon class="w-5 h-5 text-primary-400" />
+                                                            <h4
+                                                                :class="getCardHeaderTextClasses('wsgAgreementPointScheme', 'stage3')">
+                                                                UZG. SCHEMATU PUNKTU W WSG
+                                                            </h4>
+                                                        </div>
+                                                    </template>
+                                                    <template #content>
+                                                        <div class="space-y-4">
+                                                            <!-- Data złożenia -->
+                                                            <div>
+                                                                <label
+                                                                    class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                                                                    Data złożenia
+                                                                </label>
+                                                                <DatePicker
+                                                                    :modelValue="gasConnection?.gasConnectionDesign?.wsgAgreementPointSchemeSubmissionDate"
+                                                                    @update:modelValue="(val) => {
+                                                                        if (gasConnection?.gasConnectionDesign) {
+                                                                            gasConnection.gasConnectionDesign.wsgAgreementPointSchemeSubmissionDate = val as Date | undefined;
+                                                                            // Jeśli wyczyszczono datę złożenia, wyczyść datę otrzymania
+                                                                            if (!val) {
+                                                                                gasConnection.gasConnectionDesign.wsgAgreementPointSchemeReceiptDate = undefined;
+                                                                            }
+                                                                        }
+                                                                    }" :disabled="isReadonly" :manualInput="false"
+                                                                    showButtonBar showIcon dateFormat="dd.mm.yy"
+                                                                    class="w-full" />
+                                                            </div>
+
+                                                            <!-- Data otrzymania -->
+                                                            <div>
+                                                                <label
+                                                                    class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                                                                    Data otrzymania
+                                                                </label>
+                                                                <DatePicker
+                                                                    :modelValue="gasConnection?.gasConnectionDesign?.wsgAgreementPointSchemeReceiptDate"
+                                                                    @update:modelValue="(val) => {
+                                                                        if (gasConnection?.gasConnectionDesign) {
+                                                                            gasConnection.gasConnectionDesign.wsgAgreementPointSchemeReceiptDate = val as Date | undefined;
+                                                                        }
+                                                                    }"
+                                                                    :disabled="isReadonly || !gasConnection?.gasConnectionDesign?.wsgAgreementPointSchemeSubmissionDate"
+                                                                    :inputReadonly="true" showIcon :manualInput="false"
+                                                                    showButtonBar dateFormat="dd.mm.yy"
+                                                                    class="w-full" />
+                                                            </div>
+                                                        </div>
+                                                    </template>
+                                                </Card>
+                                            </div>
+                                        </div>
+                                    </Panel>
                                 </TabPanel>
 
-                                <!-- Pozostałe zakładki (puste na razie) -->
+                                <!-- Zakładka Projekt cd. -->
                                 <TabPanel value="projekt-cd">
                                     <div class="p-6">
                                         <p class="text-surface-600 dark:text-surface-400">Zawartość zakładki Projekt cd.
+                                            zostanie dodana w przyszłości.</p>
+                                    </div>
+                                </TabPanel>
+                                <TabPanel value="wykonawstwo">
+                                    <div class="p-6">
+                                        <p class="text-surface-600 dark:text-surface-400">Zawartość zakładki Wykonawstwo
                                             zostanie dodana w przyszłości.</p>
                                     </div>
                                 </TabPanel>
@@ -985,8 +1724,16 @@ const streetAndPlot = computed(() => {
             </div>
         </div>
 
-        <!-- Dialog ustawień etapu -->
+        <!-- Dialog ustawień etapu 1 -->
         <StageSettingsDialog v-model:visible="stageSettingsDialogVisible" stage-id="stage1" :cards="stage1Cards"
-            @saved="() => { }" />
+            @saved="() => { stage1SettingsKey++; }" />
+
+        <!-- Dialog ustawień etapu 2 -->
+        <StageSettingsDialog v-model:visible="stage2SettingsDialogVisible" stage-id="stage2" :cards="stage2Cards"
+            @saved="() => { stage2SettingsKey++; }" />
+
+        <!-- Dialog ustawień etapu 3 -->
+        <StageSettingsDialog v-model:visible="stage3SettingsDialogVisible" stage-id="stage3" :cards="stage3Cards"
+            @saved="() => { stage3SettingsKey++; }" />
     </div>
 </template>
