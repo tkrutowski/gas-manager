@@ -7,6 +7,7 @@ import StageSettingsDialog from '@/components/tasks/StageSettingsDialog.vue';
 import { useGasConnectionsStore } from '@/stores/gasConnections';
 import { useSettingsStore } from '@/stores/settings';
 import { useSurveyorsStore } from '@/stores/surveyors';
+import { useDesignersStore } from '@/stores/designers';
 import type { GasConnection } from '@/types/GasConnection';
 import { MapDeliveredBy } from '@/types/Commons';
 import { getPersonDisplayName, formatDate, formatMoney } from '@/utils/tableFormatters';
@@ -36,6 +37,7 @@ const route = useRoute();
 const gasConnectionsStore = useGasConnectionsStore();
 const settingsStore = useSettingsStore();
 const surveyorsStore = useSurveyorsStore();
+const designersStore = useDesignersStore();
 
 // Opcje dla Select "Mapę dostarczył"
 const mapDeliveredByOptions = [
@@ -60,6 +62,16 @@ const surveyorsOptions = computed(() => {
     }));
 });
 
+// Lista projektantów ruchu dla Select "Projektant" (ETAP 4)
+// Używamy designersStore, ponieważ DesignerTraffic ma podobną strukturę
+// W przyszłości może być osobny store dla projektantów ruchu
+const designerTrafficOptions = computed(() => {
+    return designersStore.getAllDesigners({ status: true }).map(designer => ({
+        label: `${designer.name} ${designer.lastName}`,
+        value: designer as any, // Tymczasowo używamy Designer jako DesignerTraffic
+    }));
+});
+
 // Sprawdza czy Select "Geodeta" powinien być disabled
 const isGeodetaSelectDisabled = computed(() => {
     if (isReadonly.value) return true;
@@ -81,6 +93,18 @@ const isUtilityCompanyDateFieldsDisabled = computed(() => {
     if (isReadonly.value) return true;
     const utilityCompanyType = gasConnection.value?.gasConnectionDesign?.utilityCompanyType;
     return utilityCompanyType === null || utilityCompanyType === undefined;
+});
+
+// Sprawdza czy pola dat PROJEKT ORGANIZACJI RUCHU powinny być disabled (ETAP 4)
+const isTrafficOrganizationProjectDateFieldsDisabled = computed(() => {
+    if (isReadonly.value) return true;
+    return gasConnection.value?.gasConnectionDesign?.withoutTrafficOrganizationProject === true;
+});
+
+// Sprawdza czy select Projektant w PROJEKT ORGANIZACJI RUCHU powinien być disabled (ETAP 4)
+const isDesignerTrafficSelectDisabled = computed(() => {
+    if (isReadonly.value) return true;
+    return gasConnection.value?.gasConnectionDesign?.withoutTrafficOrganizationProject === true;
 });
 
 // Status etapu 2
@@ -289,6 +313,109 @@ const checkmark3IconClasses = computed(() => {
     }
 });
 
+// Status etapu 4
+const stage4Status = computed(() => {
+    // Używamy klucza re-renderu, aby wymusić odświeżenie po zapisaniu ustawień
+    stage4SettingsKey.value;
+
+    const stageSettings = settingsStore.getStageSettings('stage4');
+    if (!stageSettings) {
+        return { text: 'STATUS: UKOŃCZONO (0/0)', color: 'default' };
+    }
+
+    const requiredCards = stageSettings.filter(c => c.required);
+    const requiredCount = requiredCards.length;
+
+    if (requiredCount === 0) {
+        return { text: 'STATUS: UKOŃCZONO (0/0)', color: 'default' };
+    }
+
+    // Liczymy zielone Cardy (tylko obowiązkowe)
+    const greenRequiredCards = requiredCards.filter(card => getCardColor(card.id, 'stage4') === 'green');
+    const greenCount = greenRequiredCards.length;
+
+    if (greenCount > 0) {
+        return { text: `STATUS: UKOŃCZONO (${greenCount}/${requiredCount})`, color: 'default' };
+    }
+
+    return { text: `STATUS: UKOŃCZONO (0/${requiredCount})`, color: 'default' };
+});
+
+// Klasy CSS dla statusu etapu 4
+const stage4StatusClasses = computed(() => {
+    const color = stage4Status.value.color;
+    const baseClasses = 'text-sm';
+
+    switch (color) {
+        case 'yellow':
+            return `${baseClasses} text-yellow-600 dark:text-yellow-400`;
+        default:
+            return `${baseClasses} text-surface-600 dark:text-surface-400`;
+    }
+});
+
+// Kolor ikony checkmark dla ETAP 4
+const checkmark4Color = computed(() => {
+    // Używamy klucza re-renderu, aby wymusić odświeżenie po zapisaniu ustawień
+    stage4SettingsKey.value;
+
+    const stageSettings = settingsStore.getStageSettings('stage4');
+    if (!stageSettings) return 'red';
+
+    const requiredCards = stageSettings.filter(c => c.required);
+    if (requiredCards.length === 0) return 'red';
+
+    // Sprawdzamy kolory wszystkich obowiązkowych Cardów
+    const requiredCardColors = requiredCards.map(card => getCardColor(card.id, 'stage4'));
+
+    // Jeśli wszystkie obowiązkowe Cardy są zielone → zielony
+    if (requiredCardColors.every(color => color === 'green')) {
+        return 'green';
+    }
+
+    // Jeśli wszystkie obowiązkowe Cardy są czerwone → czerwony
+    if (requiredCardColors.every(color => color === 'red')) {
+        return 'red';
+    }
+
+    // W przeciwnym razie (mieszanka: żółty + cokolwiek, zielony + czerwony, itp.) → żółty
+    return 'yellow';
+});
+
+// Klasy CSS dla ikony checkmark ETAP 4
+const checkmark4Classes = computed(() => {
+    const color = checkmark4Color.value;
+    const baseClasses = 'w-10 h-10 rounded-full border flex items-center justify-center shrink-0 ring-1';
+
+    switch (color) {
+        case 'red':
+            return `${baseClasses} border-red-400 bg-red-400/10 shadow-[0_0_8px_rgba(239,68,68,0.5)] ring-red-400/50`;
+        case 'yellow':
+            return `${baseClasses} border-yellow-400 bg-yellow-400/10 shadow-[0_0_8px_rgba(234,179,8,0.5)] ring-yellow-400/50`;
+        case 'green':
+            return `${baseClasses} border-green-400 bg-green-400/10 shadow-[0_0_8px_rgba(34,197,94,0.5)] ring-green-400/50`;
+        default:
+            return `${baseClasses} border-green-400 bg-green-400/10 shadow-[0_0_8px_rgba(34,197,94,0.5)] ring-green-400/50`;
+    }
+});
+
+// Klasy CSS dla ikony checkmark ETAP 4 (ikona wewnątrz)
+const checkmark4IconClasses = computed(() => {
+    const color = checkmark4Color.value;
+    const baseClasses = 'w-5 h-5';
+
+    switch (color) {
+        case 'red':
+            return `${baseClasses} text-red-400`;
+        case 'yellow':
+            return `${baseClasses} text-yellow-400`;
+        case 'green':
+            return `${baseClasses} text-green-400`;
+        default:
+            return `${baseClasses} text-green-400`;
+    }
+});
+
 // Oblicza stan dla "+ właściciele działek" (ETAP 2)
 // TODO: Ta metoda będzie uzupełniona w późniejszym terminie
 const getPlotOwnersStatus = (): 'red' | 'yellow' | 'green' | 'default' => {
@@ -313,16 +440,42 @@ const getPlotOwnersClasses = (): string => {
     }
 };
 
+// Oblicza stan dla "+ zajęcie pasa" (ETAP 4)
+// TODO: Ta metoda będzie uzupełniona w późniejszym terminie
+const getLaneOccupationStatus = (): 'red' | 'yellow' | 'green' | 'default' => {
+    // TODO: będzie uzupełnione w późniejszym terminie
+    return 'default';
+};
+
+// Zwraca klasy CSS dla "+ zajęcie pasa" na podstawie stanu
+const getLaneOccupationClasses = (): string => {
+    const status = getLaneOccupationStatus();
+    const baseClasses = 'inline-flex items-center gap-2 px-4 py-2 rounded-lg border font-medium text-sm transition-colors';
+
+    switch (status) {
+        case 'red':
+            return `${baseClasses} bg-red-50 dark:bg-red-900/20 border-red-400 dark:border-red-500 text-red-700 dark:text-red-300`;
+        case 'yellow':
+            return `${baseClasses} bg-yellow-50 dark:bg-yellow-900/20 border-yellow-400 dark:border-yellow-500 text-yellow-700 dark:text-yellow-300`;
+        case 'green':
+            return `${baseClasses} bg-green-50 dark:bg-green-900/20 border-green-400 dark:border-green-500 text-green-700 dark:text-green-300`;
+        default:
+            return `${baseClasses} bg-surface-50 dark:bg-surface-900 border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300`;
+    }
+};
+
 const gasConnection = ref<GasConnection | undefined>(undefined);
 const isReadonly = computed(() => route.query.readonly === 'true');
 const activeTab = ref<string>('projekt');
 const stageSettingsDialogVisible = ref(false);
 const stage2SettingsDialogVisible = ref(false);
 const stage3SettingsDialogVisible = ref(false);
+const stage4SettingsDialogVisible = ref(false);
 // Klucz do wymuszenia re-renderu Cardów po zmianie ustawień
 const stage1SettingsKey = ref(0);
 const stage2SettingsKey = ref(0);
 const stage3SettingsKey = ref(0);
+const stage4SettingsKey = ref(0);
 
 // Lista Cardów dla etapu 1
 const stage1Cards = [
@@ -346,9 +499,16 @@ const stage3Cards = [
     { id: 'wsgAgreementPointScheme', title: 'UZG. SCHEMATU PUNKTU W WSG' },
 ];
 
+// Lista Cardów dla etapu 4
+const stage4Cards = [
+    { id: 'trafficOrganizationProject', title: 'PROJEKT ORGANIZACJI RUCHU' },
+    { id: 'gasPoint', title: 'PUNKT GAZOWY' },
+    { id: 'geodesy', title: 'GEODEZJA' },
+];
+
 // Mapowanie pól dla każdego Card
 // Parametr _stage jest przekazywany dla spójności z innymi funkcjami, ale obecnie nie jest używany w ciele funkcji
-const getCardFields = (cardId: string, _stage: 'stage1' | 'stage2' | 'stage3' = 'stage1'): string[] => {
+const getCardFields = (cardId: string, _stage: 'stage1' | 'stage2' | 'stage3' | 'stage4' = 'stage1'): string[] => {
     const fieldMap: Record<string, string[]> = {
         // Stage 1
         projectOrder: ['gasConnectionDesign.projectOrderSubmissionDate', 'gasConnectionDesign.projectOrderConfirmationDate'],
@@ -363,6 +523,10 @@ const getCardFields = (cardId: string, _stage: 'stage1' | 'stage2' | 'stage3' = 
         // Stage 3
         wsgAgreement: ['gasConnectionDesign.wsgAgreementSubmissionDate', 'gasConnectionDesign.wsgAgreementReceiptDate', 'gasConnectionDesign.wsgAgreementAgreementDate', 'gasConnectionDesign.wsgAgreementNo'],
         wsgAgreementPointScheme: ['gasConnectionDesign.wsgAgreementPointSchemeSubmissionDate', 'gasConnectionDesign.wsgAgreementPointSchemeReceiptDate'],
+        // Stage 4
+        trafficOrganizationProject: ['gasConnectionDesign.trafficOrganizationProjectSubmissionDate', 'gasConnectionDesign.trafficOrganizationProjectReceiptDate', 'gasConnectionDesign.designerTraffic', 'gasConnectionDesign.withoutTrafficOrganizationProject'],
+        gasPoint: ['gasConnectionDesign.gasPointOrderDate', 'gasConnectionDesign.gasPointPickupDate', 'gasConnectionDesign.gasPointDocPickupDate', 'gasConnectionDesign.gasPointOrderNo'],
+        geodesy: ['gasConnectionDesign.zudpSentToSurveyorDate', 'gasConnectionDesign.surveyorTrafficProject'],
     };
     return fieldMap[cardId] || [];
 };
@@ -395,7 +559,7 @@ const isFieldEmpty = (fieldPath: string): boolean => {
 };
 
 // Sprawdza czy wszystkie obowiązkowe pola Card są puste
-const isCardFieldEmpty = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' = 'stage1'): boolean => {
+const isCardFieldEmpty = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' | 'stage4' = 'stage1'): boolean => {
     const stageSettings = settingsStore.getStageSettings(stage);
     if (!stageSettings) return false;
 
@@ -415,13 +579,24 @@ const isCardFieldEmpty = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' 
         return dateFields.every(field => isFieldEmpty(field));
     }
 
+    // Dla PROJEKT ORGANIZACJI RUCHU - jeśli withoutTrafficOrganizationProject jest true, to Card jest uzupełniony
+    if (cardId === 'trafficOrganizationProject' && gasConnection.value?.gasConnectionDesign?.withoutTrafficOrganizationProject === true) {
+        return false;
+    }
+
+    // Dla PROJEKT ORGANIZACJI RUCHU - jeśli withoutTrafficOrganizationProject nie jest true, sprawdzamy tylko daty i projektanta (ignorujemy withoutTrafficOrganizationProject)
+    if (cardId === 'trafficOrganizationProject') {
+        const dateFields = fields.filter(field => field !== 'gasConnectionDesign.withoutTrafficOrganizationProject');
+        return dateFields.every(field => isFieldEmpty(field));
+    }
+
     const requiredFields = fields; // Wszystkie pola są sprawdzane, ale tylko dla obowiązkowych Cardów
 
     return requiredFields.every(field => isFieldEmpty(field));
 };
 
 // Sprawdza czy wszystkie obowiązkowe pola Card są uzupełnione
-const isCardFieldComplete = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' = 'stage1'): boolean => {
+const isCardFieldComplete = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' | 'stage4' = 'stage1'): boolean => {
     const stageSettings = settingsStore.getStageSettings(stage);
     if (!stageSettings) return false;
 
@@ -441,13 +616,24 @@ const isCardFieldComplete = (cardId: string, stage: 'stage1' | 'stage2' | 'stage
         return dateFields.every(field => !isFieldEmpty(field));
     }
 
+    // Dla PROJEKT ORGANIZACJI RUCHU - jeśli withoutTrafficOrganizationProject jest true, to Card jest uzupełniony
+    if (cardId === 'trafficOrganizationProject' && gasConnection.value?.gasConnectionDesign?.withoutTrafficOrganizationProject === true) {
+        return true;
+    }
+
+    // Dla PROJEKT ORGANIZACJI RUCHU - jeśli withoutTrafficOrganizationProject nie jest true, sprawdzamy tylko daty i projektanta (ignorujemy withoutTrafficOrganizationProject)
+    if (cardId === 'trafficOrganizationProject') {
+        const dateFields = fields.filter(field => field !== 'gasConnectionDesign.withoutTrafficOrganizationProject');
+        return dateFields.every(field => !isFieldEmpty(field));
+    }
+
     const requiredFields = fields; // Wszystkie pola są sprawdzane, ale tylko dla obowiązkowych Cardów
 
     return requiredFields.every(field => !isFieldEmpty(field));
 };
 
 // Sprawdza czy którekolwiek obowiązkowe pole Card jest wypełnione (ale nie wszystkie)
-const isCardFieldPartial = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' = 'stage1'): boolean => {
+const isCardFieldPartial = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' | 'stage4' = 'stage1'): boolean => {
     const stageSettings = settingsStore.getStageSettings(stage);
     if (!stageSettings) return false;
 
@@ -468,6 +654,18 @@ const isCardFieldPartial = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3
         return filledFields.length > 0 && filledFields.length < dateFields.length;
     }
 
+    // Dla PROJEKT ORGANIZACJI RUCHU - jeśli withoutTrafficOrganizationProject jest true, to Card jest uzupełniony (nie partial)
+    if (cardId === 'trafficOrganizationProject' && gasConnection.value?.gasConnectionDesign?.withoutTrafficOrganizationProject === true) {
+        return false;
+    }
+
+    // Dla PROJEKT ORGANIZACJI RUCHU - jeśli withoutTrafficOrganizationProject nie jest true, sprawdzamy tylko daty i projektanta (ignorujemy withoutTrafficOrganizationProject)
+    if (cardId === 'trafficOrganizationProject') {
+        const dateFields = fields.filter(field => field !== 'gasConnectionDesign.withoutTrafficOrganizationProject');
+        const filledFields = dateFields.filter(field => !isFieldEmpty(field));
+        return filledFields.length > 0 && filledFields.length < dateFields.length;
+    }
+
     const requiredFields = fields;
 
     const filledFields = requiredFields.filter(field => !isFieldEmpty(field));
@@ -475,7 +673,7 @@ const isCardFieldPartial = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3
 };
 
 // Zwraca kolor Card na podstawie stanu
-const getCardColor = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' = 'stage1'): 'red' | 'yellow' | 'green' | 'default' => {
+const getCardColor = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' | 'stage4' = 'stage1'): 'red' | 'yellow' | 'green' | 'default' => {
     const stageSettings = settingsStore.getStageSettings(stage);
     if (!stageSettings) return 'default';
 
@@ -490,7 +688,7 @@ const getCardColor = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' = 's
 };
 
 // Zwraca klasy CSS dla headera Card na podstawie koloru
-const getCardHeaderClasses = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' = 'stage1'): string => {
+const getCardHeaderClasses = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' | 'stage4' = 'stage1'): string => {
     const color = getCardColor(cardId, stage);
     const baseClasses = 'flex items-center gap-2 px-4 py-3 border-b rounded-t-xl';
 
@@ -507,7 +705,7 @@ const getCardHeaderClasses = (cardId: string, stage: 'stage1' | 'stage2' | 'stag
 };
 
 // Zwraca klasy CSS dla tekstu w headerze Card na podstawie koloru
-const getCardHeaderTextClasses = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' = 'stage1'): string => {
+const getCardHeaderTextClasses = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' | 'stage4' = 'stage1'): string => {
     const color = getCardColor(cardId, stage);
     const baseClasses = 'text-sm font-bold uppercase m-0';
 
@@ -524,7 +722,7 @@ const getCardHeaderTextClasses = (cardId: string, stage: 'stage1' | 'stage2' | '
 };
 
 // Zwraca klasy CSS dla obramowania Card na podstawie koloru
-const getCardBorderClasses = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' = 'stage1'): string => {
+const getCardBorderClasses = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' | 'stage4' = 'stage1'): string => {
     const color = getCardColor(cardId, stage);
 
     switch (color) {
@@ -1664,6 +1862,295 @@ const streetAndPlot = computed(() => {
                                             </div>
                                         </div>
                                     </Panel>
+
+                                    <!-- ETAP 4 -->
+                                    <Panel :key="stage4SettingsKey" toggleable class="mt-6">
+                                        <template #header>
+                                            <div class="flex items-center justify-between w-full">
+                                                <div class="flex items-center gap-4">
+                                                    <!-- Żółta ikona clipboard -->
+                                                    <div
+                                                        class="w-12 h-12 bg-yellow-400/70 rounded-full flex items-center justify-center shrink-0">
+                                                        <ClipboardDocumentIcon class="w-8 h-8 text-white" />
+                                                    </div>
+                                                    <!-- Tekst -->
+                                                    <div>
+                                                        <div
+                                                            class="text-lg font-bold uppercase text-surface-700 dark:text-surface-300">
+                                                            ETAP 4
+                                                        </div>
+                                                        <div :class="stage4StatusClasses">
+                                                            {{ stage4Status.text }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <!-- Ikony po prawej stronie -->
+                                                <div class="flex items-center gap-2">
+                                                    <!-- Ikona checkmark -->
+                                                    <div :class="checkmark4Classes">
+                                                        <CheckIcon :class="checkmark4IconClasses" />
+                                                    </div>
+                                                    <!-- Ikona ustawień -->
+                                                    <Button icon="pi pi-cog" text severity="secondary" rounded
+                                                        @click="stage4SettingsDialogVisible = true" />
+                                                </div>
+                                            </div>
+                                        </template>
+
+                                        <!-- Karty w układzie: lewa kolumna (PROJEKT ORGANIZACJI RUCHU), prawa kolumna (PUNKT GAZOWY i GEODEZJA) -->
+                                        <div class="p-6">
+                                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                                <!-- Lewa kolumna - PROJEKT ORGANIZACJI RUCHU -->
+                                                <Card :key="`trafficOrganizationProject-${stage4SettingsKey}`"
+                                                    data-card-id="trafficOrganizationProject"
+                                                    :class="`border ${getCardBorderClasses('trafficOrganizationProject', 'stage4')} overflow-hidden`">
+                                                    <template #header>
+                                                        <div
+                                                            :class="getCardHeaderClasses('trafficOrganizationProject', 'stage4')">
+                                                            <DocumentIcon class="w-5 h-5 text-primary-400" />
+                                                            <h4
+                                                                :class="getCardHeaderTextClasses('trafficOrganizationProject', 'stage4')">
+                                                                PROJEKT ORGANIZACJI RUCHU
+                                                            </h4>
+                                                        </div>
+                                                    </template>
+                                                    <template #content>
+                                                        <div class="space-y-4">
+                                                            <!-- Checkbox "bez POR" -->
+                                                            <div class="flex items-center gap-2">
+                                                                <Checkbox
+                                                                    :modelValue="gasConnection?.gasConnectionDesign?.withoutTrafficOrganizationProject"
+                                                                    @update:modelValue="(val) => {
+                                                                        if (gasConnection?.gasConnectionDesign) {
+                                                                            gasConnection.gasConnectionDesign.withoutTrafficOrganizationProject = val as boolean;
+                                                                            // Jeśli checkbox jest zaznaczony, wyczyść daty i projektanta
+                                                                            if (val) {
+                                                                                gasConnection.gasConnectionDesign.trafficOrganizationProjectSubmissionDate = undefined;
+                                                                                gasConnection.gasConnectionDesign.trafficOrganizationProjectReceiptDate = undefined;
+                                                                                gasConnection.gasConnectionDesign.designerTraffic = null;
+                                                                            }
+                                                                        }
+                                                                    }" :binary="true"
+                                                                    inputId="withoutTrafficOrganizationProject"
+                                                                    :disabled="isReadonly" />
+                                                                <label for="withoutTrafficOrganizationProject"
+                                                                    class="text-sm font-medium text-surface-700 dark:text-surface-300 cursor-pointer">
+                                                                    bez POR
+                                                                </label>
+                                                            </div>
+
+                                                            <!-- Data złożenia -->
+                                                            <div>
+                                                                <label
+                                                                    class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                                                                    Data złożenia
+                                                                </label>
+                                                                <DatePicker
+                                                                    :modelValue="gasConnection?.gasConnectionDesign?.trafficOrganizationProjectSubmissionDate"
+                                                                    @update:modelValue="(val) => {
+                                                                        if (gasConnection?.gasConnectionDesign) {
+                                                                            gasConnection.gasConnectionDesign.trafficOrganizationProjectSubmissionDate = val as Date | undefined;
+                                                                            // Jeśli wyczyszczono datę złożenia, wyczyść datę otrzymania
+                                                                            if (!val) {
+                                                                                gasConnection.gasConnectionDesign.trafficOrganizationProjectReceiptDate = undefined;
+                                                                            }
+                                                                        }
+                                                                    }"
+                                                                    :disabled="isTrafficOrganizationProjectDateFieldsDisabled"
+                                                                    :manualInput="false" showButtonBar showIcon
+                                                                    dateFormat="dd.mm.yy" class="w-full" />
+                                                            </div>
+
+                                                            <!-- Data otrzymania -->
+                                                            <div>
+                                                                <label
+                                                                    class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                                                                    Data otrzymania
+                                                                </label>
+                                                                <DatePicker
+                                                                    :modelValue="gasConnection?.gasConnectionDesign?.trafficOrganizationProjectReceiptDate"
+                                                                    @update:modelValue="(val) => {
+                                                                        if (gasConnection?.gasConnectionDesign) {
+                                                                            gasConnection.gasConnectionDesign.trafficOrganizationProjectReceiptDate = val as Date | undefined;
+                                                                        }
+                                                                    }"
+                                                                    :disabled="isTrafficOrganizationProjectDateFieldsDisabled || !gasConnection?.gasConnectionDesign?.trafficOrganizationProjectSubmissionDate"
+                                                                    :inputReadonly="true" showIcon :manualInput="false"
+                                                                    showButtonBar dateFormat="dd.mm.yy"
+                                                                    class="w-full" />
+                                                            </div>
+
+                                                            <!-- Projektant -->
+                                                            <div>
+                                                                <label
+                                                                    class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                                                                    Projektant
+                                                                </label>
+                                                                <Select
+                                                                    :modelValue="gasConnection?.gasConnectionDesign?.designerTraffic"
+                                                                    :showClear="true" @update:modelValue="(val) => {
+                                                                        if (gasConnection?.gasConnectionDesign) {
+                                                                            gasConnection.gasConnectionDesign.designerTraffic = val as any;
+                                                                        }
+                                                                    }" :options="designerTrafficOptions"
+                                                                    optionLabel="label" optionValue="value"
+                                                                    placeholder="wybierz" class="w-full"
+                                                                    :disabled="isDesignerTrafficSelectDisabled" />
+                                                            </div>
+                                                        </div>
+                                                    </template>
+                                                </Card>
+
+                                                <!-- Prawa kolumna - PUNKT GAZOWY i GEODEZJA -->
+                                                <div class="space-y-6">
+                                                    <!-- Card PUNKT GAZOWY -->
+                                                    <Card :key="`gasPoint-${stage4SettingsKey}`" data-card-id="gasPoint"
+                                                        :class="`border ${getCardBorderClasses('gasPoint', 'stage4')} overflow-hidden`">
+                                                        <template #header>
+                                                            <div :class="getCardHeaderClasses('gasPoint', 'stage4')">
+                                                                <DocumentIcon class="w-5 h-5 text-primary-400" />
+                                                                <h4
+                                                                    :class="getCardHeaderTextClasses('gasPoint', 'stage4')">
+                                                                    PUNKT GAZOWY
+                                                                </h4>
+                                                            </div>
+                                                        </template>
+                                                        <template #content>
+                                                            <div class="space-y-4">
+                                                                <!-- Data zamówienia -->
+                                                                <div>
+                                                                    <label
+                                                                        class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                                                                        Data zamówienia
+                                                                    </label>
+                                                                    <DatePicker
+                                                                        :modelValue="gasConnection?.gasConnectionDesign?.gasPointOrderDate"
+                                                                        @update:modelValue="(val) => {
+                                                                            if (gasConnection?.gasConnectionDesign) {
+                                                                                gasConnection.gasConnectionDesign.gasPointOrderDate = val as Date | undefined;
+                                                                            }
+                                                                        }" :disabled="isReadonly" :manualInput="false"
+                                                                        showButtonBar showIcon dateFormat="dd.mm.yy"
+                                                                        class="w-full" />
+                                                                </div>
+
+                                                                <!-- Data odbioru punktu -->
+                                                                <div>
+                                                                    <label
+                                                                        class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                                                                        Data odbioru punktu
+                                                                    </label>
+                                                                    <DatePicker
+                                                                        :modelValue="gasConnection?.gasConnectionDesign?.gasPointPickupDate"
+                                                                        @update:modelValue="(val) => {
+                                                                            if (gasConnection?.gasConnectionDesign) {
+                                                                                gasConnection.gasConnectionDesign.gasPointPickupDate = val as Date | undefined;
+                                                                            }
+                                                                        }" :disabled="isReadonly" :manualInput="false"
+                                                                        showButtonBar showIcon dateFormat="dd.mm.yy"
+                                                                        class="w-full" />
+                                                                </div>
+
+                                                                <!-- Data odbioru dok. -->
+                                                                <div>
+                                                                    <label
+                                                                        class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                                                                        Data odbioru dok.
+                                                                    </label>
+                                                                    <DatePicker
+                                                                        :modelValue="gasConnection?.gasConnectionDesign?.gasPointDocPickupDate"
+                                                                        @update:modelValue="(val) => {
+                                                                            if (gasConnection?.gasConnectionDesign) {
+                                                                                gasConnection.gasConnectionDesign.gasPointDocPickupDate = val as Date | undefined;
+                                                                            }
+                                                                        }" :disabled="isReadonly" :manualInput="false"
+                                                                        showButtonBar showIcon dateFormat="dd.mm.yy"
+                                                                        class="w-full" />
+                                                                </div>
+
+                                                                <!-- Nr zamówienia -->
+                                                                <div>
+                                                                    <label
+                                                                        class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                                                                        Nr zamówienia
+                                                                    </label>
+                                                                    <InputText
+                                                                        :modelValue="gasConnection?.gasConnectionDesign?.gasPointOrderNo"
+                                                                        @update:modelValue="(val) => {
+                                                                            if (gasConnection?.gasConnectionDesign) {
+                                                                                gasConnection.gasConnectionDesign.gasPointOrderNo = val as string;
+                                                                            }
+                                                                        }" placeholder="" class="w-full"
+                                                                        :disabled="isReadonly" />
+                                                                </div>
+                                                            </div>
+                                                        </template>
+                                                    </Card>
+
+                                                    <!-- Card GEODEZJA -->
+                                                    <Card :key="`geodesy-${stage4SettingsKey}`" data-card-id="geodesy"
+                                                        :class="`border ${getCardBorderClasses('geodesy', 'stage4')} overflow-hidden`">
+                                                        <template #header>
+                                                            <div :class="getCardHeaderClasses('geodesy', 'stage4')">
+                                                                <DocumentIcon class="w-5 h-5 text-primary-400" />
+                                                                <h4
+                                                                    :class="getCardHeaderTextClasses('geodesy', 'stage4')">
+                                                                    GEODEZJA
+                                                                </h4>
+                                                            </div>
+                                                        </template>
+                                                        <template #content>
+                                                            <div class="space-y-4">
+                                                                <!-- Data wysłania -->
+                                                                <div>
+                                                                    <label
+                                                                        class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                                                                        Data wysłania
+                                                                    </label>
+                                                                    <DatePicker
+                                                                        :modelValue="gasConnection?.gasConnectionDesign?.zudpSentToSurveyorDate"
+                                                                        @update:modelValue="(val) => {
+                                                                            if (gasConnection?.gasConnectionDesign) {
+                                                                                gasConnection.gasConnectionDesign.zudpSentToSurveyorDate = val as Date | undefined;
+                                                                            }
+                                                                        }" :disabled="isReadonly" :manualInput="false"
+                                                                        showButtonBar showIcon dateFormat="dd.mm.yy"
+                                                                        class="w-full" />
+                                                                </div>
+
+                                                                <!-- Geodeta -->
+                                                                <div>
+                                                                    <label
+                                                                        class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                                                                        Geodeta
+                                                                    </label>
+                                                                    <Select
+                                                                        :modelValue="gasConnection?.gasConnectionDesign?.surveyorTrafficProject"
+                                                                        :showClear="true" @update:modelValue="(val) => {
+                                                                            if (gasConnection?.gasConnectionDesign) {
+                                                                                gasConnection.gasConnectionDesign.surveyorTrafficProject = val as any;
+                                                                            }
+                                                                        }" :options="surveyorsOptions"
+                                                                        optionLabel="label" optionValue="value"
+                                                                        placeholder="wybierz" class="w-full"
+                                                                        :disabled="isReadonly" />
+                                                                </div>
+                                                            </div>
+                                                        </template>
+                                                    </Card>
+                                                </div>
+                                            </div>
+
+                                            <!-- Element "+ zajęcie pasa" -->
+                                            <div class="mt-6">
+                                                <button :class="getLaneOccupationClasses()" :disabled="isReadonly"
+                                                    @click="() => { }">
+                                                    <span class="text-lg font-bold">+</span>
+                                                    <span>zajęcie pasa</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </Panel>
                                 </TabPanel>
 
                                 <!-- Zakładka Projekt cd. -->
@@ -1735,5 +2222,9 @@ const streetAndPlot = computed(() => {
         <!-- Dialog ustawień etapu 3 -->
         <StageSettingsDialog v-model:visible="stage3SettingsDialogVisible" stage-id="stage3" :cards="stage3Cards"
             @saved="() => { stage3SettingsKey++; }" />
+
+        <!-- Dialog ustawień etapu 4 -->
+        <StageSettingsDialog v-model:visible="stage4SettingsDialogVisible" stage-id="stage4" :cards="stage4Cards"
+            @saved="() => { stage4SettingsKey++; }" />
     </div>
 </template>
