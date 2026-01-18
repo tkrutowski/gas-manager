@@ -417,7 +417,15 @@ export function useStageCards(
     const requiredCards = stageSettings.filter(c => c.required);
     if (requiredCards.length === 0) return 'green';
 
-    const requiredCardColors = requiredCards.map(card => getCardColor(card.id, 'stage2'));
+    // Oblicz kolor dla każdego wymaganego Card, uwzględniając plotOwners
+    const requiredCardColors = requiredCards.map(card => {
+      // Dla plotOwners użyj koloru działek
+      if (card.id === 'plotOwners') {
+        return getPlotsColor();
+      }
+      // Dla pozostałych Cardów użyj standardowej logiki
+      return getCardColor(card.id, 'stage2');
+    });
 
     if (requiredCardColors.every(color => color === 'green')) {
       return 'green';
@@ -685,9 +693,41 @@ export function useStageCards(
     return deliveredBy !== MapDeliveredBy.Geodeta;
   });
 
+  // Funkcja do określania koloru pojedynczej działki na podstawie dat
+  const getPlotColor = (plot: any): 'red' | 'yellow' | 'green' => {
+    const hasSubmission = !!plot.submissionDate;
+    const hasReceipt = !!plot.receiptDate;
+
+    if (hasSubmission && hasReceipt) return 'green';
+    if (hasSubmission && !hasReceipt) return 'yellow';
+    return 'red';
+  };
+
+  // Funkcja do obliczania koloru działek (używana dla przycisku "+ właściciele działek")
+  const getPlotsColor = (): 'red' | 'yellow' | 'green' => {
+    const plots = gasConnection.value?.plots || [];
+    if (plots.length === 0) return 'red';
+
+    const plotColors = plots.map(plot => getPlotColor(plot));
+
+    // Jeśli wszystkie są zielone → zielony
+    if (plotColors.every(color => color === 'green')) {
+      return 'green';
+    }
+
+    // Jeśli wszystkie są czerwone → czerwony
+    if (plotColors.every(color => color === 'red')) {
+      return 'red';
+    }
+
+    // Jeśli którykolwiek ma kolor inny niż czerwony → żółty
+    return 'yellow';
+  };
+
   // Funkcje pomocnicze dla przycisków
   const getPlotOwnersStatus = (): 'red' | 'yellow' | 'green' | 'default' => {
-    return getCardColor('plotOwners', 'stage2');
+    // Użyj koloru działek zamiast getCardColor dla plotOwners
+    return getPlotsColor();
   };
 
   const getPlotOwnersClasses = (): string => {

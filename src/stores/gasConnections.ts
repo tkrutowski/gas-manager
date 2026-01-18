@@ -12,7 +12,7 @@ import type {
 import { Phase } from '../types/GasConnection';
 import type { TaskType } from '../types/TaskType';
 import type { WorkRangeConnection, WorkRangeGasConnection, WorkRangeGasStation } from '../types/WorkRange';
-import type { Plot } from '../types/Plot';
+import type { Plot, PlotOwner } from '../types/Plot';
 import { useCustomersStore } from './customers';
 import { useDesignersStore } from './designers';
 import { useCoordinatorsStore } from './coordinators';
@@ -89,6 +89,16 @@ function generateCostType(id: number): CostType {
     name: types[Math.floor(Math.random() * types.length)],
   };
 }
+
+// Opcje PlotOwner
+const plotOwnerOptions: PlotOwner[] = [
+  { id: 1, name: 'Urząd Gminy' },
+  { id: 2, name: 'ZDP' },
+  { id: 3, name: 'ZDW' },
+  { id: 4, name: 'GDDKiA' },
+  { id: 5, name: 'ZDM' },
+  { id: 6, name: 'Wł. prywatny' },
+];
 
 // Klucz localStorage dla połączeń gazowych
 const STORAGE_KEY = 'gas-manager:gasConnections';
@@ -200,10 +210,7 @@ function generateMockGasConnections(): GasConnection[] {
         plots.push({
           id: plotId++,
           idTask: id,
-          plotOwner: {
-            id: plotId,
-            name: `Właściciel działki ${plotId}`,
-          },
+          plotOwner: plotOwnerOptions[Math.floor(Math.random() * plotOwnerOptions.length)],
           plotOwnerPrivate: [],
           plotNumber: `${Math.floor(Math.random() * 999) + 1}/${Math.floor(Math.random() * 99) + 1}`,
           submissionDate: Math.random() > 0.3 ? randomPastDate(180) : undefined,

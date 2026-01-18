@@ -1,13 +1,4 @@
-import { useBookstoreStore } from '../stores/bookstores';
-import { useCardsStore } from '../stores/cards';
-import { useFirmsStore } from '../stores/firms';
-import { type Author, type Category } from '../types/Book';
-import { OwnershipStatus, EditionType, ReadingStatus } from '../types/Book';
 import moment from 'moment';
-import type { FeeInstallment } from '../types/Fee';
-import type { Installment } from '../types/Payment';
-import type { LoanInstallment } from '../types/Loan';
-import { TranslationService } from '@/service/TranslationService.ts';
 
 export const UtilsService = {
   formatCurrency(value: number | undefined) {
@@ -42,29 +33,6 @@ export const UtilsService = {
     }
   },
 
-  getTypesForLibrary() {
-    const bookstoreStore = useBookstoreStore();
-    if (bookstoreStore.bookstores.length === 0) bookstoreStore.getBookstoresFromDb();
-  },
-
-  getTypesForFinance() {
-    const cardStore = useCardsStore();
-    if (cardStore.cards.length === 0) {
-      cardStore.getCardsFromDb('ALL');
-    }
-
-    const firmStore = useFirmsStore();
-    if (firmStore.firms.length === 0) {
-      firmStore.getFirmsFromDb();
-    }
-  },
-  displayAuthors(authors: Author[]) {
-    return authors.map(author => author.lastName + ' ' + author.firstName).join(', ');
-  },
-
-  displayCategory(categories: Category[]) {
-    return categories.map(category => category.name).join(', ');
-  },
 
   findPatternInString(inputString: string, pattern: string, split: string) {
     // Dzielimy string na elementy według separatora ";;"
@@ -76,36 +44,4 @@ export const UtilsService = {
     return matchedElements;
   },
 
-  isLoanInstallment(installment: Installment): installment is LoanInstallment {
-    return (installment as LoanInstallment).idLoan !== undefined;
-  },
-
-  isFeeInstallment(installment: Installment): installment is FeeInstallment {
-    return (installment as FeeInstallment).idFee !== undefined;
-  },
-
-  getOwnershipStatusOption() {
-    return Object.keys(OwnershipStatus)
-      .filter(key => key !== 'ALL') // Usuwamy klucz ALL
-      .map(key => ({
-        label: TranslationService.translateEnum('OwnershipStatus', key), // klucz
-        value: OwnershipStatus[key as keyof typeof OwnershipStatus], // wartość
-      }));
-  },
-  getEditionTypeOption() {
-    return Object.keys(EditionType)
-      .filter(key => key !== 'ALL') // Usuwamy klucz ALL
-      .map(key => ({
-        label: TranslationService.translateEnum('EditionType', key), // klucz
-        value: EditionType[key as keyof typeof EditionType], // wartość
-      }));
-  },
-  getReadingStatusOption() {
-    return Object.keys(ReadingStatus)
-      .filter(key => key !== 'ALL') // Usuwamy klucz ALL
-      .map(key => ({
-        label: TranslationService.translateEnum('ReadingStatus', key), // klucz
-        value: ReadingStatus[key as keyof typeof ReadingStatus], // wartość
-      }));
-  },
 };

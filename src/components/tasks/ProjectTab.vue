@@ -142,24 +142,28 @@ watch(
     },
     { immediate: true, deep: true }
 );
+
+// Computed properties do określania czy etap powinien być zwinięty (zielone etapy są zwinięte)
+const isStage1Collapsed = computed(() => checkmarkColor.value === 'green');
+const isStage2Collapsed = computed(() => checkmark2Color.value === 'green');
+const isStage3Collapsed = computed(() => checkmark3Color.value === 'green');
+const isStage4Collapsed = computed(() => checkmark4Color.value === 'green');
 </script>
 
 <template>
     <div>
         <!-- ETAP 1 -->
-        <Panel :key="stage1SettingsKey" toggleable>
+        <Panel :key="stage1SettingsKey" toggleable :collapsed="isStage1Collapsed">
             <template #header>
                 <div class="flex items-center justify-between w-full">
                     <div class="flex items-center gap-4">
                         <!-- Żółta ikona clipboard -->
-                        <div
-                            class="w-12 h-12 bg-yellow-400/70 rounded-full flex items-center justify-center shrink-0">
+                        <div class="w-12 h-12 bg-yellow-400/70 rounded-full flex items-center justify-center shrink-0">
                             <ClipboardDocumentIcon class="w-8 h-8 text-white" />
                         </div>
                         <!-- Tekst -->
                         <div>
-                            <div
-                                class="text-lg font-bold uppercase text-surface-700 dark:text-surface-300">
+                            <div class="text-lg font-bold uppercase text-surface-700 dark:text-surface-300">
                                 ETAP 1
                             </div>
                             <div :class="stageStatusClasses">
@@ -186,8 +190,7 @@ watch(
                     <!-- Lewa kolumna -->
                     <div class="space-y-6">
                         <!-- Karta ZLECENIE PROJEKTU -->
-                        <Card :key="`projectOrder-${stage1SettingsKey}`"
-                            data-card-id="projectOrder"
+                        <Card :key="`projectOrder-${stage1SettingsKey}`" data-card-id="projectOrder"
                             :class="`border ${getCardBorderClasses('projectOrder')} overflow-hidden`">
                             <template #header>
                                 <div :class="getCardHeaderClasses('projectOrder')">
@@ -210,9 +213,8 @@ watch(
                                                 if (gasConnection?.gasConnectionDesign) {
                                                     gasConnection.gasConnectionDesign.projectOrderSubmissionDate = val as Date | undefined;
                                                 }
-                                            }" :disabled="isReadonly" :manualInput="false"
-                                            showButtonBar showIcon dateFormat="dd.mm.yy"
-                                            class="w-full" />
+                                            }" :disabled="isReadonly" :manualInput="false" showButtonBar showIcon
+                                            dateFormat="dd.mm.yy" class="w-full" />
                                     </div>
                                     <div>
                                         <label
@@ -227,8 +229,7 @@ watch(
                                                 }
                                             }"
                                             :disabled="isReadonly || !gasConnection?.gasConnectionDesign?.projectOrderSubmissionDate"
-                                            :inputReadonly="true" showIcon
-                                            :manualInput="false" showButtonBar
+                                            :inputReadonly="true" showIcon :manualInput="false" showButtonBar
                                             dateFormat="dd.mm.yy" class="w-full" />
                                     </div>
                                 </div>
@@ -259,25 +260,22 @@ watch(
                                                 if (gasConnection?.gasConnectionDesign) {
                                                     gasConnection.gasConnectionDesign.proxySubmissionDate = val as Date | undefined;
                                                 }
-                                            }" :disabled="isReadonly" :manualInput="false"
-                                            showButtonBar showIcon dateFormat="dd.mm.yy"
-                                            class="w-full" />
+                                            }" :disabled="isReadonly" :manualInput="false" showButtonBar showIcon
+                                            dateFormat="dd.mm.yy" class="w-full" />
                                     </div>
                                     <div>
                                         <label
                                             class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
                                             Data otrzymania
                                         </label>
-                                        <DatePicker
-                                            :modelValue="gasConnection?.gasConnectionDesign?.proxyReceiptDate"
+                                        <DatePicker :modelValue="gasConnection?.gasConnectionDesign?.proxyReceiptDate"
                                             @update:modelValue="(val) => {
                                                 if (gasConnection?.gasConnectionDesign) {
                                                     gasConnection.gasConnectionDesign.proxyReceiptDate = val as Date | undefined;
                                                 }
                                             }"
                                             :disabled="isReadonly || !gasConnection?.gasConnectionDesign?.proxySubmissionDate"
-                                            :inputReadonly="true" showIcon
-                                            :manualInput="false" showButtonBar
+                                            :inputReadonly="true" showIcon :manualInput="false" showButtonBar
                                             dateFormat="dd.mm.yy" class="w-full" />
                                     </div>
                                 </div>
@@ -308,25 +306,22 @@ watch(
                                                 if (gasConnection?.gasConnectionDesign) {
                                                     gasConnection.gasConnectionDesign.extractSubmissionDate = val as Date | undefined;
                                                 }
-                                            }" :disabled="isReadonly" :manualInput="false"
-                                            showButtonBar showIcon dateFormat="dd.mm.yy"
-                                            class="w-full" />
+                                            }" :disabled="isReadonly" :manualInput="false" showButtonBar showIcon
+                                            dateFormat="dd.mm.yy" class="w-full" />
                                     </div>
                                     <div>
                                         <label
                                             class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
                                             Data otrzymania
                                         </label>
-                                        <DatePicker
-                                            :modelValue="gasConnection?.gasConnectionDesign?.extractReceiptDate"
+                                        <DatePicker :modelValue="gasConnection?.gasConnectionDesign?.extractReceiptDate"
                                             @update:modelValue="(val) => {
                                                 if (gasConnection?.gasConnectionDesign) {
                                                     gasConnection.gasConnectionDesign.extractReceiptDate = val as Date | undefined;
                                                 }
                                             }"
                                             :disabled="isReadonly || !gasConnection?.gasConnectionDesign?.extractSubmissionDate"
-                                            :inputReadonly="true" showIcon
-                                            :manualInput="false" showButtonBar
+                                            :inputReadonly="true" showIcon :manualInput="false" showButtonBar
                                             dateFormat="dd.mm.yy" class="w-full" />
                                     </div>
                                 </div>
@@ -364,26 +359,23 @@ watch(
                                                     if (gasConnection?.gasConnectionDesign) {
                                                         gasConnection.gasConnectionDesign.mapSubmissionDate = val as Date | undefined;
                                                     }
-                                                }" :disabled="isReadonly"
-                                                :inputReadonly="true" showIcon
-                                                :manualInput="false" showButtonBar
-                                                dateFormat="dd.mm.yy" class="w-full" />
+                                                }" :disabled="isReadonly" :inputReadonly="true" showIcon
+                                                :manualInput="false" showButtonBar dateFormat="dd.mm.yy"
+                                                class="w-full" />
                                         </div>
                                         <div>
                                             <label
                                                 class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
                                                 Data otrzymania
                                             </label>
-                                            <DatePicker
-                                                :modelValue="gasConnection?.gasConnectionDesign?.mapReceiptDate"
+                                            <DatePicker :modelValue="gasConnection?.gasConnectionDesign?.mapReceiptDate"
                                                 @update:modelValue="(val) => {
                                                     if (gasConnection?.gasConnectionDesign) {
                                                         gasConnection.gasConnectionDesign.mapReceiptDate = val as Date | undefined;
                                                     }
-                                                }" :disabled="isReadonly"
-                                                :inputReadonly="true" showIcon
-                                                :manualInput="false" showButtonBar
-                                                dateFormat="dd.mm.yy" class="w-full" />
+                                                }" :disabled="isReadonly" :inputReadonly="true" showIcon
+                                                :manualInput="false" showButtonBar dateFormat="dd.mm.yy"
+                                                class="w-full" />
                                         </div>
                                     </div>
                                     <!-- Prawa kolumna - selecty -->
@@ -393,8 +385,7 @@ watch(
                                                 class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
                                                 Mapę dostarczył
                                             </label>
-                                            <Select
-                                                :modelValue="gasConnection?.gasConnectionDesign?.mapDeliveredBy"
+                                            <Select :modelValue="gasConnection?.gasConnectionDesign?.mapDeliveredBy"
                                                 :showClear="true" @update:modelValue="(val) => {
                                                     if (gasConnection?.gasConnectionDesign) {
                                                         gasConnection.gasConnectionDesign.mapDeliveredBy = val as MapDeliveredBy;
@@ -403,9 +394,8 @@ watch(
                                                             gasConnection.gasConnectionDesign.mapSurveyor = null;
                                                         }
                                                     }
-                                                }" :options="mapDeliveredByOptions"
-                                                optionLabel="label" optionValue="value"
-                                                placeholder="wybierz" class="w-full"
+                                                }" :options="mapDeliveredByOptions" optionLabel="label"
+                                                optionValue="value" placeholder="wybierz" class="w-full"
                                                 :disabled="isReadonly" />
                                         </div>
                                         <div>
@@ -413,14 +403,12 @@ watch(
                                                 class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
                                                 Geodeta
                                             </label>
-                                            <Select
-                                                :modelValue="gasConnection?.gasConnectionDesign?.mapSurveyor"
+                                            <Select :modelValue="gasConnection?.gasConnectionDesign?.mapSurveyor"
                                                 :showClear="true" @update:modelValue="(val) => {
                                                     if (gasConnection?.gasConnectionDesign) {
                                                         gasConnection.gasConnectionDesign.mapSurveyor = val as any;
                                                     }
-                                                }" :options="surveyorsOptions"
-                                                optionLabel="label" optionValue="value"
+                                                }" :options="surveyorsOptions" optionLabel="label" optionValue="value"
                                                 placeholder="wybierz" class="w-full"
                                                 :disabled="isGeodetaSelectDisabled" />
                                         </div>
@@ -431,8 +419,7 @@ watch(
 
 
                         <!-- Karta WSPÓŁRZĘDNE -->
-                        <Card :key="`coordinates-${stage1SettingsKey}`"
-                            data-card-id="coordinates"
+                        <Card :key="`coordinates-${stage1SettingsKey}`" data-card-id="coordinates"
                             :class="`border ${getCardBorderClasses('coordinates')} overflow-hidden`">
                             <template #header>
                                 <div :class="getCardHeaderClasses('coordinates')">
@@ -446,8 +433,7 @@ watch(
 
                                 <!-- Mapa -->
                                 <div v-if="latitude && longitude" class="mb-4">
-                                    <LocationMap :latitude="latitude" :longitude="longitude"
-                                        :readonly="isReadonly" />
+                                    <LocationMap :latitude="latitude" :longitude="longitude" :readonly="isReadonly" />
                                 </div>
 
                                 <!-- Pola współrzędnych -->
@@ -494,19 +480,17 @@ watch(
         </Panel>
 
         <!-- ETAP 2 -->
-        <Panel :key="stage2SettingsKey" toggleable class="mt-6">
+        <Panel :key="stage2SettingsKey" toggleable :collapsed="isStage2Collapsed" class="mt-6">
             <template #header>
                 <div class="flex items-center justify-between w-full">
                     <div class="flex items-center gap-4">
                         <!-- Żółta ikona clipboard -->
-                        <div
-                            class="w-12 h-12 bg-yellow-400/70 rounded-full flex items-center justify-center shrink-0">
+                        <div class="w-12 h-12 bg-yellow-400/70 rounded-full flex items-center justify-center shrink-0">
                             <ClipboardDocumentIcon class="w-8 h-8 text-white" />
                         </div>
                         <!-- Tekst -->
                         <div>
-                            <div
-                                class="text-lg font-bold uppercase text-surface-700 dark:text-surface-300">
+                            <div class="text-lg font-bold uppercase text-surface-700 dark:text-surface-300">
                                 ETAP 2
                             </div>
                             <div :class="stage2StatusClasses">
@@ -545,8 +529,7 @@ watch(
                             <div class="space-y-4">
                                 <!-- Checkbox "uzgodnienie bez ZUD" -->
                                 <div class="flex items-center gap-2">
-                                    <Checkbox
-                                        :modelValue="gasConnection?.gasConnectionDesign?.withoutZud"
+                                    <Checkbox :modelValue="gasConnection?.gasConnectionDesign?.withoutZud"
                                         @update:modelValue="(val) => {
                                             if (gasConnection?.gasConnectionDesign) {
                                                 gasConnection.gasConnectionDesign.withoutZud = val as boolean;
@@ -556,8 +539,7 @@ watch(
                                                     gasConnection.gasConnectionDesign.zudpReceiptDate = undefined;
                                                 }
                                             }
-                                        }" :binary="true" inputId="withoutZud"
-                                        :disabled="isReadonly" />
+                                        }" :binary="true" inputId="withoutZud" :disabled="isReadonly" />
                                     <label for="withoutZud"
                                         class="text-sm font-medium text-surface-700 dark:text-surface-300 cursor-pointer">
                                         uzgodnienie bez ZUD
@@ -571,8 +553,7 @@ watch(
                                         Data złożenia
                                     </label>
                                     <div class="flex items-center gap-2">
-                                        <DatePicker
-                                            :modelValue="gasConnection?.gasConnectionDesign?.zudpSubmissionDate"
+                                        <DatePicker :modelValue="gasConnection?.gasConnectionDesign?.zudpSubmissionDate"
                                             @update:modelValue="(val) => {
                                                 if (gasConnection?.gasConnectionDesign) {
                                                     gasConnection.gasConnectionDesign.zudpSubmissionDate = val as Date | undefined;
@@ -581,11 +562,9 @@ watch(
                                                         gasConnection.gasConnectionDesign.zudpReceiptDate = undefined;
                                                     }
                                                 }
-                                            }" :disabled="isZudpDateFieldsDisabled"
-                                            :manualInput="false" showButtonBar showIcon
-                                            dateFormat="dd.mm.yy" class="flex-1" />
-                                        <Button icon="pi pi-file-word" severity="info" text
-                                            rounded
+                                            }" :disabled="isZudpDateFieldsDisabled" :manualInput="false" showButtonBar
+                                            showIcon dateFormat="dd.mm.yy" class="flex-1" />
+                                        <Button icon="pi pi-file-word" severity="info" text rounded
                                             :disabled="isReadonly || isZudpDateFieldsDisabled"
                                             v-tooltip.top="'Generuj dokument Word'" />
                                     </div>
@@ -597,31 +576,27 @@ watch(
                                         class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
                                         Data otrzymania
                                     </label>
-                                    <DatePicker
-                                        :modelValue="gasConnection?.gasConnectionDesign?.zudpReceiptDate"
+                                    <DatePicker :modelValue="gasConnection?.gasConnectionDesign?.zudpReceiptDate"
                                         @update:modelValue="(val) => {
                                             if (gasConnection?.gasConnectionDesign) {
                                                 gasConnection.gasConnectionDesign.zudpReceiptDate = val as Date | undefined;
                                             }
                                         }"
                                         :disabled="isZudpDateFieldsDisabled || !gasConnection?.gasConnectionDesign?.zudpSubmissionDate"
-                                        :inputReadonly="true" showIcon :manualInput="false"
-                                        showButtonBar dateFormat="dd.mm.yy"
-                                        class="w-full" />
+                                        :inputReadonly="true" showIcon :manualInput="false" showButtonBar
+                                        dateFormat="dd.mm.yy" class="w-full" />
                                 </div>
                             </div>
                         </template>
                     </Card>
 
                     <!-- Prawa kolumna - ZAKŁAD -->
-                    <Card :key="`utilityCompany-${stage2SettingsKey}`"
-                        data-card-id="utilityCompany"
+                    <Card :key="`utilityCompany-${stage2SettingsKey}`" data-card-id="utilityCompany"
                         :class="`border ${getCardBorderClasses('utilityCompany', 'stage2')} overflow-hidden`">
                         <template #header>
                             <div :class="getCardHeaderClasses('utilityCompany', 'stage2')">
                                 <DocumentIcon class="w-5 h-5 text-primary-400" />
-                                <h4
-                                    :class="getCardHeaderTextClasses('utilityCompany', 'stage2')">
+                                <h4 :class="getCardHeaderTextClasses('utilityCompany', 'stage2')">
                                     ZAKŁAD ...
                                 </h4>
                             </div>
@@ -634,8 +609,7 @@ watch(
                                         class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
                                         Rodzaj
                                     </label>
-                                    <Select
-                                        :modelValue="gasConnection?.gasConnectionDesign?.utilityCompanyType"
+                                    <Select :modelValue="gasConnection?.gasConnectionDesign?.utilityCompanyType"
                                         :showClear="true" @update:modelValue="(val) => {
                                             if (gasConnection?.gasConnectionDesign) {
                                                 gasConnection.gasConnectionDesign.utilityCompanyType = val as UtilityCompanyType | null;
@@ -645,10 +619,8 @@ watch(
                                                     gasConnection.gasConnectionDesign.utilityCompanyReceiptDate = undefined;
                                                 }
                                             }
-                                        }" :options="utilityCompanyTypeOptions"
-                                        optionLabel="label" optionValue="value"
-                                        placeholder="brak" class="w-full"
-                                        :disabled="isReadonly" />
+                                        }" :options="utilityCompanyTypeOptions" optionLabel="label" optionValue="value"
+                                        placeholder="brak" class="w-full" :disabled="isReadonly" />
                                 </div>
 
                                 <!-- Data złożenia -->
@@ -668,12 +640,9 @@ watch(
                                                         gasConnection.gasConnectionDesign.utilityCompanyReceiptDate = undefined;
                                                     }
                                                 }
-                                            }"
-                                            :disabled="isUtilityCompanyDateFieldsDisabled"
-                                            :manualInput="false" showButtonBar showIcon
-                                            dateFormat="dd.mm.yy" class="flex-1" />
-                                        <Button icon="pi pi-file-word" severity="info" text
-                                            rounded
+                                            }" :disabled="isUtilityCompanyDateFieldsDisabled" :manualInput="false"
+                                            showButtonBar showIcon dateFormat="dd.mm.yy" class="flex-1" />
+                                        <Button icon="pi pi-file-word" severity="info" text rounded
                                             :disabled="isReadonly || isUtilityCompanyDateFieldsDisabled"
                                             v-tooltip.top="'Generuj dokument Word'" />
                                     </div>
@@ -693,9 +662,8 @@ watch(
                                             }
                                         }"
                                         :disabled="isUtilityCompanyDateFieldsDisabled || !gasConnection?.gasConnectionDesign?.utilityCompanySubmissionDate"
-                                        :inputReadonly="true" showIcon :manualInput="false"
-                                        showButtonBar dateFormat="dd.mm.yy"
-                                        class="w-full" />
+                                        :inputReadonly="true" showIcon :manualInput="false" showButtonBar
+                                        dateFormat="dd.mm.yy" class="w-full" />
                                 </div>
                             </div>
                         </template>
@@ -704,8 +672,7 @@ watch(
 
                 <!-- Element "+ właściciele działek" -->
                 <div class="mt-6">
-                    <button :class="getPlotOwnersClasses()" :disabled="isReadonly"
-                        @click="() => { }">
+                    <button :class="getPlotOwnersClasses()" :disabled="isReadonly" @click="() => { }">
                         <span class="text-lg font-bold">+</span>
                         <span>właściciele działek</span>
                     </button>
@@ -714,19 +681,17 @@ watch(
         </Panel>
 
         <!-- ETAP 3 -->
-        <Panel :key="stage3SettingsKey" toggleable class="mt-6">
+        <Panel :key="stage3SettingsKey" toggleable :collapsed="isStage3Collapsed" class="mt-6">
             <template #header>
                 <div class="flex items-center justify-between w-full">
                     <div class="flex items-center gap-4">
                         <!-- Żółta ikona clipboard -->
-                        <div
-                            class="w-12 h-12 bg-yellow-400/70 rounded-full flex items-center justify-center shrink-0">
+                        <div class="w-12 h-12 bg-yellow-400/70 rounded-full flex items-center justify-center shrink-0">
                             <ClipboardDocumentIcon class="w-8 h-8 text-white" />
                         </div>
                         <!-- Tekst -->
                         <div>
-                            <div
-                                class="text-lg font-bold uppercase text-surface-700 dark:text-surface-300">
+                            <div class="text-lg font-bold uppercase text-surface-700 dark:text-surface-300">
                                 ETAP 3
                             </div>
                             <div :class="stage3StatusClasses">
@@ -751,14 +716,12 @@ watch(
             <div class="p-6">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <!-- Lewa kolumna - UZGODNIENIE WSG -->
-                    <Card :key="`wsgAgreement-${stage3SettingsKey}`"
-                        data-card-id="wsgAgreement"
+                    <Card :key="`wsgAgreement-${stage3SettingsKey}`" data-card-id="wsgAgreement"
                         :class="`border ${getCardBorderClasses('wsgAgreement', 'stage3')} overflow-hidden`">
                         <template #header>
                             <div :class="getCardHeaderClasses('wsgAgreement', 'stage3')">
                                 <DocumentIcon class="w-5 h-5 text-primary-400" />
-                                <h4
-                                    :class="getCardHeaderTextClasses('wsgAgreement', 'stage3')">
+                                <h4 :class="getCardHeaderTextClasses('wsgAgreement', 'stage3')">
                                     UZGODNIENIE WSG
                                 </h4>
                             </div>
@@ -782,9 +745,8 @@ watch(
                                                     gasConnection.gasConnectionDesign.wsgAgreementAgreementDate = undefined;
                                                 }
                                             }
-                                        }" :disabled="isReadonly" :manualInput="false"
-                                        showButtonBar showIcon dateFormat="dd.mm.yy"
-                                        class="w-full" />
+                                        }" :disabled="isReadonly" :manualInput="false" showButtonBar showIcon
+                                        dateFormat="dd.mm.yy" class="w-full" />
                                 </div>
 
                                 <!-- Data otrzymania -->
@@ -801,9 +763,8 @@ watch(
                                             }
                                         }"
                                         :disabled="isReadonly || !gasConnection?.gasConnectionDesign?.wsgAgreementSubmissionDate"
-                                        :inputReadonly="true" showIcon :manualInput="false"
-                                        showButtonBar dateFormat="dd.mm.yy"
-                                        class="w-full" />
+                                        :inputReadonly="true" showIcon :manualInput="false" showButtonBar
+                                        dateFormat="dd.mm.yy" class="w-full" />
                                 </div>
 
                                 <!-- Data uzgodnienia -->
@@ -818,8 +779,7 @@ watch(
                                             if (gasConnection?.gasConnectionDesign) {
                                                 gasConnection.gasConnectionDesign.wsgAgreementAgreementDate = val as Date | undefined;
                                             }
-                                        }" :disabled="isReadonly"
-                                        :manualInput="false" showButtonBar showIcon
+                                        }" :disabled="isReadonly" :manualInput="false" showButtonBar showIcon
                                         dateFormat="dd.mm.yy" class="w-full" />
                                 </div>
 
@@ -829,30 +789,24 @@ watch(
                                         class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
                                         Nr uzgodnienia
                                     </label>
-                                    <InputText
-                                        :modelValue="gasConnection?.gasConnectionDesign?.wsgAgreementNo"
+                                    <InputText :modelValue="gasConnection?.gasConnectionDesign?.wsgAgreementNo"
                                         @update:modelValue="(val) => {
                                             if (gasConnection?.gasConnectionDesign) {
                                                 gasConnection.gasConnectionDesign.wsgAgreementNo = val as string;
                                             }
-                                        }"
-                                        placeholder=""
-                                        class="w-full"
-                                        :disabled="isReadonly" />
+                                        }" placeholder="" class="w-full" :disabled="isReadonly" />
                                 </div>
                             </div>
                         </template>
                     </Card>
 
                     <!-- Prawa kolumna - UZG. SCHEMATU PUNKTU W WSG -->
-                    <Card :key="`wsgAgreementPointScheme-${stage3SettingsKey}`"
-                        data-card-id="wsgAgreementPointScheme"
+                    <Card :key="`wsgAgreementPointScheme-${stage3SettingsKey}`" data-card-id="wsgAgreementPointScheme"
                         :class="`border ${getCardBorderClasses('wsgAgreementPointScheme', 'stage3')} overflow-hidden`">
                         <template #header>
                             <div :class="getCardHeaderClasses('wsgAgreementPointScheme', 'stage3')">
                                 <DocumentIcon class="w-5 h-5 text-primary-400" />
-                                <h4
-                                    :class="getCardHeaderTextClasses('wsgAgreementPointScheme', 'stage3')">
+                                <h4 :class="getCardHeaderTextClasses('wsgAgreementPointScheme', 'stage3')">
                                     UZG. SCHEMATU PUNKTU W WSG
                                 </h4>
                             </div>
@@ -875,9 +829,8 @@ watch(
                                                     gasConnection.gasConnectionDesign.wsgAgreementPointSchemeReceiptDate = undefined;
                                                 }
                                             }
-                                        }" :disabled="isReadonly" :manualInput="false"
-                                        showButtonBar showIcon dateFormat="dd.mm.yy"
-                                        class="w-full" />
+                                        }" :disabled="isReadonly" :manualInput="false" showButtonBar showIcon
+                                        dateFormat="dd.mm.yy" class="w-full" />
                                 </div>
 
                                 <!-- Data otrzymania -->
@@ -894,9 +847,8 @@ watch(
                                             }
                                         }"
                                         :disabled="isReadonly || !gasConnection?.gasConnectionDesign?.wsgAgreementPointSchemeSubmissionDate"
-                                        :inputReadonly="true" showIcon :manualInput="false"
-                                        showButtonBar dateFormat="dd.mm.yy"
-                                        class="w-full" />
+                                        :inputReadonly="true" showIcon :manualInput="false" showButtonBar
+                                        dateFormat="dd.mm.yy" class="w-full" />
                                 </div>
                             </div>
                         </template>
@@ -906,19 +858,17 @@ watch(
         </Panel>
 
         <!-- ETAP 4 -->
-        <Panel :key="stage4SettingsKey" toggleable class="mt-6">
+        <Panel :key="stage4SettingsKey" toggleable :collapsed="isStage4Collapsed" class="mt-6">
             <template #header>
                 <div class="flex items-center justify-between w-full">
                     <div class="flex items-center gap-4">
                         <!-- Żółta ikona clipboard -->
-                        <div
-                            class="w-12 h-12 bg-yellow-400/70 rounded-full flex items-center justify-center shrink-0">
+                        <div class="w-12 h-12 bg-yellow-400/70 rounded-full flex items-center justify-center shrink-0">
                             <ClipboardDocumentIcon class="w-8 h-8 text-white" />
                         </div>
                         <!-- Tekst -->
                         <div>
-                            <div
-                                class="text-lg font-bold uppercase text-surface-700 dark:text-surface-300">
+                            <div class="text-lg font-bold uppercase text-surface-700 dark:text-surface-300">
                                 ETAP 4
                             </div>
                             <div :class="stage4StatusClasses">
@@ -947,11 +897,9 @@ watch(
                         data-card-id="trafficOrganizationProject"
                         :class="`border ${getCardBorderClasses('trafficOrganizationProject', 'stage4')} overflow-hidden`">
                         <template #header>
-                            <div
-                                :class="getCardHeaderClasses('trafficOrganizationProject', 'stage4')">
+                            <div :class="getCardHeaderClasses('trafficOrganizationProject', 'stage4')">
                                 <DocumentIcon class="w-5 h-5 text-primary-400" />
-                                <h4
-                                    :class="getCardHeaderTextClasses('trafficOrganizationProject', 'stage4')">
+                                <h4 :class="getCardHeaderTextClasses('trafficOrganizationProject', 'stage4')">
                                     PROJEKT ORGANIZACJI RUCHU
                                 </h4>
                             </div>
@@ -972,8 +920,7 @@ watch(
                                                     gasConnection.gasConnectionDesign.designerTraffic = null;
                                                 }
                                             }
-                                        }" :binary="true"
-                                        inputId="withoutTrafficOrganizationProject"
+                                        }" :binary="true" inputId="withoutTrafficOrganizationProject"
                                         :disabled="isReadonly" />
                                     <label for="withoutTrafficOrganizationProject"
                                         class="text-sm font-medium text-surface-700 dark:text-surface-300 cursor-pointer">
@@ -997,10 +944,9 @@ watch(
                                                     gasConnection.gasConnectionDesign.trafficOrganizationProjectReceiptDate = undefined;
                                                 }
                                             }
-                                        }"
-                                        :disabled="isTrafficOrganizationProjectDateFieldsDisabled"
-                                        :manualInput="false" showButtonBar showIcon
-                                        dateFormat="dd.mm.yy" class="w-full" />
+                                        }" :disabled="isTrafficOrganizationProjectDateFieldsDisabled"
+                                        :manualInput="false" showButtonBar showIcon dateFormat="dd.mm.yy"
+                                        class="w-full" />
                                 </div>
 
                                 <!-- Data otrzymania -->
@@ -1017,9 +963,8 @@ watch(
                                             }
                                         }"
                                         :disabled="isTrafficOrganizationProjectDateFieldsDisabled || !gasConnection?.gasConnectionDesign?.trafficOrganizationProjectSubmissionDate"
-                                        :inputReadonly="true" showIcon :manualInput="false"
-                                        showButtonBar dateFormat="dd.mm.yy"
-                                        class="w-full" />
+                                        :inputReadonly="true" showIcon :manualInput="false" showButtonBar
+                                        dateFormat="dd.mm.yy" class="w-full" />
                                 </div>
 
                                 <!-- Projektant -->
@@ -1028,14 +973,12 @@ watch(
                                         class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
                                         Projektant
                                     </label>
-                                    <Select
-                                        :modelValue="gasConnection?.gasConnectionDesign?.designerTraffic"
+                                    <Select :modelValue="gasConnection?.gasConnectionDesign?.designerTraffic"
                                         :showClear="true" @update:modelValue="(val) => {
                                             if (gasConnection?.gasConnectionDesign) {
                                                 gasConnection.gasConnectionDesign.designerTraffic = val as any;
                                             }
-                                        }" :options="designerTrafficOptions"
-                                        optionLabel="label" optionValue="value"
+                                        }" :options="designerTrafficOptions" optionLabel="label" optionValue="value"
                                         placeholder="wybierz" class="w-full"
                                         :disabled="isDesignerTrafficSelectDisabled" />
                                 </div>
@@ -1051,8 +994,7 @@ watch(
                             <template #header>
                                 <div :class="getCardHeaderClasses('gasPoint', 'stage4')">
                                     <DocumentIcon class="w-5 h-5 text-primary-400" />
-                                    <h4
-                                        :class="getCardHeaderTextClasses('gasPoint', 'stage4')">
+                                    <h4 :class="getCardHeaderTextClasses('gasPoint', 'stage4')">
                                         PUNKT GAZOWY
                                     </h4>
                                 </div>
@@ -1065,15 +1007,13 @@ watch(
                                             class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
                                             Data zamówienia
                                         </label>
-                                        <DatePicker
-                                            :modelValue="gasConnection?.gasConnectionDesign?.gasPointOrderDate"
+                                        <DatePicker :modelValue="gasConnection?.gasConnectionDesign?.gasPointOrderDate"
                                             @update:modelValue="(val) => {
                                                 if (gasConnection?.gasConnectionDesign) {
                                                     gasConnection.gasConnectionDesign.gasPointOrderDate = val as Date | undefined;
                                                 }
-                                            }" :disabled="isReadonly" :manualInput="false"
-                                            showButtonBar showIcon dateFormat="dd.mm.yy"
-                                            class="w-full" />
+                                            }" :disabled="isReadonly" :manualInput="false" showButtonBar showIcon
+                                            dateFormat="dd.mm.yy" class="w-full" />
                                     </div>
 
                                     <!-- Data odbioru punktu -->
@@ -1082,15 +1022,13 @@ watch(
                                             class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
                                             Data odbioru punktu
                                         </label>
-                                        <DatePicker
-                                            :modelValue="gasConnection?.gasConnectionDesign?.gasPointPickupDate"
+                                        <DatePicker :modelValue="gasConnection?.gasConnectionDesign?.gasPointPickupDate"
                                             @update:modelValue="(val) => {
                                                 if (gasConnection?.gasConnectionDesign) {
                                                     gasConnection.gasConnectionDesign.gasPointPickupDate = val as Date | undefined;
                                                 }
-                                            }" :disabled="isReadonly" :manualInput="false"
-                                            showButtonBar showIcon dateFormat="dd.mm.yy"
-                                            class="w-full" />
+                                            }" :disabled="isReadonly" :manualInput="false" showButtonBar showIcon
+                                            dateFormat="dd.mm.yy" class="w-full" />
                                     </div>
 
                                     <!-- Data odbioru dok. -->
@@ -1105,9 +1043,8 @@ watch(
                                                 if (gasConnection?.gasConnectionDesign) {
                                                     gasConnection.gasConnectionDesign.gasPointDocPickupDate = val as Date | undefined;
                                                 }
-                                            }" :disabled="isReadonly" :manualInput="false"
-                                            showButtonBar showIcon dateFormat="dd.mm.yy"
-                                            class="w-full" />
+                                            }" :disabled="isReadonly" :manualInput="false" showButtonBar showIcon
+                                            dateFormat="dd.mm.yy" class="w-full" />
                                     </div>
 
                                     <!-- Nr zamówienia -->
@@ -1116,16 +1053,12 @@ watch(
                                             class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
                                             Nr zamówienia
                                         </label>
-                                        <InputText
-                                            :modelValue="gasConnection?.gasConnectionDesign?.gasPointOrderNo"
+                                        <InputText :modelValue="gasConnection?.gasConnectionDesign?.gasPointOrderNo"
                                             @update:modelValue="(val) => {
                                                 if (gasConnection?.gasConnectionDesign) {
                                                     gasConnection.gasConnectionDesign.gasPointOrderNo = val as string;
                                                 }
-                                            }"
-                                            placeholder=""
-                                            class="w-full"
-                                            :disabled="isReadonly" />
+                                            }" placeholder="" class="w-full" :disabled="isReadonly" />
                                     </div>
                                 </div>
                             </template>
@@ -1137,8 +1070,7 @@ watch(
                             <template #header>
                                 <div :class="getCardHeaderClasses('geodesy', 'stage4')">
                                     <DocumentIcon class="w-5 h-5 text-primary-400" />
-                                    <h4
-                                        :class="getCardHeaderTextClasses('geodesy', 'stage4')">
+                                    <h4 :class="getCardHeaderTextClasses('geodesy', 'stage4')">
                                         GEODEZJA
                                     </h4>
                                 </div>
@@ -1157,9 +1089,8 @@ watch(
                                                 if (gasConnection?.gasConnectionDesign) {
                                                     gasConnection.gasConnectionDesign.zudpSentToSurveyorDate = val as Date | undefined;
                                                 }
-                                            }" :disabled="isReadonly" :manualInput="false"
-                                            showButtonBar showIcon dateFormat="dd.mm.yy"
-                                            class="w-full" />
+                                            }" :disabled="isReadonly" :manualInput="false" showButtonBar showIcon
+                                            dateFormat="dd.mm.yy" class="w-full" />
                                     </div>
 
                                     <!-- Geodeta -->
@@ -1168,16 +1099,13 @@ watch(
                                             class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
                                             Geodeta
                                         </label>
-                                        <Select
-                                            :modelValue="gasConnection?.gasConnectionDesign?.surveyorTrafficProject"
+                                        <Select :modelValue="gasConnection?.gasConnectionDesign?.surveyorTrafficProject"
                                             :showClear="true" @update:modelValue="(val) => {
                                                 if (gasConnection?.gasConnectionDesign) {
                                                     gasConnection.gasConnectionDesign.surveyorTrafficProject = val as any;
                                                 }
-                                            }" :options="surveyorsOptions"
-                                            optionLabel="label" optionValue="value"
-                                            placeholder="wybierz" class="w-full"
-                                            :disabled="isReadonly" />
+                                            }" :options="surveyorsOptions" optionLabel="label" optionValue="value"
+                                            placeholder="wybierz" class="w-full" :disabled="isReadonly" />
                                     </div>
                                 </div>
                             </template>
@@ -1187,8 +1115,7 @@ watch(
 
                 <!-- Element "+ zajęcie pasa" -->
                 <div class="mt-6">
-                    <button :class="getLaneOccupationClasses()" :disabled="isReadonly"
-                        @click="() => { }">
+                    <button :class="getLaneOccupationClasses()" :disabled="isReadonly" @click="() => { }">
                         <span class="text-lg font-bold">+</span>
                         <span>zajęcie pasa</span>
                     </button>
