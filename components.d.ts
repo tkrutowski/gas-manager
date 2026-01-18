@@ -29,6 +29,7 @@ declare module 'vue' {
     ColumnSettingsDialog: typeof import('./src/components/tasks/ColumnSettingsDialog.vue')['default']
     ComponentCategory: typeof import('./src/components/device/ComponentCategory.vue')['default']
     ConfirmationDialog: typeof import('./src/components/ConfirmationDialog.vue')['default']
+    ConstructionTab: typeof import('./src/components/tasks/ConstructionTab.vue')['default']
     CoordinatorFormDialog: typeof import('./src/components/tasks/CoordinatorFormDialog.vue')['default']
     CustomDatePicker: typeof import('./src/components/CustomDatePicker.vue')['default']
     CustomerDetailsDialog: typeof import('./src/components/CustomerDetailsDialog.vue')['default']
