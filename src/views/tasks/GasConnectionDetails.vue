@@ -6,6 +6,7 @@ import ProjectTab from '@/components/tasks/ProjectTab.vue';
 import ProjectCdTab from '@/components/tasks/ProjectCdTab.vue';
 import ConstructionTab from '@/components/tasks/ConstructionTab.vue';
 import FinanceTab from '@/components/tasks/FinanceTab.vue';
+import WorkRangeTab from '@/components/tasks/WorkRangeTab.vue';
 import { useGasConnectionsStore } from '@/stores/gasConnections';
 import type { GasConnection } from '@/types/GasConnection';
 import { getPersonDisplayName, formatDate, formatMoney } from '@/utils/tableFormatters';
@@ -272,10 +273,7 @@ const streetAndPlot = computed(() => {
 
                                 <!-- Zakładka Zakres -->
                                 <TabPanel value="zakres">
-                                    <div class="p-6">
-                                        <p class="text-surface-600 dark:text-surface-400">Zawartość zakładki Zakres
-                                            będzie uzupełniona w późniejszym terminie.</p>
-                                    </div>
+                                    <WorkRangeTab :gasConnection="gasConnection" :isReadonly="isReadonly" />
                                 </TabPanel>
 
                                 <!-- Zakładka Pliki -->

@@ -114,6 +114,10 @@ declare module 'vue' {
     UserBookLarge: typeof import('./src/components/library/UserBookLarge.vue')['default']
     UserBookSmall: typeof import('./src/components/library/UserBookSmall.vue')['default']
     UserPayments: typeof import('./src/components/finance/UserPayments.vue')['default']
+    WorkRangeConnectionDialog: typeof import('./src/components/tasks/WorkRangeConnectionDialog.vue')['default']
+    WorkRangeGasConnectionDialog: typeof import('./src/components/tasks/WorkRangeGasConnectionDialog.vue')['default']
+    WorkRangeGasStationDialog: typeof import('./src/components/tasks/WorkRangeGasStationDialog.vue')['default']
+    WorkRangeTab: typeof import('./src/components/tasks/WorkRangeTab.vue')['default']
   }
   export interface ComponentCustomProperties {
     Tooltip: typeof import('primevue/tooltip')['default']
