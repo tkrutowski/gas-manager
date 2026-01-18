@@ -5,6 +5,7 @@ import SidebarMenu from '@/components/tasks/SidebarMenu.vue';
 import ProjectTab from '@/components/tasks/ProjectTab.vue';
 import ProjectCdTab from '@/components/tasks/ProjectCdTab.vue';
 import ConstructionTab from '@/components/tasks/ConstructionTab.vue';
+import FinanceTab from '@/components/tasks/FinanceTab.vue';
 import { useGasConnectionsStore } from '@/stores/gasConnections';
 import type { GasConnection } from '@/types/GasConnection';
 import { getPersonDisplayName, formatDate, formatMoney } from '@/utils/tableFormatters';
@@ -258,10 +259,7 @@ const streetAndPlot = computed(() => {
 
                                 <!-- Zakładka Finanse -->
                                 <TabPanel value="finanse">
-                                    <div class="p-6">
-                                        <p class="text-surface-600 dark:text-surface-400">Zawartość zakładki Finanse
-                                            będzie uzupełniona w późniejszym terminie.</p>
-                                    </div>
+                                    <FinanceTab :gasConnection="gasConnection" :isReadonly="isReadonly" />
                                 </TabPanel>
 
                                 <!-- Zakładka Finanse cd. -->

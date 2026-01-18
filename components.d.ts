@@ -47,6 +47,7 @@ declare module 'vue' {
     Fieldset: typeof import('primevue/fieldset')['default']
     FileUpload: typeof import('primevue/fileupload')['default']
     FileUploadDialog: typeof import('./src/components/FileUploadDialog.vue')['default']
+    FinanceTab: typeof import('./src/components/tasks/FinanceTab.vue')['default']
     FloatLabel: typeof import('primevue/floatlabel')['default']
     GasConnectionForm: typeof import('./src/components/tasks/GasConnectionForm.vue')['default']
     GasDistributionFormDialog: typeof import('./src/components/tasks/GasDistributionFormDialog.vue')['default']

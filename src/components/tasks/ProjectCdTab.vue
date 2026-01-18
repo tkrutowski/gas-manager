@@ -546,9 +546,9 @@ const isPlotOwnerPrivateIconDisabled = (plot: Plot): boolean => {
             <template #footer>
                 <div
                     class="flex items-center justify-between px-4 py-3 bg-surface-50 dark:bg-surface-900 border-t border-surface-200 dark:border-surface-700">
-                    <p class="text-sm text-surface-600 dark:text-surface-400 m-0">
-                        <span class="text-orange-600 dark:text-orange-400 font-bold">*</span> - oznacza podmiot
-                        przyłączany
+                    <p class="text-sm text-surface-600 dark:text-surface-400 m-0 flex items-center gap-2">
+                    <div class="w-6 h-4 bg-orange-600 dark:bg-orange-400 rounded-sm"></div>
+                    <span>- oznacza podmiot przyłączany</span>
                     </p>
                     <Button label="Dodaj działkę" icon="pi pi-plus" :disabled="isReadonly" @click="handleAddPlot" />
                 </div>

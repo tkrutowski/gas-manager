@@ -50,8 +50,8 @@ const handleWordIconClick = () => {
                 <div class="space-y-4">
                     <!-- Lista działek -->
                     <div v-for="plot in plots" :key="plot.id" :class="`p-4 rounded-lg border border-surface-200 dark:border-surface-700 ${plot.connectionEntity
-                            ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-700'
-                            : 'bg-surface-50 dark:bg-surface-900'
+                        ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-700'
+                        : 'bg-surface-50 dark:bg-surface-900'
                         }`">
                         <div class="grid grid-cols-7 gap-3">
                             <!-- NR DZIAŁKI -->
@@ -147,6 +147,16 @@ const handleWordIconClick = () => {
                     </div>
                 </div>
             </template>
+            <!-- Footer -->
+            <template #footer>
+                <div
+                    class="flex items-center justify-between px-4 pt-1 bg-surface-50 dark:bg-surface-900 border-t border-surface-200 dark:border-surface-700">
+                    <p class="text-sm text-surface-600 dark:text-surface-400 m-0 flex items-center gap-2">
+                    <div class="w-6 h-4 bg-orange-600 dark:bg-orange-400 rounded-sm"></div>
+                    <span>- oznacza podmiot przyłączany</span>
+                    </p>
+                </div>
+            </template>
         </Card>
 
         <!-- Sekcje: ZAWIADOMIENIE ROZDZIELNI, GEODEZJA, REALIZACJA w jednej linii -->
@@ -178,11 +188,12 @@ const handleWordIconClick = () => {
                                     }" :disabled="isReadonly" :manualInput="false" showButtonBar showIcon
                                     dateFormat="dd.mm.yy" class="flex-1" />
                                 <Button icon="pi pi-file-word" severity="info" text rounded :disabled="isReadonly"
-                                    @click="handleWordIconClick" v-tooltip.top="'Generuj dokument Word'" />
+                                    @click="handleWordIconClick" title="Generuj dokument Word" />
                             </div>
                         </div>
                     </div>
                 </template>
+
             </Card>
 
             <!-- Sekcja: GEODEZJA -->
@@ -207,8 +218,8 @@ const handleWordIconClick = () => {
                                     if (gasConnection?.gasConnectionBuild) {
                                         gasConnection.gasConnectionBuild.surveyingSketchesDate = val as Date | undefined;
                                     }
-                                }" :disabled="isReadonly" :manualInput="false" showButtonBar showIcon dateFormat="dd.mm.yy"
-                                class="w-full" />
+                                }" :disabled="isReadonly" :manualInput="false" showButtonBar showIcon
+                                dateFormat="dd.mm.yy" class="w-full" />
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
@@ -219,8 +230,8 @@ const handleWordIconClick = () => {
                                     if (gasConnection?.gasConnectionBuild) {
                                         gasConnection.gasConnectionBuild.surveyingInventoryDate = val as Date | undefined;
                                     }
-                                }" :disabled="isReadonly" :manualInput="false" showButtonBar showIcon dateFormat="dd.mm.yy"
-                                class="w-full" />
+                                }" :disabled="isReadonly" :manualInput="false" showButtonBar showIcon
+                                dateFormat="dd.mm.yy" class="w-full" />
                         </div>
                     </div>
                 </template>
@@ -252,7 +263,7 @@ const handleWordIconClick = () => {
                                     }" :disabled="isReadonly" :manualInput="false" showButtonBar showIcon
                                     dateFormat="dd.mm.yy" class="flex-1" />
                                 <Button icon="pi pi-file-word" severity="info" text rounded :disabled="isReadonly"
-                                    @click="handleWordIconClick" v-tooltip.top="'Generuj dokument Word'" />
+                                    @click="handleWordIconClick" title="Generuj dokument Word" />
                             </div>
                         </div>
                         <div>
@@ -268,7 +279,7 @@ const handleWordIconClick = () => {
                                     }" :disabled="isReadonly" :manualInput="false" showButtonBar showIcon
                                     dateFormat="dd.mm.yy" class="flex-1" />
                                 <Button icon="pi pi-file-word" severity="info" text rounded :disabled="isReadonly"
-                                    @click="handleWordIconClick" v-tooltip.top="'Generuj dokument Word'" />
+                                    @click="handleWordIconClick" title="Generuj dokument Word" />
                             </div>
                         </div>
                     </div>
@@ -304,7 +315,7 @@ const handleWordIconClick = () => {
                                     }" :disabled="isReadonly" :manualInput="false" showButtonBar showIcon
                                     dateFormat="dd.mm.yy" class="flex-1" />
                                 <Button icon="pi pi-file-word" severity="info" text rounded :disabled="isReadonly"
-                                    @click="handleWordIconClick" v-tooltip.top="'Generuj dokument Word'" />
+                                    @click="handleWordIconClick" title="Generuj dokument Word" />
                             </div>
                         </div>
                         <div>
@@ -432,8 +443,8 @@ const handleWordIconClick = () => {
                                 if (gasConnection?.pgn) {
                                     gasConnection.pgn.workDate = val as Date | undefined;
                                 }
-                            }" :disabled="isReadonly" :manualInput="false" showButtonBar showIcon
-                                dateFormat="dd.mm.yy" class="w-full" />
+                            }" :disabled="isReadonly" :manualInput="false" showButtonBar showIcon dateFormat="dd.mm.yy"
+                                class="w-full" />
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
