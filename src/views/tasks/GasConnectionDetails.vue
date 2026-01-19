@@ -7,6 +7,7 @@ import ProjectCdTab from '@/components/tasks/ProjectCdTab.vue';
 import ConstructionTab from '@/components/tasks/ConstructionTab.vue';
 import FinanceTab from '@/components/tasks/FinanceTab.vue';
 import WorkRangeTab from '@/components/tasks/WorkRangeTab.vue';
+import FilesTab from '@/components/tasks/FilesTab.vue';
 import { useGasConnectionsStore } from '@/stores/gasConnections';
 import type { GasConnection } from '@/types/GasConnection';
 import { getPersonDisplayName, formatDate, formatMoney } from '@/utils/tableFormatters';
@@ -278,10 +279,7 @@ const streetAndPlot = computed(() => {
 
                                 <!-- Zakładka Pliki -->
                                 <TabPanel value="pliki">
-                                    <div class="p-6">
-                                        <p class="text-surface-600 dark:text-surface-400">Zawartość zakładki Pliki
-                                            będzie uzupełniona w późniejszym terminie.</p>
-                                    </div>
+                                    <FilesTab :gasConnection="gasConnection" :isReadonly="isReadonly" />
                                 </TabPanel>
                             </TabPanels>
                         </Tabs>

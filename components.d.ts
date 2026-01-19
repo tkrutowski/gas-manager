@@ -45,6 +45,7 @@ declare module 'vue' {
     Dialog: typeof import('primevue/dialog')['default']
     Divider: typeof import('primevue/divider')['default']
     Fieldset: typeof import('primevue/fieldset')['default']
+    FilesTab: typeof import('./src/components/tasks/FilesTab.vue')['default']
     FileUpload: typeof import('primevue/fileupload')['default']
     FileUploadDialog: typeof import('./src/components/FileUploadDialog.vue')['default']
     FinanceTab: typeof import('./src/components/tasks/FinanceTab.vue')['default']
