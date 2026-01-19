@@ -35,6 +35,18 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/tasks/designers',
+      name: 'designers-list',
+      component: () => import('../views/tasks/DesignersList.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/tasks/designers/new',
+      name: 'new-designer',
+      component: () => import('../views/tasks/DesignersList.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/tasks/gas-connections/details',
       name: 'gas-connection-details',
       component: () => import('../views/tasks/GasConnectionDetails.vue'),
