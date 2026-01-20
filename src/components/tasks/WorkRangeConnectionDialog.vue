@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
 import Dialog from 'primevue/dialog';
-import Button from 'primevue/button';
 import Select from 'primevue/select';
 import Textarea from 'primevue/textarea';
 import type { WorkRangeConnection, GasPressureType } from '@/types/WorkRange';
+import SecondaryButton from '@/components/SecondaryButton.vue';
+import PrimaryButton from '@/components/PrimaryButton.vue';
 
 const props = defineProps<{
     visible: boolean;
@@ -141,8 +142,9 @@ const handleCancel = () => {
 
         <template #footer>
             <div class="flex justify-end gap-2">
-                <Button label="Anuluj" severity="secondary" outlined @click="handleCancel" :disabled="isReadonly" />
-                <Button label="Zapisz" icon="pi pi-check" @click="handleSave" :disabled="isReadonly" />
+                <SecondaryButton type="button" @click="handleCancel" text="Anuluj" size="lg" :disabled="isReadonly" />
+                <PrimaryButton type="button" @click="handleSave" text="Zapisz" size="lg" :disabled="isReadonly"
+                    icon="pi pi-check" iconPos="left" />
             </div>
         </template>
     </Dialog>

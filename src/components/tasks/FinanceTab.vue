@@ -19,6 +19,8 @@ import Column from 'primevue/column';
 import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
 import ConfirmPopup from 'primevue/confirmpopup';
+import SecondaryButton from '@/components/SecondaryButton.vue';
+import PrimaryButton from '@/components/PrimaryButton.vue';
 
 interface Props {
     gasConnection: GasConnection | undefined;
@@ -304,7 +306,7 @@ const formatPaymentDate = (date: Date | undefined | null): string => {
                                                     gasConnection.gasConnectionFinance.financeInventoryDate = val as Date | undefined;
                                                 }
                                             }" :disabled="isReadonly" :manualInput="false" showButtonBar showIcon
-                                            dateFormat="dd.mm.yy" class="flex-1" />                                 
+                                            dateFormat="dd.mm.yy" class="flex-1" />
                                     </div>
                                 </div>
                             </div>
@@ -480,8 +482,9 @@ const formatPaymentDate = (date: Date | undefined | null): string => {
 
                                 <!-- Przycisk Zapisz -->
                                 <div class="flex justify-end">
-                                    <Button :label="editingCostId !== null ? 'Aktualizuj' : 'Zapisz'" severity="primary"
-                                        :disabled="isReadonly" @click="handleSaveCost" />
+                                    <PrimaryButton type="button"
+                                        :text="editingCostId !== null ? 'Aktualizuj' : 'Zapisz'" :disabled="isReadonly"
+                                        @click="handleSaveCost" size="sm" />
                                 </div>
                             </div>
 
@@ -548,8 +551,8 @@ const formatPaymentDate = (date: Date | undefined | null): string => {
             </div>
             <template #footer>
                 <div class="flex justify-end gap-2">
-                    <Button label="Anuluj" severity="secondary" @click="newCostTypeDialogVisible = false" />
-                    <Button label="Dodaj" severity="primary" @click="handleAddNewCostType" />
+                    <SecondaryButton type="button" @click="newCostTypeDialogVisible = false" text="Anuluj" size="lg" />
+                    <PrimaryButton type="button" @click="handleAddNewCostType" text="Dodaj" size="lg" />
                 </div>
             </template>
         </Dialog>

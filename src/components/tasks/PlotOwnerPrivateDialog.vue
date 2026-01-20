@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
 import Dialog from 'primevue/dialog';
-import Button from 'primevue/button';
 import DatePicker from 'primevue/datepicker';
 import InputText from 'primevue/inputtext';
 import InputNumber from 'primevue/inputnumber';
 import Textarea from 'primevue/textarea';
 import Fieldset from 'primevue/fieldset';
 import type { Plot, PlotOwnerPrivate } from '@/types/Plot';
+import SecondaryButton from '@/components/SecondaryButton.vue';
+import PrimaryButton from '@/components/PrimaryButton.vue';
 
 const props = defineProps<{
     visible: boolean;
@@ -271,8 +272,9 @@ const dialogHeader = computed(() => {
 
         <template #footer>
             <div class="flex justify-end gap-2">
-                <Button label="Anuluj" severity="secondary" outlined @click="handleCancel" :disabled="isReadonly" />
-                <Button label="Zapisz" icon="pi pi-check" @click="handleSave" :disabled="isReadonly" />
+                <SecondaryButton type="button" @click="handleCancel" text="Anuluj" size="lg" :disabled="isReadonly" />
+                <PrimaryButton type="button" @click="handleSave" text="Zapisz" size="lg" :disabled="isReadonly"
+                    icon="pi pi-check" iconPos="left" />
             </div>
         </template>
     </Dialog>

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import Dialog from 'primevue/dialog';
-import Button from 'primevue/button';
 import InputSwitch from 'primevue/inputswitch';
 import SecondaryButton from '@/components/SecondaryButton.vue';
+import PrimaryButton from '@/components/PrimaryButton.vue';
 import { useSettingsStore } from '@/stores/settings';
 import type { StageCardConfig } from '@/types/Settings';
 
@@ -26,7 +26,7 @@ const cardConfigs = ref<StageCardConfig[]>([]);
 const initializeCardConfigs = () => {
     // Pobieramy istniejące ustawienia dla tego etapu
     const existingSettings = settingsStore.getStageSettings(props.stageId);
-    
+
     // Tworzymy mapę istniejących ustawień dla szybkiego dostępu
     const existingMap = new Map<string, boolean>();
     if (existingSettings) {
@@ -34,7 +34,7 @@ const initializeCardConfigs = () => {
             existingMap.set(config.id, config.required);
         });
     }
-    
+
     // Tworzymy konfigurację dla każdego Card
     // Jeśli Card już ma ustawienia, używamy ich, w przeciwnym razie domyślnie required = false
     cardConfigs.value = props.cards.map(card => ({
@@ -91,10 +91,10 @@ const handleCancel = () => {
 
         <template #footer>
             <div class="flex justify-end gap-2">
-                <SecondaryButton type="button" text="Anuluj" @click="handleCancel" />
-                <Button label="Zapisz" icon="pi pi-check" @click="handleSave" />
+                <SecondaryButton type="button" text="Anuluj" @click="handleCancel" size="lg" />
+                <PrimaryButton type="button" @click="handleSave" text="Zapisz" size="lg" icon="pi pi-check"
+                    iconPos="left" />
             </div>
         </template>
     </Dialog>
 </template>
-

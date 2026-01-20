@@ -10,6 +10,7 @@ import type { Designer } from '@/types/Designer';
 import type { Coordinator } from '@/types/Coordinator';
 import type { GasDistribution } from '@/types/GasDistribution';
 import PrimaryButton from '@/components/PrimaryButton.vue';
+import SecondaryButton from '@/components/SecondaryButton.vue';
 
 const props = defineProps<{
     sectionName: 'customer' | 'endCustomer' | 'finance' | 'team';
@@ -458,11 +459,8 @@ const handleClose = () => {
 
         <template #footer>
             <div class="flex items-center justify-end gap-2">
-                <button type="button" @click="handleClose"
-                    class="px-4 py-2 bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-surface-700 dark:text-surface-300">
-                    Anuluj
-                </button>
-                <PrimaryButton type="button" @click="handleSave" text="Zapisz" />
+                <SecondaryButton type="button" @click="handleClose" text="Anuluj" size="lg" />
+                <PrimaryButton type="button" @click="handleSave" text="Zapisz" size="lg" />
             </div>
         </template>
     </Dialog>

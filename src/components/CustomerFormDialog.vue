@@ -2,6 +2,9 @@
 import { ref } from 'vue';
 import { useCustomersStore } from '@/stores/customers';
 import type { Customer } from '@/types/Customer';
+import { UserIcon, PhoneIcon, MapPinIcon, DocumentTextIcon } from '@heroicons/vue/24/outline';
+import SecondaryButton from '@/components/SecondaryButton.vue';
+import PrimaryButton from '@/components/PrimaryButton.vue';
 
 const emit = defineEmits<{
     close: [];
@@ -107,142 +110,179 @@ const handleClose = () => {
 </script>
 
 <template>
-    <Dialog v-model:visible="visible" modal header="Dodaj Nowego Klienta" :style="{ width: '600px' }"
-        @hide="handleClose">
-        <form @submit.prevent="handleSubmit" class="space-y-4">
-            <!-- Customer Type -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Typ klienta</label>
-                <Select v-model="formData.customerType" :options="[
-                    { label: 'Osoba fizyczna', value: 'person' },
-                    { label: 'Firma', value: 'company' },
-                ]" optionLabel="label" optionValue="value" class="w-full" />
-            </div>
-
-            <!-- Person fields -->
-            <template v-if="formData.customerType === 'person'">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Imię<span class="text-yellow-500">*</span>
-                    </label>
-                    <InputText v-model="formData.firstName" :class="{ 'border-red-500': errors.firstName }"
-                        class="w-full bg-white dark:bg-gray-800 border border-surface-200 dark:border-surface-700 text-gray-900 dark:text-white" />
-                    <p v-if="errors.firstName" class="text-red-500 text-sm mt-1">{{ errors.firstName }}</p>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Nazwisko<span class="text-yellow-500">*</span>
-                    </label>
-                    <InputText v-model="formData.lastName" :class="{ 'border-red-500': errors.lastName }"
-                        class="w-full bg-white dark:bg-gray-800 border border-surface-200 dark:border-surface-700 text-gray-900 dark:text-white" />
-                    <p v-if="errors.lastName" class="text-red-500 text-sm mt-1">{{ errors.lastName }}</p>
-                </div>
-            </template>
-
-            <!-- Company fields -->
-            <template v-else>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Nazwa firmy<span class="text-yellow-500">*</span>
-                    </label>
-                    <InputText v-model="formData.companyName" :class="{ 'border-red-500': errors.companyName }"
-                        class="w-full bg-white dark:bg-gray-800 border border-surface-200 dark:border-surface-700 text-gray-900 dark:text-white" />
-                    <p v-if="errors.companyName" class="text-red-500 text-sm mt-1">{{ errors.companyName }}</p>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        NIP<span class="text-yellow-500">*</span>
-                    </label>
-                    <InputText v-model="formData.nip" :class="{ 'border-red-500': errors.nip }"
-                        class="w-full bg-white dark:bg-gray-800 border border-surface-200 dark:border-surface-700 text-gray-900 dark:text-white" />
-                    <p v-if="errors.nip" class="text-red-500 text-sm mt-1">{{ errors.nip }}</p>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">REGON</label>
-                    <InputText v-model="formData.regon"
-                        class="w-full bg-white dark:bg-gray-800 border border-surface-200 dark:border-surface-700 text-gray-900 dark:text-white" />
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">KRS</label>
-                    <InputText v-model="formData.krs"
-                        class="w-full bg-white dark:bg-gray-800 border border-surface-200 dark:border-surface-700 text-gray-900 dark:text-white" />
-                </div>
-            </template>
-
-            <!-- Common fields -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Telefon
-                </label>
-                <InputText v-model="formData.phone"
-                    class="w-full bg-white dark:bg-gray-800 border border-surface-200 dark:border-surface-700 text-gray-900 dark:text-white" />
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Email
-                </label>
-                <InputText v-model="formData.email" type="email" :class="{ 'border-red-500': errors.email }"
-                    class="w-full bg-white dark:bg-gray-800 border border-surface-200 dark:border-surface-700 text-gray-900 dark:text-white" />
-                <p v-if="errors.email" class="text-red-500 text-sm mt-1">{{ errors.email }}</p>
-            </div>
-
-            <!-- Address -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Gmina<span class="text-yellow-500">*</span>
-                </label>
-                <InputText v-model="formData.address!.commune" :class="{ 'border-red-500': errors.commune }"
-                    class="w-full bg-white dark:bg-gray-800 border border-surface-200 dark:border-surface-700 text-gray-900 dark:text-white" />
-                <p v-if="errors.commune" class="text-red-500 text-sm mt-1">{{ errors.commune }}</p>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Miasto<span class="text-yellow-500">*</span>
-                </label>
-                <InputText v-model="formData.address!.city" :class="{ 'border-red-500': errors.city }"
-                    class="w-full bg-white dark:bg-gray-800 border border-surface-200 dark:border-surface-700 text-gray-900 dark:text-white" />
-                <p v-if="errors.city" class="text-red-500 text-sm mt-1">{{ errors.city }}</p>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Ulica<span class="text-yellow-500">*</span>
-                </label>
-                <InputText v-model="formData.address!.street" :class="{ 'border-red-500': errors.street }"
-                    class="w-full bg-white dark:bg-gray-800 border border-surface-200 dark:border-surface-700 text-gray-900 dark:text-white" />
-                <p v-if="errors.street" class="text-red-500 text-sm mt-1">{{ errors.street }}</p>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Kod pocztowy<span class="text-yellow-500">*</span>
-                </label>
-                <InputText v-model="formData.address!.zip" :class="{ 'border-red-500': errors.zip }"
-                    class="w-full bg-white dark:bg-gray-800 border border-surface-200 dark:border-surface-700 text-gray-900 dark:text-white"
-                    placeholder="00-000" />
-                <p v-if="errors.zip" class="text-red-500 text-sm mt-1">{{ errors.zip }}</p>
-            </div>
-
-            <!-- Info -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Uwagi</label>
-                <Textarea v-model="formData.info" rows="3"
-                    class="w-full bg-white dark:bg-gray-800 border border-surface-200 dark:border-surface-700 text-gray-900 dark:text-white" />
-            </div>
-
-            <!-- Footer -->
+    <Dialog v-model:visible="visible" modal header="Dodaj Nowego Klienta" :style="{ width: '800px' }" :pt="{
+        root: { class: '!bg-surface-0 dark:!bg-surface-950' }
+    }" @hide="handleClose">
+        <form @submit.prevent="handleSubmit" class="space-y-6">
+            <!-- INFORMACJE PODSTAWOWE -->
             <div
-                class="flex items-center justify-between pt-4 border-t border-surface-200 dark:border-surface-700 mt-6">
-                <p class="text-sm text-gray-600 dark:text-gray-400">* - pola, które muszą być wypełnione</p>
-                <div class="flex gap-4">
-                    <button type="button" @click="handleClose"
-                        class="px-6 py-2 bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-900 dark:text-white">
-                        Anuluj
-                    </button>
-                    <button type="submit"
-                        class="px-6 py-2 bg-primary-400 hover:bg-primary-300 text-black rounded-lg transition-colors font-medium">
-                        Zapisz
-                    </button>
+                class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-6">
+                <h2 class="text-lg font-semibold text-surface-700 dark:text-surface-300 mb-4 flex items-center gap-2">
+                    <UserIcon class="w-5 h-5 text-primary-400" />
+                    Informacje Podstawowe
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">Typ
+                            klienta</label>
+                        <Select v-model="formData.customerType" :options="[
+                            { label: 'Osoba fizyczna', value: 'person' },
+                            { label: 'Firma', value: 'company' },
+                        ]" optionLabel="label" optionValue="value"
+                            class="w-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300" />
+                    </div>
+
+                    <!-- Person fields -->
+                    <template v-if="formData.customerType === 'person'">
+                        <div>
+                            <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                                Imię<span class="text-primary-400">*</span>
+                            </label>
+                            <InputText v-model="formData.firstName" :class="{ 'border-red-500': errors.firstName }"
+                                class="w-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300" />
+                            <p v-if="errors.firstName" class="text-red-500 text-sm mt-1">{{ errors.firstName }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                                Nazwisko<span class="text-primary-400">*</span>
+                            </label>
+                            <InputText v-model="formData.lastName" :class="{ 'border-red-500': errors.lastName }"
+                                class="w-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300" />
+                            <p v-if="errors.lastName" class="text-red-500 text-sm mt-1">{{ errors.lastName }}</p>
+                        </div>
+                    </template>
+
+                    <!-- Company fields -->
+                    <template v-else>
+                        <div>
+                            <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                                Nazwa firmy<span class="text-primary-400">*</span>
+                            </label>
+                            <InputText v-model="formData.companyName" :class="{ 'border-red-500': errors.companyName }"
+                                class="w-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300" />
+                            <p v-if="errors.companyName" class="text-red-500 text-sm mt-1">{{ errors.companyName }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                                NIP<span class="text-primary-400">*</span>
+                            </label>
+                            <InputText v-model="formData.nip" :class="{ 'border-red-500': errors.nip }"
+                                class="w-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300" />
+                            <p v-if="errors.nip" class="text-red-500 text-sm mt-1">{{ errors.nip }}</p>
+                        </div>
+                        <div>
+                            <label
+                                class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">REGON</label>
+                            <InputText v-model="formData.regon"
+                                class="w-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300" />
+                        </div>
+                        <div>
+                            <label
+                                class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">KRS</label>
+                            <InputText v-model="formData.krs"
+                                class="w-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300" />
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- DANE KONTAKTOWE -->
+            <div
+                class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-6">
+                <h2 class="text-lg font-semibold text-surface-700 dark:text-surface-300 mb-4 flex items-center gap-2">
+                    <PhoneIcon class="w-5 h-5 text-primary-400" />
+                    Dane Kontaktowe
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                            Telefon
+                        </label>
+                        <InputText v-model="formData.phone"
+                            class="w-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                            Email
+                        </label>
+                        <InputText v-model="formData.email" type="email" :class="{ 'border-red-500': errors.email }"
+                            class="w-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300" />
+                        <p v-if="errors.email" class="text-red-500 text-sm mt-1">{{ errors.email }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LOKALIZACJA -->
+            <div
+                class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-6">
+                <h2 class="text-lg font-semibold text-surface-700 dark:text-surface-300 mb-4 flex items-center gap-2">
+                    <MapPinIcon class="w-5 h-5 text-primary-400" />
+                    Lokalizacja
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                            Gmina<span class="text-primary-400">*</span>
+                        </label>
+                        <InputText v-model="formData.address!.commune" :class="{ 'border-red-500': errors.commune }"
+                            class="w-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300" />
+                        <p v-if="errors.commune" class="text-red-500 text-sm mt-1">{{ errors.commune }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                            Miasto<span class="text-primary-400">*</span>
+                        </label>
+                        <InputText v-model="formData.address!.city" :class="{ 'border-red-500': errors.city }"
+                            class="w-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300" />
+                        <p v-if="errors.city" class="text-red-500 text-sm mt-1">{{ errors.city }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                            Ulica<span class="text-primary-400">*</span>
+                        </label>
+                        <InputText v-model="formData.address!.street" :class="{ 'border-red-500': errors.street }"
+                            class="w-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300" />
+                        <p v-if="errors.street" class="text-red-500 text-sm mt-1">{{ errors.street }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                            Kod pocztowy<span class="text-primary-400">*</span>
+                        </label>
+                        <InputText v-model="formData.address!.zip" :class="{ 'border-red-500': errors.zip }"
+                            class="w-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300"
+                            placeholder="00-000" />
+                        <p v-if="errors.zip" class="text-red-500 text-sm mt-1">{{ errors.zip }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DODATKOWE INFORMACJE -->
+            <div
+                class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-6">
+                <h2 class="text-lg font-semibold text-surface-700 dark:text-surface-300 mb-4 flex items-center gap-2">
+                    <DocumentTextIcon class="w-5 h-5 text-primary-400" />
+                    Dodatkowe Informacje
+                </h2>
+                <div class="space-y-4">
+                    <div>
+                        <label
+                            class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">Uwagi</label>
+                        <Textarea v-model="formData.info" rows="3"
+                            class="w-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300" />
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-2">
+                            <Checkbox v-model="formData.status" :binary="true" inputId="status" />
+                            <label for="status" class="text-surface-700 dark:text-surface-300">Aktywny</label>
+                        </div>
+                    </div>
                 </div>
             </div>
         </form>
+
+        <template #footer>
+            <SecondaryButton type="button" @click="handleClose" text="Anuluj" size="lg" />
+            <PrimaryButton type="button" @click="handleSubmit" text="Zapisz" size="lg" />
+        </template>
     </Dialog>
 </template>

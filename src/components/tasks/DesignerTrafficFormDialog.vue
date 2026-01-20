@@ -3,6 +3,8 @@ import { ref, watch, computed } from 'vue';
 import { useDesignerTrafficStore } from '@/stores/designerTraffic';
 import type { DesignerTraffic } from '@/types/Designer';
 import { UserIcon, PhoneIcon, DocumentTextIcon } from '@heroicons/vue/24/outline';
+import SecondaryButton from '@/components/SecondaryButton.vue';
+import PrimaryButton from '@/components/PrimaryButton.vue';
 
 const props = defineProps<{
   visible: boolean;
@@ -214,8 +216,8 @@ const handleClose = () => {
     </form>
 
     <template #footer>
-      <Button label="Anuluj" @click="handleClose" class="p-button-text" />
-      <Button label="Zapisz" @click="handleSubmit" />
+      <SecondaryButton type="button" @click="handleClose" text="Anuluj" size="lg" />
+      <PrimaryButton type="button" @click="handleSubmit" text="Zapisz" size="lg" />
     </template>
   </Dialog>
 </template>

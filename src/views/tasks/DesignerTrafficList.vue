@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import SidebarMenu from '@/components/tasks/SidebarMenu.vue';
 import DesignerTrafficFormDialog from '@/components/tasks/DesignerTrafficFormDialog.vue';
+import PrimaryButton from '@/components/PrimaryButton.vue';
 import { useDesignerTrafficStore } from '@/stores/designerTraffic';
 import { useGasConnectionsStore } from '@/stores/gasConnections';
 import type { DesignerTraffic } from '@/types/Designer';
@@ -192,12 +193,10 @@ const selectedDesignerTrafficStats = computed(() => {
             </div>
 
             <!-- Przycisk Nowy projektant ruchu -->
-            <button type="button"
-              class="inline-flex items-center gap-2 px-4 py-2 bg-primary-400 text-black rounded-xl font-medium hover:bg-primary-500 transition-colors"
-              @click="openDialogForNew">
+            <PrimaryButton type="button" size="md" :withIcon="true" @click="openDialogForNew">
               <PlusIcon class="w-5 h-5" />
               <span>Nowy Projektant ruchu</span>
-            </button>
+            </PrimaryButton>
           </div>
         </div>
 
@@ -270,8 +269,8 @@ const selectedDesignerTrafficStats = computed(() => {
                     <div
                       class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-wide"
                       :class="item.status
-                          ? 'bg-green-900/60 text-green-400 border border-green-700/60'
-                          : 'bg-red-800/20 text-red-400 border border-red-700/60'
+                        ? 'bg-green-900/60 text-green-400 border border-green-700/60'
+                        : 'bg-red-800/20 text-red-400 border border-red-700/60'
                         ">
                       {{ item.status ? 'AKTYWNY' : 'NIEAKTYWNY' }}
                     </div>

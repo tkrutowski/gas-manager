@@ -847,7 +847,7 @@ const handleSaveDraft = () => {
                             <InputText v-model="addressCommune" :class="{ 'border-red-500': errors.addressCommune }"
                                 class="w-full bg-white dark:bg-gray-800 border border-surface-200 dark:border-surface-700 text-gray-900 dark:text-white" />
                             <p v-if="errors.addressCommune" class="text-red-500 text-sm mt-1">{{ errors.addressCommune
-                                }}</p>
+                            }}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -901,7 +901,7 @@ const handleSaveDraft = () => {
                             <DatePicker v-model="formData.finishDeadline" dateFormat="mm/dd/yy"
                                 :class="{ 'border-red-500': errors.finishDeadline }" class="w-full" showIcon />
                             <p v-if="errors.finishDeadline" class="text-red-500 text-sm mt-1">{{ errors.finishDeadline
-                                }}</p>
+                            }}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -928,7 +928,7 @@ const handleSaveDraft = () => {
                                 :class="{ 'border-red-500': errors.wsgFinalPickupDate }" class="w-full" showIcon />
                             <p v-if="errors.wsgFinalPickupDate" class="text-red-500 text-sm mt-1">{{
                                 errors.wsgFinalPickupDate
-                            }}</p>
+                                }}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -944,7 +944,7 @@ const handleSaveDraft = () => {
                             <DatePicker v-model="formData.projectDeadline" dateFormat="mm/dd/yy"
                                 :class="{ 'border-red-500': errors.projectDeadline }" class="w-full" showIcon />
                             <p v-if="errors.projectDeadline" class="text-red-500 text-sm mt-1">{{ errors.projectDeadline
-                                }}</p>
+                            }}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Umowa
@@ -1002,7 +1002,7 @@ const handleSaveDraft = () => {
                                     <span class="text-gray-600 dark:text-gray-400">PLN</span>
                                 </div>
                                 <p v-if="errors.projectValue" class="text-red-500 text-sm mt-1">{{ errors.projectValue
-                                }}
+                                    }}
                                 </p>
                             </div>
                             <div>
@@ -1134,11 +1134,8 @@ const handleSaveDraft = () => {
                 <div class="pt-6 border-t border-surface-200 dark:border-surface-700">
                     <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">* - pola, które muszą być wypełnione</p>
                     <div class="flex items-center justify-end gap-4">
-                        <button type="button" @click="handleCancel"
-                            class="px-6 py-2 bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-900 dark:text-white"
-                            title="Anuluj wprowadzanie danych">
-                            Anuluj
-                        </button>
+                        <SecondaryButton type="button" @click="handleCancel" text="Anuluj" size="lg"
+                            title="Anuluj wprowadzanie danych" />
                         <PrimaryButton type="submit" size="lg" text="Zatwierdź" title="Zatwierdź i zapisz formularz" />
                     </div>
                 </div>

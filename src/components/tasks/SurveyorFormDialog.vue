@@ -3,6 +3,8 @@ import { ref, watch, computed } from 'vue';
 import { useSurveyorsStore } from '@/stores/surveyors';
 import type { Surveyor } from '@/types/Surveyor';
 import { UserIcon, PhoneIcon, MapPinIcon, DocumentTextIcon } from '@heroicons/vue/24/outline';
+import SecondaryButton from '@/components/SecondaryButton.vue';
+import PrimaryButton from '@/components/PrimaryButton.vue';
 
 const props = defineProps<{
   visible: boolean;
@@ -297,8 +299,8 @@ const handleClose = () => {
     </form>
 
     <template #footer>
-      <Button label="Anuluj" @click="handleClose" class="p-button-text" />
-      <Button label="Zapisz" @click="handleSubmit" />
+      <SecondaryButton type="button" @click="handleClose" text="Anuluj" size="lg" />
+      <PrimaryButton type="button" @click="handleSubmit" text="Zapisz" size="lg" />
     </template>
   </Dialog>
 </template>

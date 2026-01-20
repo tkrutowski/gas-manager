@@ -2,9 +2,9 @@
 import { ref, watch, computed } from 'vue';
 import Dialog from 'primevue/dialog';
 import PickList from 'primevue/picklist';
-import Button from 'primevue/button';
 import Select from 'primevue/select';
 import SecondaryButton from '@/components/SecondaryButton.vue';
+import PrimaryButton from '@/components/PrimaryButton.vue';
 import type { GasConnectionTableColumnConfig, GasConnectionTableFilter } from '@/types/Settings';
 
 const props = defineProps<{
@@ -207,8 +207,9 @@ const handleCancel = () => {
 
         <template #footer>
             <div class="flex justify-end gap-2">
-                <SecondaryButton type="button" text="Anuluj" @click="handleCancel" />
-                <Button label="Zapisz" icon="pi pi-check" @click="handleSave" />
+                <SecondaryButton type="button" text="Anuluj" @click="handleCancel" size="lg" />
+                <PrimaryButton type="button" @click="handleSave" text="Zapisz" size="lg" icon="pi pi-check"
+                    iconPos="left" />
             </div>
         </template>
     </Dialog>

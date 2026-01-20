@@ -92,8 +92,8 @@ const handleClose = () => {
         </form>
 
         <template #footer>
-            <SecondaryButton type="button" @click="handleClose" v-text="'Anuluj'" />
-            <PrimaryButton type="button" @click="handleSubmit" v-text="'Zapisz'" />
+            <SecondaryButton type="button" @click="handleClose" text="Anuluj" size="lg" />
+            <PrimaryButton type="button" @click="handleSubmit" text="Zapisz" size="lg" />
         </template>
     </Dialog>
 </template>

@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import SidebarMenu from '@/components/tasks/SidebarMenu.vue';
 import SurveyorFormDialog from '@/components/tasks/SurveyorFormDialog.vue';
+import PrimaryButton from '@/components/PrimaryButton.vue';
 import { useSurveyorsStore } from '@/stores/surveyors';
 import { useGasConnectionsStore } from '@/stores/gasConnections';
 import type { Surveyor } from '@/types/Surveyor';
@@ -197,12 +198,10 @@ const handleSurveyorUpdated = (surveyor: Surveyor) => {
             </div>
 
             <!-- Przycisk Nowy geodeta -->
-            <button type="button"
-              class="inline-flex items-center gap-2 px-4 py-2 bg-primary-400 text-black rounded-xl font-medium hover:bg-primary-500 transition-colors"
-              @click="openDialogForNew">
+            <PrimaryButton type="button" size="md" :withIcon="true" @click="openDialogForNew">
               <PlusIcon class="w-5 h-5" />
               <span>Nowy Geodeta</span>
-            </button>
+            </PrimaryButton>
           </div>
         </div>
 
