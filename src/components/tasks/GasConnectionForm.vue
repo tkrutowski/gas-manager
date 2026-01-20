@@ -847,7 +847,7 @@ const handleSaveDraft = () => {
                             <InputText v-model="addressCommune" :class="{ 'border-red-500': errors.addressCommune }"
                                 class="w-full bg-white dark:bg-gray-800 border border-surface-200 dark:border-surface-700 text-gray-900 dark:text-white" />
                             <p v-if="errors.addressCommune" class="text-red-500 text-sm mt-1">{{ errors.addressCommune
-                            }}</p>
+                                }}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -901,7 +901,7 @@ const handleSaveDraft = () => {
                             <DatePicker v-model="formData.finishDeadline" dateFormat="mm/dd/yy"
                                 :class="{ 'border-red-500': errors.finishDeadline }" class="w-full" showIcon />
                             <p v-if="errors.finishDeadline" class="text-red-500 text-sm mt-1">{{ errors.finishDeadline
-                            }}</p>
+                                }}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -928,7 +928,7 @@ const handleSaveDraft = () => {
                                 :class="{ 'border-red-500': errors.wsgFinalPickupDate }" class="w-full" showIcon />
                             <p v-if="errors.wsgFinalPickupDate" class="text-red-500 text-sm mt-1">{{
                                 errors.wsgFinalPickupDate
-                                }}</p>
+                            }}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -944,7 +944,7 @@ const handleSaveDraft = () => {
                             <DatePicker v-model="formData.projectDeadline" dateFormat="mm/dd/yy"
                                 :class="{ 'border-red-500': errors.projectDeadline }" class="w-full" showIcon />
                             <p v-if="errors.projectDeadline" class="text-red-500 text-sm mt-1">{{ errors.projectDeadline
-                            }}</p>
+                                }}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Umowa
@@ -1002,7 +1002,7 @@ const handleSaveDraft = () => {
                                     <span class="text-gray-600 dark:text-gray-400">PLN</span>
                                 </div>
                                 <p v-if="errors.projectValue" class="text-red-500 text-sm mt-1">{{ errors.projectValue
-                                    }}
+                                }}
                                 </p>
                             </div>
                             <div>
@@ -1154,11 +1154,10 @@ const handleSaveDraft = () => {
             @close="showEndCustomerDetailsDialog = false" />
         <CustomerFormDialog v-if="showEndCustomerFormDialog" @close="showEndCustomerFormDialog = false"
             @customer-added="handleEndCustomerAdded" />
-        <DesignerFormDialog v-if="showDesignerFormDialog" @close="showDesignerFormDialog = false"
-            @designer-added="handleDesignerAdded" />
-        <CoordinatorFormDialog v-if="showCoordinatorFormDialog" @close="showCoordinatorFormDialog = false"
+        <DesignerFormDialog v-model:visible="showDesignerFormDialog" @designerAdded="handleDesignerAdded" />
+        <CoordinatorFormDialog v-model:visible="showCoordinatorFormDialog"
             @coordinator-added="handleCoordinatorAdded" />
-        <CoordinatorFormDialog v-if="showCoordinatorProjectFormDialog" @close="showCoordinatorProjectFormDialog = false"
+        <CoordinatorFormDialog v-model:visible="showCoordinatorProjectFormDialog"
             @coordinator-added="handleCoordinatorProjectAdded" />
         <GasDistributionFormDialog v-if="showGasDistributionFormDialog" @close="showGasDistributionFormDialog = false"
             @gas-distribution-added="handleGasDistributionAdded" />
