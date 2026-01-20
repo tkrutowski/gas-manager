@@ -18,6 +18,7 @@ import { useDesignersStore } from './designers';
 import { useCoordinatorsStore } from './coordinators';
 import { useSurveyorsStore } from './surveyors';
 import { useGasDistributionsStore } from './gasDistributions';
+import { useDesignerTrafficStore } from './designerTraffic';
 import type { Address } from '../types/Address';
 import { MapDeliveredBy } from '../types/Commons';
 
@@ -165,6 +166,7 @@ function generateMockGasConnections(): GasConnection[] {
   const designersStore = useDesignersStore();
   const coordinatorsStore = useCoordinatorsStore();
   const surveyorsStore = useSurveyorsStore();
+  const designerTrafficStore = useDesignerTrafficStore();
 
   const customers = customersStore.getAllCustomers({ status: true });
   const designers = designersStore.getAllDesigners({ status: true });
@@ -172,6 +174,7 @@ function generateMockGasConnections(): GasConnection[] {
   const surveyors = surveyorsStore.getAllSurveyors({ status: true });
   const gasDistributionsStore = useGasDistributionsStore();
   const gasDistributions = gasDistributionsStore.getAllGasDistributions({ isActive: true });
+  const designerTrafficList = designerTrafficStore.getAllDesignerTraffic({ status: true });
 
   const gasConnections: GasConnection[] = [];
   const phases: Phase[] = [Phase.NONE, Phase.PROJECT, Phase.WORK, Phase.FINANSE];
@@ -202,6 +205,10 @@ function generateMockGasConnections(): GasConnection[] {
         surveyors.length > 0 && Math.random() > 0.3 ? surveyors[Math.floor(Math.random() * surveyors.length)] : null;
       const surveyorTraffic =
         surveyors.length > 0 && Math.random() > 0.5 ? surveyors[Math.floor(Math.random() * surveyors.length)] : null;
+      const designerTraffic =
+        designerTrafficList.length > 0 && Math.random() > 0.4
+          ? designerTrafficList[Math.floor(Math.random() * designerTrafficList.length)]
+          : null;
 
       // Generowanie plots (0-3 działki)
       const plotsCount = Math.floor(Math.random() * 4);
@@ -348,7 +355,7 @@ function generateMockGasConnections(): GasConnection[] {
           phase === Phase.WORK || phase === Phase.FINANSE ? randomPastDate(3) : undefined,
         trafficOrganizationProjectReceiptDate:
           phase === Phase.WORK || phase === Phase.FINANSE ? randomPastDate(2) : undefined,
-        designerTraffic: Math.random() > 0.5 ? null : null, // TODO: dodać DesignerTraffic jeśli potrzebne
+        designerTraffic: designerTraffic,
         gasPointOrderDate: phase === Phase.WORK || phase === Phase.FINANSE ? randomPastDate(1) : undefined,
         gasPointPickupDate: phase === Phase.WORK || phase === Phase.FINANSE ? randomPastDate(1) : undefined,
         gasPointDocPickupDate: phase === Phase.WORK || phase === Phase.FINANSE ? randomPastDate(1) : undefined,

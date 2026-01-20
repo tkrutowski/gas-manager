@@ -14,6 +14,7 @@ import {
     MoonIcon,
     SunIcon,
 } from '@heroicons/vue/24/outline';
+import CarIcon from '@/components/icons/CarIcon.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -72,7 +73,7 @@ const menuItems = [
     {
         id: 'gas-connections',
         label: 'Przyłącza gazu',
-        icon: WrenchScrewdriverIcon,
+        icon: FolderIcon,
         route: null,
         children: [
             { id: 'gas-connections-new', label: 'Nowe', route: '/tasks/gas-connections/new' },
@@ -82,11 +83,21 @@ const menuItems = [
     {
         id: 'designers',
         label: 'Projektanci',
-        icon: FolderIcon,
+        icon: WrenchScrewdriverIcon,
         route: null,
         children: [
             { id: 'designers-new', label: 'Nowy', route: '/tasks/designers/new' },
             { id: 'designers-list', label: 'Lista', route: '/tasks/designers' },
+        ],
+    },
+    {
+        id: 'designer-traffic',
+        label: 'Projektanci ruchu',
+        icon: CarIcon,
+        route: null,
+        children: [
+            { id: 'designer-traffic-new', label: 'Nowy', route: '/tasks/designers-traffic/new' },
+            { id: 'designer-traffic-list', label: 'Lista', route: '/tasks/designers-traffic' },
         ],
     },
     {
