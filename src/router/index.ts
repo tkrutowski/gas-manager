@@ -59,6 +59,30 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/tasks/coordinators',
+      name: 'coordinators-list',
+      component: () => import('../views/tasks/CoordinatorsList.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/tasks/coordinators/new',
+      name: 'new-coordinator',
+      component: () => import('../views/tasks/CoordinatorsList.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/tasks/surveyors',
+      name: 'surveyors-list',
+      component: () => import('../views/tasks/SurveyorsList.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/tasks/surveyors/new',
+      name: 'new-surveyor',
+      component: () => import('../views/tasks/SurveyorsList.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/tasks/gas-connections/details',
       name: 'gas-connection-details',
       component: () => import('../views/tasks/GasConnectionDetails.vue'),

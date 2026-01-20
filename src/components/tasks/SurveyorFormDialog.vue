@@ -1,61 +1,95 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
-import { useCoordinatorsStore } from '@/stores/coordinators';
-import type { Coordinator } from '@/types/Coordinator';
-import { UserIcon, PhoneIcon, DocumentTextIcon } from '@heroicons/vue/24/outline';
+import { useSurveyorsStore } from '@/stores/surveyors';
+import type { Surveyor } from '@/types/Surveyor';
+import { UserIcon, PhoneIcon, MapPinIcon, DocumentTextIcon } from '@heroicons/vue/24/outline';
 
-const props = withDefaults(
-  defineProps<{
-    visible?: boolean;
-    coordinator?: Coordinator | null;
-  }>(),
-  {
-    visible: true,
-  },
-);
+const props = defineProps<{
+  visible: boolean;
+  surveyor?: Surveyor | null;
+}>();
 
 const emit = defineEmits<{
   'update:visible': [value: boolean];
   close: [];
-  'coordinator-added': [coordinator: Coordinator];
-  'coordinator-updated': [coordinator: Coordinator];
+  'surveyor-added': [surveyor: Surveyor];
+  'surveyor-updated': [surveyor: Surveyor];
 }>();
 
-const coordinatorsStore = useCoordinatorsStore();
+const surveyorsStore = useSurveyorsStore();
 
-// Kompatybilność wsteczna: jeśli visible nie jest przekazany jako prop, używamy wewnętrznego ref
-const internalVisible = ref(true);
-const isVisible = computed(() => (props.visible !== undefined ? props.visible : internalVisible.value));
-
-const formData = ref<Partial<Coordinator>>({
+const formData = ref<Partial<Surveyor>>({
   name: '',
   lastName: '',
   phone: '',
   phone2: '',
   email: '',
   info: '',
+  address: {
+    id: 0,
+    commune: '',
+    city: '',
+    street: '',
+    zip: '',
+    coordinates: {
+      id: 0,
+      latitude: '',
+      longitude: '',
+    },
+  },
   status: true,
 });
 
-const isEditMode = computed(() => !!props.coordinator);
+const isEditMode = computed(() => !!props.surveyor);
 
 const dialogHeader = computed(() =>
-  isEditMode.value ? 'Edytuj Koordynatora' : 'Dodaj Nowego Koordynatora',
+  isEditMode.value ? 'Edytuj Geodetę' : 'Dodaj Nowego Geodetę',
 );
 
 watch(
-  () => isVisible.value,
+  () => props.visible,
   newVal => {
     if (newVal) {
-      if (props.coordinator) {
+      if (props.surveyor) {
         formData.value = {
-          name: props.coordinator.name || '',
-          lastName: props.coordinator.lastName || '',
-          phone: props.coordinator.phone || '',
-          phone2: props.coordinator.phone2 || '',
-          email: props.coordinator.email || '',
-          info: props.coordinator.info || '',
-          status: props.coordinator.status ?? true,
+          name: props.surveyor.name || '',
+          lastName: props.surveyor.lastName || '',
+          phone: props.surveyor.phone || '',
+          phone2: props.surveyor.phone2 || '',
+          email: props.surveyor.email || '',
+          info: props.surveyor.info || '',
+          address: props.surveyor.address
+            ? {
+              id: props.surveyor.address.id,
+              commune: props.surveyor.address.commune || '',
+              city: props.surveyor.address.city || '',
+              street: props.surveyor.address.street || '',
+              zip: props.surveyor.address.zip || '',
+              coordinates: props.surveyor.address.coordinates
+                ? {
+                  id: props.surveyor.address.coordinates.id,
+                  latitude: props.surveyor.address.coordinates.latitude || '',
+                  longitude: props.surveyor.address.coordinates.longitude || '',
+                }
+                : {
+                  id: 0,
+                  latitude: '',
+                  longitude: '',
+                },
+            }
+            : {
+              id: 0,
+              commune: '',
+              city: '',
+              street: '',
+              zip: '',
+              coordinates: {
+                id: 0,
+                latitude: '',
+                longitude: '',
+              },
+            },
+          status: props.surveyor.status ?? true,
         };
       } else {
         formData.value = {
@@ -65,6 +99,18 @@ watch(
           phone2: '',
           email: '',
           info: '',
+          address: {
+            id: 0,
+            commune: '',
+            city: '',
+            street: '',
+            zip: '',
+            coordinates: {
+              id: 0,
+              latitude: '',
+              longitude: '',
+            },
+          },
           status: true,
         };
       }
@@ -106,48 +152,38 @@ const handleSubmit = () => {
   }
 
   try {
-    if (isEditMode.value && props.coordinator) {
-      const updated = coordinatorsStore.updateCoordinator(
-        props.coordinator.id,
-        formData.value as Partial<Omit<Coordinator, 'id' | 'createdAt'>>,
+    if (isEditMode.value && props.surveyor) {
+      const updated = surveyorsStore.updateSurveyor(
+        props.surveyor.id,
+        formData.value as Partial<Omit<Surveyor, 'id' | 'createdAt'>>,
       );
       if (updated) {
-        emit('coordinator-updated', updated);
+        emit('surveyor-updated', updated);
       }
     } else {
-      const newCoordinator = coordinatorsStore.addCoordinator(
-        formData.value as Omit<Coordinator, 'id' | 'createdAt' | 'updatedAt'>,
+      const newSurveyor = surveyorsStore.addSurveyor(
+        formData.value as Omit<Surveyor, 'id' | 'createdAt' | 'updatedAt'>,
       );
-      emit('coordinator-added', newCoordinator);
+      emit('surveyor-added', newSurveyor);
     }
 
-    if (props.visible !== undefined) {
-      emit('update:visible', false);
-    } else {
-      internalVisible.value = false;
-    }
+    emit('update:visible', false);
     emit('close');
   } catch (error) {
-    console.error('Błąd podczas zapisywania koordynatora:', error);
+    console.error('Błąd podczas zapisywania geodety:', error);
   }
 };
 
 const handleClose = () => {
-  if (props.visible !== undefined) {
-    emit('update:visible', false);
-  } else {
-    internalVisible.value = false;
-  }
+  emit('update:visible', false);
   emit('close');
 };
 </script>
 
 <template>
-  <Dialog v-model:visible="isVisible" modal :header="dialogHeader" :style="{ width: '700px' }" :pt="{
+  <Dialog v-model:visible="props.visible" modal :header="dialogHeader" :style="{ width: '800px' }" :pt="{
     root: { class: '!bg-surface-0 dark:!bg-surface-950' },
-  }"
-    @update:visible="(val) => { if (props.visible !== undefined) emit('update:visible', val); else internalVisible = val; }"
-    @hide="handleClose">
+  }" @update:visible="emit('update:visible', $event)" @hide="handleClose">
     <form @submit.prevent="handleSubmit" class="space-y-6">
       <!-- INFORMACJE PODSTAWOWE -->
       <div class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-6">
@@ -208,6 +244,36 @@ const handleClose = () => {
         </div>
       </div>
 
+      <!-- LOKALIZACJA -->
+      <div class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-6">
+        <h2 class="text-lg font-semibold text-surface-700 dark:text-surface-300 mb-4 flex items-center gap-2">
+          <MapPinIcon class="w-5 h-5 text-primary-400" />
+          Lokalizacja
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">Gmina</label>
+            <InputText v-model="formData.address!.commune"
+              class="w-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">Miasto</label>
+            <InputText v-model="formData.address!.city"
+              class="w-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">Ulica</label>
+            <InputText v-model="formData.address!.street"
+              class="w-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">Kod pocztowy</label>
+            <InputText v-model="formData.address!.zip"
+              class="w-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300" />
+          </div>
+        </div>
+      </div>
+
       <!-- DODATKOWE INFORMACJE -->
       <div class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-6">
         <h2 class="text-lg font-semibold text-surface-700 dark:text-surface-300 mb-4 flex items-center gap-2">
@@ -216,16 +282,14 @@ const handleClose = () => {
         </h2>
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
-              Uwagi
-            </label>
+            <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">Uwagi</label>
             <Textarea v-model="formData.info" rows="3"
               class="w-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300" />
           </div>
           <div class="flex items-center gap-4">
             <div class="flex items-center gap-2">
-              <Checkbox v-model="formData.status" :binary="true" inputId="status-coordinator" />
-              <label for="status-coordinator" class="text-surface-700 dark:text-surface-300">Aktywny</label>
+              <Checkbox v-model="formData.status" :binary="true" inputId="status-surveyor" />
+              <label for="status-surveyor" class="text-surface-700 dark:text-surface-300">Aktywny</label>
             </div>
           </div>
         </div>

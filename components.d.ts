@@ -100,6 +100,7 @@ declare module 'vue' {
     Skeleton: typeof import('primevue/skeleton')['default']
     StageSettingsDialog: typeof import('./src/components/tasks/StageSettingsDialog.vue')['default']
     StatusButton: typeof import('./src/components/StatusButton.vue')['default']
+    SurveyorFormDialog: typeof import('./src/components/tasks/SurveyorFormDialog.vue')['default']
     Tab: typeof import('primevue/tab')['default']
     TabList: typeof import('primevue/tablist')['default']
     TabPanel: typeof import('primevue/tabpanel')['default']
