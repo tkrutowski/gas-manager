@@ -17,6 +17,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/settings',
+      name: 'settings',
+      component: () => import('../views/SettingsDashboard.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/tasks',
       name: 'tasks-dashboard',
       component: () => import('../views/tasks/TasksDashboard.vue'),

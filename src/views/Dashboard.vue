@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import { useCompanySettingsStore } from '@/stores/companySettings';
 import {
     ClipboardDocumentCheckIcon,
     CurrencyDollarIcon,
@@ -14,18 +15,29 @@ import {
 
 const router = useRouter();
 const authStore = useAuthStore();
+const companySettingsStore = useCompanySettingsStore();
 
 const userName = computed(() => authStore.getFirstName() || authStore.user?.name || 'Użytkowniku');
 const userRole = computed(() => authStore.user?.role || 'Użytkownik');
 
+const appName = computed(() => companySettingsStore.appInfo?.appName || 'GasManager Pro');
+const appVersion = computed(() => companySettingsStore.appInfo?.appVersion || '2.4.0');
+
 const modules = [
     {
         id: 'tasks',
-        title: 'Zadania i Projekty',
+        title: 'Zadania',
         description: 'Harmonogram prac, statusy realizacji przyłączy oraz delegowanie zadań zespołom.',
         icon: ClipboardDocumentCheckIcon,
         color: 'bg-blue-500',
         route: '/tasks',
+    }, {
+        id: 'customers',
+        title: 'Klienci',
+        description: 'Zarządzanie klientami, adresami, umowami i fakturami.',
+        icon: UserGroupIcon,
+        color: 'bg-green-500',
+        route: '/customers',
     },
     {
         id: 'finance',
@@ -92,8 +104,8 @@ const handleModuleClick = (route: string) => {
                         <span class="text-black font-bold text-lg">G</span>
                     </div>
                     <div>
-                        <h1 class="text-xl font-bold text-white">GasManager</h1>
-                        <p class="text-xs text-white/60">Wersja Pro v2.4</p>
+                        <h1 class="text-xl font-bold text-white">{{ appName }}</h1>
+                        <p class="text-xs text-white/60">Wersja {{ appVersion }}</p>
                     </div>
                 </div>
 
@@ -104,7 +116,7 @@ const handleModuleClick = (route: string) => {
                         <p class="text-sm text-white/60">{{ userRole }}</p>
                     </div>
                     <div
-                        class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                        class="w-10 h-10 rounded-full bg-linear-to-br from-blue-400 to-purple-500 flex items-center justify-center">
                         <span class="text-white font-semibold text-sm">
                             {{ userName.charAt(0).toUpperCase() }}
                         </span>

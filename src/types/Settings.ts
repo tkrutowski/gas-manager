@@ -8,6 +8,39 @@ export interface ModuleSettings {
 }
 
 /**
+ * Ustawienia danych firmy
+ */
+export interface CompanySettings extends ModuleSettings {
+  moduleName: 'companySettings';
+  company: {
+    name: string;
+    taxId: string; // NIP
+    regon?: string;
+    krs?: string;
+    address: {
+      street: string;
+      zipCode: string;
+      city: string;
+    };
+    phones: string[];
+    emails: string[];
+    bankAccounts: {
+      name?: string;
+      iban: string;
+    }[];
+  };
+}
+
+/**
+ * Ustawienia informacji o aplikacji
+ */
+export interface AppInfoSettings extends ModuleSettings {
+  moduleName: 'appInfo';
+  appName: string;
+  appVersion: string;
+}
+
+/**
  * Ustawienia domyślne dla modułu GasConnection
  */
 export interface GasConnectionDefaultSettings extends ModuleSettings {
@@ -98,7 +131,12 @@ export interface GasConnectionStageSettings extends ModuleSettings {
 /**
  * Unia typów dla wszystkich modułów (łatwe rozszerzanie)
  */
-export type AppDefaultSettings = GasConnectionDefaultSettings | GasConnectionTableSettings | GasConnectionStageSettings; // | OtherModuleSettings | ...
+export type AppDefaultSettings =
+  | GasConnectionDefaultSettings
+  | GasConnectionTableSettings
+  | GasConnectionStageSettings
+  | CompanySettings
+  | AppInfoSettings; // | OtherModuleSettings | ...
 
 /**
  * Struktura przechowywania w localStorage

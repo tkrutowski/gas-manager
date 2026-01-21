@@ -16,6 +16,24 @@ import {
 } from '@heroicons/vue/24/outline';
 import CarIcon from '@/components/icons/CarIcon.vue';
 
+interface SidebarChildItem {
+    id: string;
+    label: string;
+    route: string;
+}
+
+interface SidebarItem {
+    id: string;
+    label: string;
+    icon: any;
+    route: string | null;
+    children: SidebarChildItem[] | null;
+}
+
+const props = defineProps<{
+    menuItems?: SidebarItem[];
+}>();
+
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
@@ -62,10 +80,17 @@ const userName = computed(() => authStore.user?.name || 'Użytkownik');
 const userRole = computed(() => authStore.user?.role || 'Administrator');
 const userEmail = computed(() => authStore.user?.email || '');
 
-const menuItems = [
+const defaultMenuItems: SidebarItem[] = [
     {
-        id: 'dashboard',
-        label: 'Pulpit',
+        id: 'modules-dashboard',
+        label: 'Moduły',
+        icon: Squares2X2Icon,
+        route: '/',
+        children: null,
+    },
+    {
+        id: 'tasks-dashboard',
+        label: 'Pulpit zadań',
         icon: Squares2X2Icon,
         route: '/tasks',
         children: null,
@@ -122,6 +147,8 @@ const menuItems = [
     },
 ];
 
+const menuItems = computed<SidebarItem[]>(() => props.menuItems ?? defaultMenuItems);
+
 const expandedItems = ref<string[]>([]);
 
 const toggleExpand = (itemId: string) => {
@@ -147,7 +174,7 @@ const isChildActive = (children: Array<{ route: string }> | null) => {
     return children.some(child => route.path === child.route);
 };
 
-const handleItemClick = (item: any) => {
+const handleItemClick = (item: SidebarItem) => {
     if (item.children) {
         toggleExpand(item.id);
     } else if (item.route) {
