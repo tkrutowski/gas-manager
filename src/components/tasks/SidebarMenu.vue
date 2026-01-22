@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import { useCompanySettingsStore } from '@/stores/companySettings';
 import {
     Squares2X2Icon,
     WrenchScrewdriverIcon,
@@ -10,9 +11,10 @@ import {
     MapPinIcon,
     ChevronRightIcon,
     ChevronLeftIcon,
-    ArrowRightOnRectangleIcon,
+    ArrowRightStartOnRectangleIcon,
     MoonIcon,
     SunIcon,
+    HomeIcon,
 } from '@heroicons/vue/24/outline';
 import CarIcon from '@/components/icons/CarIcon.vue';
 
@@ -37,6 +39,7 @@ const props = defineProps<{
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
+const companySettingsStore = useCompanySettingsStore();
 
 const isCollapsed = ref(false);
 
@@ -76,15 +79,50 @@ const handleLogout = () => {
     router.push('/login');
 };
 
-const userName = computed(() => authStore.user?.name || 'Użytkownik');
+const userName = computed(() => authStore.user?.name || '');
 const userRole = computed(() => authStore.user?.role || 'Administrator');
 const userEmail = computed(() => authStore.user?.email || '');
+
+// App name from settings
+const appName = computed(() => companySettingsStore.appInfo?.appName || 'GasManager');
+
+// Current module title based on route
+const currentModuleTitle = computed(() => {
+    const path = route.path;
+
+    // Map routes to module titles from Dashboard.vue
+    const moduleMap: Record<string, string> = {
+        '/': 'Moduły',
+        '/tasks': 'Zadania',
+        '/customers': 'Klienci',
+        '/finance': 'Finanse',
+        '/hr': 'Kadry i HR',
+        '/fleet': 'Flota',
+        '/settings': 'Ustawienia',
+        '/admin': 'Panel Administracyjny',
+    };
+
+    // Check exact match first
+    if (moduleMap[path]) {
+        return moduleMap[path];
+    }
+
+    // Check if path starts with any module route
+    for (const [modulePath, title] of Object.entries(moduleMap)) {
+        if (path.startsWith(modulePath) && modulePath !== '/') {
+            return title;
+        }
+    }
+
+    // Default fallback
+    return 'Admin Panel';
+});
 
 const defaultMenuItems: SidebarItem[] = [
     {
         id: 'modules-dashboard',
         label: 'Moduły',
-        icon: Squares2X2Icon,
+        icon: HomeIcon,
         route: '/',
         children: null,
     },
@@ -196,11 +234,11 @@ const toggleCollapse = () => {
 
 <template>
     <div :class="[
-        'bg-surface-900 dark:bg-surface-950 border-r border-surface-700 dark:border-surface-800 transition-all duration-300 flex flex-col h-screen',
+        'bg-surface-50 dark:bg-surface-900 border-r border-surface-200 dark:border-surface-700 transition-all duration-300 flex flex-col h-screen',
         isCollapsed ? 'w-16' : 'w-64',
     ]">
         <!-- Header -->
-        <div class="p-4 border-b border-surface-700 dark:border-surface-800 flex items-center justify-between">
+        <div class="p-4 border-b border-surface-200 dark:border-surface-700 flex items-center justify-between">
             <div v-if="!isCollapsed" class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-[#4a5d23] rounded-lg flex items-center justify-center">
                     <svg class="w-6 h-6 text-primary-400" viewBox="0 0 24 24" fill="currentColor">
@@ -211,8 +249,8 @@ const toggleCollapse = () => {
                     </svg>
                 </div>
                 <div>
-                    <h2 class="text-white dark:text-white font-bold text-lg">GasManager</h2>
-                    <p class="text-xs text-gray-400 dark:text-gray-400">Admin Panel</p>
+                    <h2 class="text-surface-700 dark:text-white font-bold no-wrap text-lg">{{ appName }}</h2>
+                    <p class="text-xs text-surface-600 dark:text-gray-400">{{ currentModuleTitle }}</p>
                 </div>
             </div>
             <div v-else class="w-10 h-10 bg-[#4a5d23] rounded-lg flex items-center justify-center mx-auto">
@@ -224,7 +262,7 @@ const toggleCollapse = () => {
                 </svg>
             </div>
             <button @click="toggleCollapse"
-                class="p-1.5 hover:bg-surface-800 dark:hover:bg-surface-900 rounded-lg transition-colors text-gray-300 dark:text-gray-300 hover:text-white">
+                class="p-1.5 hover:bg-surface-200 dark:hover:bg-surface-800 rounded-lg transition-colors text-surface-700 dark:text-gray-300 hover:text-surface-900 dark:hover:text-white">
                 <ChevronLeftIcon v-if="!isCollapsed" class="w-5 h-5" />
                 <ChevronRightIcon v-else class="w-5 h-5" />
             </button>
@@ -238,7 +276,7 @@ const toggleCollapse = () => {
                     'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left',
                     isActive(item.route) || isChildActive(item.children)
                         ? 'bg-primary-400 text-black'
-                        : 'text-gray-300 dark:text-gray-300 hover:bg-surface-800 dark:hover:bg-surface-900 hover:text-white',
+                        : 'text-surface-700 dark:text-gray-300 hover:bg-surface-200 dark:hover:bg-surface-800 hover:text-surface-900 dark:hover:text-white',
                 ]">
                     <component :is="item.icon" class="w-5 h-5 shrink-0" />
                     <span v-if="!isCollapsed" class="flex-1">{{ item.label }}</span>
@@ -258,7 +296,7 @@ const toggleCollapse = () => {
                             'w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left ml-6',
                             isActive(child.route)
                                 ? 'bg-primary-400/20 text-primary-400 border-l-2 border-primary-400'
-                                : 'text-gray-400 dark:text-gray-400 hover:bg-surface-800 dark:hover:bg-surface-900 hover:text-gray-300 dark:hover:text-gray-300',
+                                : 'text-surface-600 dark:text-gray-400 hover:bg-surface-200 dark:hover:bg-surface-800 hover:text-surface-700 dark:hover:text-gray-300',
                         ]">
                         <span class="text-sm">{{ child.label }}</span>
                     </button>
@@ -267,11 +305,11 @@ const toggleCollapse = () => {
         </nav>
 
         <!-- Footer: Dark Mode Toggle & User Info -->
-        <div class="border-t border-surface-700 dark:border-surface-800 p-2 space-y-2">
+        <div class="border-t border-surface-200 dark:border-surface-700 p-2 space-y-2">
             <!-- Dark Mode Toggle -->
             <button @click="toggleDarkMode" :class="[
                 'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left',
-                'text-gray-300 dark:text-gray-300 hover:bg-surface-800 dark:hover:bg-surface-900 hover:text-white',
+                'text-surface-700 dark:text-gray-300 hover:bg-surface-200 dark:hover:bg-surface-800 hover:text-surface-900 dark:hover:text-white',
             ]">
                 <MoonIcon v-if="!isDarkMode" class="w-5 h-5 shrink-0" />
                 <SunIcon v-else class="w-5 h-5 shrink-0" />
@@ -279,7 +317,7 @@ const toggleCollapse = () => {
             </button>
 
             <!-- User Info -->
-            <div v-if="!isCollapsed" class="bg-[#4a5d23] rounded-lg p-3 flex items-center gap-3">
+            <div v-if="!isCollapsed" class="bg-primary rounded-lg p-3 flex items-center gap-3">
                 <!-- Avatar -->
                 <div class="w-10 h-10 bg-orange-200 rounded-full flex items-center justify-center shrink-0">
                     <svg class="w-6 h-6 text-orange-800" viewBox="0 0 24 24" fill="currentColor">
@@ -289,14 +327,14 @@ const toggleCollapse = () => {
                 </div>
                 <!-- User Info Text -->
                 <div class="flex-1 min-w-0">
-                    <p class="text-white dark:text-white font-medium text-sm truncate">{{ userName }} {{ userRole }}</p>
-                    <p class="text-gray-300 dark:text-gray-300 text-xs truncate">{{ userEmail }}</p>
+                    <p class="text-surface-700 font-medium ">{{ userName }}</p>
+                    <p class="text-surface-700/80 text-xs ">{{ userEmail }}</p>
                 </div>
                 <!-- Logout Button -->
                 <button @click="handleLogout"
-                    class="p-1.5 hover:bg-black/20 rounded-lg transition-colors text-gray-300 dark:text-gray-300 hover:text-white shrink-0"
+                    class="p-1.5 hover:bg-black/20 rounded-lg transition-colors text-surface-800 hover:text-white shrink-0"
                     title="Wyloguj się">
-                    <ArrowRightOnRectangleIcon class="w-5 h-5" />
+                    <ArrowRightStartOnRectangleIcon class="w-5 h-5" />
                 </button>
             </div>
             <!-- Collapsed User Avatar -->

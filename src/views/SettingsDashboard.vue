@@ -137,8 +137,10 @@ const handleSaveCompany = () => {
 };
 
 const handleSaveAppInfo = () => {
+  // Obetnij nazwę aplikacji do maksymalnie 14 znaków
+  const trimmedAppName = formAppInfo.value.appName.slice(0, 14);
   companySettingsStore.updateAppInfoSettings({
-    appName: formAppInfo.value.appName,
+    appName: trimmedAppName,
     appVersion: formAppInfo.value.appVersion,
   });
 };
@@ -388,8 +390,11 @@ const isAppInfoDirty = computed(() => {
                 <div>
                   <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">
                     Nazwa aplikacji
+                    <span class="text-xs text-surface-500 dark:text-surface-400 ml-1">
+                      (max {{ formAppInfo.appName.length }}/14)
+                    </span>
                   </label>
-                  <InputText v-model="formAppInfo.appName"
+                  <InputText v-model="formAppInfo.appName" :maxlength="14"
                     class="w-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-800 dark:text-surface-200" />
                 </div>
                 <div>
