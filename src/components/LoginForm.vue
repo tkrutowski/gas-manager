@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline';
+import { EyeIcon, EyeSlashIcon, MoonIcon, SunIcon } from '@heroicons/vue/24/outline';
 import { useAuthStore } from '../stores/auth';
 import type { User } from '../types/User';
 
@@ -12,6 +12,36 @@ const email = ref('');
 const password = ref('');
 const rememberMe = ref(false);
 const showPassword = ref(false);
+
+// Dark mode management
+const getInitialTheme = (): boolean => {
+  const saved = localStorage.getItem('theme');
+  if (saved === null) {
+    return false;
+  }
+  return saved === 'dark';
+};
+
+const isDarkMode = ref<boolean>(getInitialTheme());
+
+const toggleDarkMode = () => {
+  isDarkMode.value = !isDarkMode.value;
+  updateTheme();
+};
+
+const updateTheme = () => {
+  if (isDarkMode.value) {
+    document.documentElement.classList.add('p-dark');
+    localStorage.setItem('theme', 'dark');
+  } else {
+    document.documentElement.classList.remove('p-dark');
+    localStorage.setItem('theme', 'light');
+  }
+};
+
+onMounted(() => {
+  updateTheme();
+});
 
 const handleLogin = () => {
   // TODO: Implementacja prawdziwego logowania z API
@@ -71,7 +101,17 @@ const handleLogin = () => {
         </div>
 
         <!-- Prawa sekcja z formularzem -->
-        <div class="lg:w-1/2 bg-surface-50 dark:bg-surface-900 p-8 lg:p-12 flex flex-col justify-center">
+        <div class="lg:w-1/2 bg-surface-50 dark:bg-surface-900 p-8 lg:p-12 flex flex-col justify-center relative">
+          <!-- Przycisk przełączania trybu -->
+          <button @click="toggleDarkMode"
+            class="absolute top-4 right-4 p-2 hover:bg-surface-200 dark:hover:bg-surface-700 rounded-lg transition-colors"
+            title="Przełącz tryb jasny/ciemny">
+            <MoonIcon v-if="!isDarkMode"
+              class="w-5 h-5 text-surface-600 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-300" />
+            <SunIcon v-else
+              class="w-5 h-5 text-surface-600 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-300" />
+          </button>
+
           <div class="max-w-md mx-auto w-full">
             <h3 class="text-3xl font-bold text-surface-700 dark:text-surface-300 mb-2">Witaj ponownie</h3>
             <p class="text-surface-600 dark:text-surface-400 mb-8">Zaloguj się do swojego konta menadżera</p>

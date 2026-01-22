@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useCompanySettingsStore } from '@/stores/companySettings';
@@ -11,6 +11,8 @@ import {
     Cog6ToothIcon,
     UserCircleIcon,
     ArrowRightOnRectangleIcon,
+    MoonIcon,
+    SunIcon,
 } from '@heroicons/vue/24/outline';
 
 const router = useRouter();
@@ -91,12 +93,42 @@ const handleLogout = () => {
 const handleModuleClick = (route: string) => {
     router.push(route);
 };
+
+// Dark mode management
+const getInitialTheme = (): boolean => {
+    const saved = localStorage.getItem('theme');
+    if (saved === null) {
+        return false;
+    }
+    return saved === 'dark';
+};
+
+const isDarkMode = ref<boolean>(getInitialTheme());
+
+const toggleDarkMode = () => {
+    isDarkMode.value = !isDarkMode.value;
+    updateTheme();
+};
+
+const updateTheme = () => {
+    if (isDarkMode.value) {
+        document.documentElement.classList.add('p-dark');
+        localStorage.setItem('theme', 'dark');
+    } else {
+        document.documentElement.classList.remove('p-dark');
+        localStorage.setItem('theme', 'light');
+    }
+};
+
+onMounted(() => {
+    updateTheme();
+});
 </script>
 
 <template>
-    <div class="min-h-screen bg-[#0a0a0a] text-white">
+    <div class="min-h-screen bg-surface-0 dark:bg-surface-950">
         <!-- Header -->
-        <header class="bg-[#1a1a1a] border-b border-[#2a2a2a] px-6 py-4">
+        <header class="bg-surface-50 dark:bg-surface-900 border-b border-surface-200 dark:border-surface-700 px-6 py-4">
             <div class="max-w-7xl mx-auto flex items-center justify-between">
                 <!-- Logo i wersja -->
                 <div class="flex items-center gap-3">
@@ -104,26 +136,37 @@ const handleModuleClick = (route: string) => {
                         <span class="text-black font-bold text-lg">G</span>
                     </div>
                     <div>
-                        <h1 class="text-xl font-bold text-white">{{ appName }}</h1>
-                        <p class="text-xs text-white/60">Wersja {{ appVersion }}</p>
+                        <h1 class="text-xl font-bold text-surface-700 dark:text-surface-300">{{ appName }}</h1>
+                        <p class="text-xs text-surface-600 dark:text-surface-400">Wersja {{ appVersion }}</p>
                     </div>
                 </div>
 
                 <!-- Informacje o użytkowniku -->
                 <div class="flex items-center gap-4">
                     <div class="text-right">
-                        <p class="text-white font-medium">{{ authStore.user?.name || 'Użytkownik' }}</p>
-                        <p class="text-sm text-white/60">{{ userRole }}</p>
+                        <p class="text-surface-700 dark:text-surface-300 font-medium">{{ authStore.user?.name ||
+                            'Użytkownik' }}</p>
+                        <p class="text-sm text-surface-600 dark:text-surface-400">{{ userRole }}</p>
                     </div>
                     <div
-                        class="w-10 h-10 rounded-full bg-linear-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                        class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
                         <span class="text-white font-semibold text-sm">
                             {{ userName.charAt(0).toUpperCase() }}
                         </span>
                     </div>
-                    <button @click="handleLogout" class="p-2 hover:bg-[#2a2a2a] rounded-lg transition-colors"
+                    <button @click="toggleDarkMode"
+                        class="p-2 hover:bg-surface-200 dark:hover:bg-surface-700 rounded-lg transition-colors"
+                        title="Przełącz tryb jasny/ciemny">
+                        <MoonIcon v-if="!isDarkMode"
+                            class="w-5 h-5 text-surface-600 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-300" />
+                        <SunIcon v-else
+                            class="w-5 h-5 text-surface-600 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-300" />
+                    </button>
+                    <button @click="handleLogout"
+                        class="p-2 hover:bg-surface-200 dark:hover:bg-surface-700 rounded-lg transition-colors"
                         title="Wyloguj się">
-                        <ArrowRightOnRectangleIcon class="w-5 h-5 text-white/70 hover:text-white" />
+                        <ArrowRightOnRectangleIcon
+                            class="w-5 h-5 text-surface-600 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-300" />
                     </button>
                 </div>
             </div>
@@ -133,14 +176,16 @@ const handleModuleClick = (route: string) => {
         <main class="max-w-7xl mx-auto px-6 py-12">
             <!-- Powitanie -->
             <div class="text-center mb-12">
-                <h2 class="text-4xl md:text-5xl font-bold text-white mb-4">Witaj, {{ userName }}</h2>
-                <p class="text-lg text-white/70">Wybierz moduł, którym chcesz dzisiaj zarządzać.</p>
+                <h2 class="text-4xl md:text-5xl font-bold text-surface-700 dark:text-surface-300 mb-4">Witaj, {{
+                    userName }}</h2>
+                <p class="text-lg text-surface-600 dark:text-surface-400">Wybierz moduł, którym chcesz dzisiaj
+                    zarządzać.</p>
             </div>
 
             <!-- Karty modułów -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
                 <button v-for="module in modules" :key="module.id" @click="handleModuleClick(module.route)"
-                    class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-6 hover:border-[#3a3a3a] hover:bg-[#1f1f1f] transition-all text-left relative group">
+                    class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-6 hover:border-surface-300 dark:hover:border-surface-600 hover:bg-surface-100 dark:hover:bg-surface-800 transition-all text-left relative group">
                     <!-- Badge ADMIN -->
                     <span v-if="module.isAdmin"
                         class="absolute top-4 right-4 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded">
@@ -155,27 +200,18 @@ const handleModuleClick = (route: string) => {
                     </div>
 
                     <!-- Tytuł i opis -->
-                    <h3 class="text-xl font-bold text-white mb-2">{{ module.title }}</h3>
-                    <p class="text-white/60 text-sm leading-relaxed">{{ module.description }}</p>
+                    <h3 class="text-xl font-bold text-surface-700 dark:text-surface-300 mb-2">{{ module.title }}</h3>
+                    <p class="text-surface-600 dark:text-surface-400 text-sm leading-relaxed">{{ module.description }}
+                    </p>
                 </button>
             </div>
 
             <!-- Footer -->
             <div class="text-center space-y-4">
-                <!-- Link do pomocy -->
-                <div>
-                    <a href="#"
-                        class="inline-flex items-center gap-2 text-white/60 hover:text-yellow-400 transition-colors text-sm">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Potrzebujesz pomocy? Przejdź do centrum wsparcia
-                    </a>
-                </div>
 
                 <!-- Copyright -->
-                <p class="text-white/40 text-sm">© 2024 GasManager Pro. System zarządzania instalacjami gazowymi.</p>
+                <p class="text-surface-500 dark:text-surface-500 text-sm">© 2026 {{ appName }}. System zarządzania
+                    instalacjami gazowymi.</p>
             </div>
         </main>
     </div>
