@@ -247,6 +247,40 @@ export const useSettingsStore = defineStore('settings', () => {
     return settingsService.getTableSettings('gasConnectionTable');
   });
 
+  const favoritesVersion = ref(0);
+
+  /**
+   * Lista ID ulubionych przyłączy
+   */
+  const favoriteConnectionIds = computed((): number[] => {
+    favoritesVersion.value; // dependency – invalidation after add/remove
+    const table = settingsService.getTableSettings('gasConnectionTable');
+    return table?.favoriteConnectionIds ?? [];
+  });
+
+  /**
+   * Dodaje przyłącze do ulubionych
+   */
+  function addFavoriteConnection(id: number): void {
+    const ids = favoriteConnectionIds.value;
+    if (ids.includes(id)) return;
+    settingsService.updateTableSettings('gasConnectionTable', {
+      favoriteConnectionIds: [...ids, id],
+    });
+    favoritesVersion.value += 1;
+  }
+
+  /**
+   * Usuwa przyłącze z ulubionych
+   */
+  function removeFavoriteConnection(id: number): void {
+    const ids = favoriteConnectionIds.value.filter((x) => x !== id);
+    settingsService.updateTableSettings('gasConnectionTable', {
+      favoriteConnectionIds: ids,
+    });
+    favoritesVersion.value += 1;
+  }
+
   /**
    * Zapisuje konfigurację kolumn tabeli
    */
@@ -320,6 +354,7 @@ export const useSettingsStore = defineStore('settings', () => {
     // Computed
     getGasConnectionSettings,
     getGasConnectionTableSettings,
+    favoriteConnectionIds,
     // Methods - Generic
     setDefaultValue,
     removeDefaultValue,
@@ -332,6 +367,8 @@ export const useSettingsStore = defineStore('settings', () => {
     // Methods - Table Settings
     saveGasConnectionTableSettings,
     resetGasConnectionTableSettings,
+    addFavoriteConnection,
+    removeFavoriteConnection,
     // Methods - Stage Settings
     getStageSettings,
     saveStageSettings,

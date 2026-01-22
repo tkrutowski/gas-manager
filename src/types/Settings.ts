@@ -91,7 +91,8 @@ export type GasConnectionTableFilter =
   | 'unfinished'
   | 'unfinished-technical'
   | 'unfinished-final'
-  | 'overdue';
+  | 'overdue'
+  | 'favorites';
 
 /**
  * Ustawienia tabeli dla modułu GasConnection
@@ -102,6 +103,7 @@ export interface GasConnectionTableSettings extends ModuleSettings {
   defaultSortField?: string; // pole kolumny do domyślnego sortowania
   defaultSortOrder?: number; // kierunek sortowania (1 = rosnąco, -1 = malejąco)
   defaultFilter?: GasConnectionTableFilter; // domyślny filtr tabeli
+  favoriteConnectionIds?: number[]; // lista ID ulubionych przyłączy
 }
 
 /**

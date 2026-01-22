@@ -149,12 +149,15 @@ class SettingsService {
   }
 
   /**
-   * Aktualizuje pełne ustawienia tabeli (kolumny + sortowanie + filtr)
+   * Aktualizuje pełne ustawienia tabeli (kolumny + sortowanie + filtr + ulubione)
    */
   updateTableSettings(
     moduleName: string,
     settings: Partial<
-      Pick<GasConnectionTableSettings, 'columns' | 'defaultSortField' | 'defaultSortOrder' | 'defaultFilter'>
+      Pick<
+        GasConnectionTableSettings,
+        'columns' | 'defaultSortField' | 'defaultSortOrder' | 'defaultFilter' | 'favoriteConnectionIds'
+      >
     >
   ): void {
     const currentSettings = this.getTableSettings(moduleName);
@@ -169,6 +172,7 @@ class SettingsService {
         defaultSortField: settings.defaultSortField,
         defaultSortOrder: settings.defaultSortOrder,
         defaultFilter: settings.defaultFilter,
+        favoriteConnectionIds: settings.favoriteConnectionIds ?? [],
       };
       this.saveTableSettings(newSettings);
       return;
@@ -186,6 +190,9 @@ class SettingsService {
     }
     if (settings.defaultFilter !== undefined) {
       currentSettings.defaultFilter = settings.defaultFilter;
+    }
+    if (settings.favoriteConnectionIds !== undefined) {
+      currentSettings.favoriteConnectionIds = settings.favoriteConnectionIds;
     }
     this.saveTableSettings(currentSettings);
   }
