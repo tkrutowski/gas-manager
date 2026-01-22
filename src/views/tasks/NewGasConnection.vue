@@ -1,39 +1,43 @@
 <script setup lang="ts">
-  import { ref, onMounted } from 'vue';
-  import { useRouter, useRoute } from 'vue-router';
-  import SidebarMenu from '@/components/tasks/SidebarMenu.vue';
-  import GasConnectionForm from '@/components/tasks/GasConnectionForm.vue';
-  import { useGasConnectionsStore } from '@/stores/gasConnections';
-  import type { GasConnection } from '@/types/GasConnection';
+import { ref, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import SidebarMenu from '@/components/tasks/SidebarMenu.vue';
+import GasConnectionForm from '@/components/tasks/GasConnectionForm.vue';
+import { useGasConnectionsStore } from '@/stores/gasConnections';
+import type { GasConnection } from '@/types/GasConnection';
 
-  const router = useRouter();
-  const route = useRoute();
-  const gasConnectionsStore = useGasConnectionsStore();
+const router = useRouter();
+const route = useRoute();
+const gasConnectionsStore = useGasConnectionsStore();
 
-  const gasConnection = ref<GasConnection | undefined>(undefined);
+const gasConnection = ref<GasConnection | undefined>(undefined);
 
-  onMounted(() => {
-    const id = route.query.id;
-    if (id) {
-      const connectionId = typeof id === 'string' ? parseInt(id, 10) : Number(id);
-      if (!isNaN(connectionId)) {
-        const connection = gasConnectionsStore.getGasConnection(connectionId);
-        if (connection) {
-          gasConnection.value = connection;
-        }
+onMounted(() => {
+  const id = route.query.id;
+  if (id) {
+    const connectionId = typeof id === 'string' ? parseInt(id, 10) : Number(id);
+    if (!isNaN(connectionId)) {
+      const connection = gasConnectionsStore.getGasConnection(connectionId);
+      if (connection) {
+        gasConnection.value = connection;
       }
     }
-  });
+  }
+});
 
-  const handleSubmit = (data: GasConnection) => {
-    console.log('Zapisano dane:', data);
-    // TODO: Implementacja zapisu do API
-    router.push('/tasks/gas-connections');
-  };
+const handleSubmit = (data: GasConnection) => {
+  const { id, ...rest } = data;
+  if (id != null && !isNaN(Number(id))) {
+    gasConnectionsStore.updateGasConnection(id, rest);
+  } else {
+    gasConnectionsStore.addGasConnection(rest);
+  }
+  router.push('/tasks/gas-connections');
+};
 
-  const handleCancel = () => {
-    router.push('/tasks/gas-connections');
-  };
+const handleCancel = () => {
+  router.push('/tasks/gas-connections');
+};
 </script>
 
 <template>

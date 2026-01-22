@@ -898,22 +898,26 @@ watch(
                                     <!-- Pionowa kreska separatora -->
                                     <div class="h-8 w-px bg-surface-300 dark:bg-surface-600 mx-1"></div>
                                     <Button icon="pi pi-list" :outlined="selectedFilter !== 'all'"
-                                        :severity="selectedFilter === 'all' ? undefined : 'secondary'" 
-                                                :class="selectedFilter === 'all' ? 'bg-primary text-primary-contrast text-xs!' : 'text-xs! border-2! border-primary-500! text-primary-500!'"
+                                        :severity="selectedFilter === 'all' ? undefined : 'secondary'"
+                                        :class="selectedFilter === 'all' ? 'bg-primary text-primary-contrast text-xs!' : 'text-xs! border-2! border-primary-500! text-primary-500!'"
                                         @click="handleFilterClick('all')" title="Wszystkie" />
                                     <Button icon="pi pi-check-circle" :outlined="selectedFilter !== 'finished'"
-                                        severity="success" :class="selectedFilter === 'finished' ? 'bg-green-600 text-white text-xs!' : 'text-xs! border-2! border-green-500! text-green-500!'"
+                                        severity="success"
+                                        :class="selectedFilter === 'finished' ? 'bg-green-600 text-white text-xs!' : 'text-xs! border-2! border-green-500! text-green-500!'"
                                         @click="handleFilterClick('finished')" title="Zrealizowane" />
                                     <SplitButton icon="pi pi-times-circle" :outlined="selectedFilter !== 'unfinished' &&
                                         selectedFilter !== 'unfinished-technical' &&
                                         selectedFilter !== 'unfinished-final'
-                                        " :model="unfinishedMenuItems" class="text-xs! border-2! border-primary-500! h-9!"
+                                        " :model="unfinishedMenuItems"
+                                        class="text-xs! border-2! border-primary-500! h-9!"
                                         @click="handleFilterClick('unfinished')" title="Niezrealizowane" />
                                     <Button icon="pi pi-exclamation-triangle" :outlined="selectedFilter !== 'overdue'"
-                                        severity="danger" :class="selectedFilter === 'overdue' ? 'bg-red-600 text-white text-xs!' : 'text-xs! border-2! border-red-500! text-red-500!'"
+                                        severity="danger"
+                                        :class="selectedFilter === 'overdue' ? 'bg-red-600 text-white text-xs!' : 'text-xs! border-2! border-red-500! text-red-500!'"
                                         @click="handleFilterClick('overdue')" title="Przeterminowane" />
                                     <Button icon="pi pi-star" :outlined="selectedFilter !== 'favorites'"
-                                        severity="secondary" :class="selectedFilter === 'favorites' ? 'bg-amber-600! text-white text-xs!' : 'text-xs! border-2! border-amber-500! text-amber-500!'"
+                                        severity="secondary"
+                                        :class="selectedFilter === 'favorites' ? 'bg-amber-600! text-white text-xs!' : 'text-xs! border-2! border-amber-500! text-amber-500!'"
                                         @click="handleFilterClick('favorites')" title="Ulubione" />
                                     <!-- Pionowa kreska separatora -->
                                     <div class="h-8 w-px bg-surface-300 dark:bg-surface-600 mx-1"></div>
@@ -978,24 +982,24 @@ watch(
                             :sortable="col.sortable !== false" :frozen="col.frozen"
                             :style="{ width: col.width || 'auto', whiteSpace: 'nowrap' }"
                             :headerStyle="{ textAlign: 'center' }" :bodyStyle="{ textAlign: 'center' }" :dataType="getFilterType(col.field) === 'date'
-                                    ? 'date'
-                                    : getFilterType(col.field) === 'numeric'
-                                        ? 'numeric'
-                                        : getFilterType(col.field) === 'boolean'
-                                            ? 'boolean'
-                                            : getFilterType(col.field) === 'multiselect'
-                                                ? 'text'
-                                                : 'text'
+                                ? 'date'
+                                : getFilterType(col.field) === 'numeric'
+                                    ? 'numeric'
+                                    : getFilterType(col.field) === 'boolean'
+                                        ? 'boolean'
+                                        : getFilterType(col.field) === 'multiselect'
+                                            ? 'text'
+                                            : 'text'
                                 " :filterMatchMode="getFilterType(col.field) === 'date'
-                    ? 'dateIs'
-                    : getFilterType(col.field) === 'numeric'
-                        ? 'equals'
-                        : getFilterType(col.field) === 'boolean'
-                            ? 'equals'
-                            : getFilterType(col.field) === 'multiselect'
-                                ? 'in'
-                                : 'contains'
-                " :filterField="getFilterField(col.field)"
+                                    ? 'dateIs'
+                                    : getFilterType(col.field) === 'numeric'
+                                        ? 'equals'
+                                        : getFilterType(col.field) === 'boolean'
+                                            ? 'equals'
+                                            : getFilterType(col.field) === 'multiselect'
+                                                ? 'in'
+                                                : 'contains'
+                                    " :filterField="getFilterField(col.field)"
                             :sortFunction="requiresCustomSortFilter(col.field) ? customSortFunction(col.field) : undefined">
                             <template #body="{ data }">
                                 <span v-if="col.field === 'isPGN'" class="whitespace-nowrap">
