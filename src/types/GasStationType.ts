@@ -1,6 +1,6 @@
-type Status = "REDUCTION" | "MEASUREMENT" | "REDUCTION_MEASUREMENT";
-type StatusViewName = "redukcyjna" | "pomiarowa" | "redukcyjno - pomiarowa" ;
+type Status = 'REDUCTION' | 'MEASUREMENT' | 'REDUCTION_MEASUREMENT';
+type StatusViewName = 'redukcyjna' | 'pomiarowa' | 'redukcyjno - pomiarowa';
 export interface GasStationType {
-    name: Status;
-    viewValue: StatusViewName;
+  name: Status;
+  viewValue: StatusViewName;
 }

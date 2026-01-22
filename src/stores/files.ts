@@ -153,26 +153,10 @@ function generateDescription(type: FileType, name: string): string {
       'Fotografie instalacji gazowej',
       'Dokumentacja wizualna terenu',
     ],
-    PNG: [
-      'Schemat techniczny instalacji',
-      'Rysunek poglądowy',
-      'Wykres zależności',
-    ],
-    DWG: [
-      'Rysunek techniczny w formacie CAD',
-      'Plan sytuacyjny z warstwami',
-      'Schemat instalacji gazowej',
-    ],
-    XLSX: [
-      'Kalkulacja kosztów materiałów',
-      'Tabela z wykazem elementów',
-      'Wykaz materiałów i ilości',
-    ],
-    ZIP: [
-      'Archiwum z dokumentacją',
-      'Kopia zapasowa plików',
-      'Komplet dokumentów projektu',
-    ],
+    PNG: ['Schemat techniczny instalacji', 'Rysunek poglądowy', 'Wykres zależności'],
+    DWG: ['Rysunek techniczny w formacie CAD', 'Plan sytuacyjny z warstwami', 'Schemat instalacji gazowej'],
+    XLSX: ['Kalkulacja kosztów materiałów', 'Tabela z wykazem elementów', 'Wykaz materiałów i ilości'],
+    ZIP: ['Archiwum z dokumentacją', 'Kopia zapasowa plików', 'Komplet dokumentów projektu'],
     DOC: [],
     JPEG: [],
     DWF: [],
@@ -510,10 +494,14 @@ export const useFilesStore = defineStore('files', () => {
 
     const lowerQuery = query.toLowerCase();
     const general = generalFiles.value.filter(
-      f => f.idTask === idTask && (f.name.toLowerCase().includes(lowerQuery) || f.description?.toLowerCase().includes(lowerQuery))
+      f =>
+        f.idTask === idTask &&
+        (f.name.toLowerCase().includes(lowerQuery) || f.description?.toLowerCase().includes(lowerQuery))
     );
     const categorized = categorizedFiles.value.filter(
-      f => f.idTask === idTask && (f.name.toLowerCase().includes(lowerQuery) || f.description?.toLowerCase().includes(lowerQuery))
+      f =>
+        f.idTask === idTask &&
+        (f.name.toLowerCase().includes(lowerQuery) || f.description?.toLowerCase().includes(lowerQuery))
     );
 
     return { general, categorized };

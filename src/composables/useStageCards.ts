@@ -3,10 +3,7 @@ import { useSettingsStore } from '@/stores/settings';
 import type { GasConnection } from '@/types/GasConnection';
 import { MapDeliveredBy } from '@/types/Commons';
 
-export function useStageCards(
-  gasConnection: Ref<GasConnection | undefined>,
-  isReadonly: ComputedRef<boolean>
-) {
+export function useStageCards(gasConnection: Ref<GasConnection | undefined>, isReadonly: ComputedRef<boolean>) {
   const settingsStore = useSettingsStore();
 
   // Refs dla kluczy re-renderu Cardów po zmianie ustawień
@@ -51,21 +48,55 @@ export function useStageCards(
   const getCardFields = (cardId: string, _stage: 'stage1' | 'stage2' | 'stage3' | 'stage4' = 'stage1'): string[] => {
     const fieldMap: Record<string, string[]> = {
       // Stage 1
-      projectOrder: ['gasConnectionDesign.projectOrderSubmissionDate', 'gasConnectionDesign.projectOrderConfirmationDate'],
+      projectOrder: [
+        'gasConnectionDesign.projectOrderSubmissionDate',
+        'gasConnectionDesign.projectOrderConfirmationDate',
+      ],
       proxy: ['gasConnectionDesign.proxySubmissionDate', 'gasConnectionDesign.proxyReceiptDate'],
       extract: ['gasConnectionDesign.extractSubmissionDate', 'gasConnectionDesign.extractReceiptDate'],
-      map: ['gasConnectionDesign.mapSubmissionDate', 'gasConnectionDesign.mapReceiptDate', 'gasConnectionDesign.mapDeliveredBy', 'gasConnectionDesign.mapSurveyor'],
+      map: [
+        'gasConnectionDesign.mapSubmissionDate',
+        'gasConnectionDesign.mapReceiptDate',
+        'gasConnectionDesign.mapDeliveredBy',
+        'gasConnectionDesign.mapSurveyor',
+      ],
       coordinates: ['address.coordinates.latitude', 'address.coordinates.longitude'],
       // Stage 2
-      zudp: ['gasConnectionDesign.zudpSubmissionDate', 'gasConnectionDesign.zudpReceiptDate', 'gasConnectionDesign.withoutZud'],
-      utilityCompany: ['gasConnectionDesign.utilityCompanyType', 'gasConnectionDesign.utilityCompanySubmissionDate', 'gasConnectionDesign.utilityCompanyReceiptDate'],
+      zudp: [
+        'gasConnectionDesign.zudpSubmissionDate',
+        'gasConnectionDesign.zudpReceiptDate',
+        'gasConnectionDesign.withoutZud',
+      ],
+      utilityCompany: [
+        'gasConnectionDesign.utilityCompanyType',
+        'gasConnectionDesign.utilityCompanySubmissionDate',
+        'gasConnectionDesign.utilityCompanyReceiptDate',
+      ],
       plotOwners: [], // TODO: będzie uzupełnione w późniejszym terminie
       // Stage 3
-      wsgAgreement: ['gasConnectionDesign.wsgAgreementSubmissionDate', 'gasConnectionDesign.wsgAgreementReceiptDate', 'gasConnectionDesign.wsgAgreementAgreementDate', 'gasConnectionDesign.wsgAgreementNo'],
-      wsgAgreementPointScheme: ['gasConnectionDesign.wsgAgreementPointSchemeSubmissionDate', 'gasConnectionDesign.wsgAgreementPointSchemeReceiptDate'],
+      wsgAgreement: [
+        'gasConnectionDesign.wsgAgreementSubmissionDate',
+        'gasConnectionDesign.wsgAgreementReceiptDate',
+        'gasConnectionDesign.wsgAgreementAgreementDate',
+        'gasConnectionDesign.wsgAgreementNo',
+      ],
+      wsgAgreementPointScheme: [
+        'gasConnectionDesign.wsgAgreementPointSchemeSubmissionDate',
+        'gasConnectionDesign.wsgAgreementPointSchemeReceiptDate',
+      ],
       // Stage 4
-      trafficOrganizationProject: ['gasConnectionDesign.trafficOrganizationProjectSubmissionDate', 'gasConnectionDesign.trafficOrganizationProjectReceiptDate', 'gasConnectionDesign.designerTraffic', 'gasConnectionDesign.withoutTrafficOrganizationProject'],
-      gasPoint: ['gasConnectionDesign.gasPointOrderDate', 'gasConnectionDesign.gasPointPickupDate', 'gasConnectionDesign.gasPointDocPickupDate', 'gasConnectionDesign.gasPointOrderNo'],
+      trafficOrganizationProject: [
+        'gasConnectionDesign.trafficOrganizationProjectSubmissionDate',
+        'gasConnectionDesign.trafficOrganizationProjectReceiptDate',
+        'gasConnectionDesign.designerTraffic',
+        'gasConnectionDesign.withoutTrafficOrganizationProject',
+      ],
+      gasPoint: [
+        'gasConnectionDesign.gasPointOrderDate',
+        'gasConnectionDesign.gasPointPickupDate',
+        'gasConnectionDesign.gasPointDocPickupDate',
+        'gasConnectionDesign.gasPointOrderNo',
+      ],
       geodesy: ['gasConnectionDesign.zudpSentToSurveyorDate', 'gasConnectionDesign.surveyorTrafficProject'],
     };
     return fieldMap[cardId] || [];
@@ -118,7 +149,10 @@ export function useStageCards(
     }
 
     // Dla PROJEKT ORGANIZACJI RUCHU - jeśli withoutTrafficOrganizationProject jest true, to Card jest uzupełniony
-    if (cardId === 'trafficOrganizationProject' && gasConnection.value?.gasConnectionDesign?.withoutTrafficOrganizationProject === true) {
+    if (
+      cardId === 'trafficOrganizationProject' &&
+      gasConnection.value?.gasConnectionDesign?.withoutTrafficOrganizationProject === true
+    ) {
       return false;
     }
 
@@ -133,7 +167,10 @@ export function useStageCards(
   };
 
   // Sprawdza czy wszystkie obowiązkowe pola Card są uzupełnione
-  const isCardFieldComplete = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' | 'stage4' = 'stage1'): boolean => {
+  const isCardFieldComplete = (
+    cardId: string,
+    stage: 'stage1' | 'stage2' | 'stage3' | 'stage4' = 'stage1'
+  ): boolean => {
     const stageSettings = settingsStore.getStageSettings(stage);
     if (!stageSettings) return false;
 
@@ -154,7 +191,10 @@ export function useStageCards(
     }
 
     // Dla PROJEKT ORGANIZACJI RUCHU - jeśli withoutTrafficOrganizationProject jest true, to Card jest uzupełniony
-    if (cardId === 'trafficOrganizationProject' && gasConnection.value?.gasConnectionDesign?.withoutTrafficOrganizationProject === true) {
+    if (
+      cardId === 'trafficOrganizationProject' &&
+      gasConnection.value?.gasConnectionDesign?.withoutTrafficOrganizationProject === true
+    ) {
       return true;
     }
 
@@ -191,7 +231,10 @@ export function useStageCards(
     }
 
     // Dla PROJEKT ORGANIZACJI RUCHU - jeśli withoutTrafficOrganizationProject jest true, to Card jest uzupełniony (nie partial)
-    if (cardId === 'trafficOrganizationProject' && gasConnection.value?.gasConnectionDesign?.withoutTrafficOrganizationProject === true) {
+    if (
+      cardId === 'trafficOrganizationProject' &&
+      gasConnection.value?.gasConnectionDesign?.withoutTrafficOrganizationProject === true
+    ) {
       return false;
     }
 
@@ -208,7 +251,10 @@ export function useStageCards(
   };
 
   // Zwraca kolor Card na podstawie stanu
-  const getCardColor = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' | 'stage4' = 'stage1'): 'red' | 'yellow' | 'green' | 'default' => {
+  const getCardColor = (
+    cardId: string,
+    stage: 'stage1' | 'stage2' | 'stage3' | 'stage4' = 'stage1'
+  ): 'red' | 'yellow' | 'green' | 'default' => {
     const stageSettings = settingsStore.getStageSettings(stage);
     if (!stageSettings) return 'default';
 
@@ -223,7 +269,10 @@ export function useStageCards(
   };
 
   // Zwraca klasy CSS dla headera Card na podstawie koloru
-  const getCardHeaderClasses = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' | 'stage4' = 'stage1'): string => {
+  const getCardHeaderClasses = (
+    cardId: string,
+    stage: 'stage1' | 'stage2' | 'stage3' | 'stage4' = 'stage1'
+  ): string => {
     const color = getCardColor(cardId, stage);
     const baseClasses = 'flex items-center gap-2 px-4 py-3 border-b rounded-t-xl';
 
@@ -240,7 +289,10 @@ export function useStageCards(
   };
 
   // Zwraca klasy CSS dla tekstu w headerze Card na podstawie koloru
-  const getCardHeaderTextClasses = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' | 'stage4' = 'stage1'): string => {
+  const getCardHeaderTextClasses = (
+    cardId: string,
+    stage: 'stage1' | 'stage2' | 'stage3' | 'stage4' = 'stage1'
+  ): string => {
     const color = getCardColor(cardId, stage);
     const baseClasses = 'text-sm font-bold uppercase m-0';
 
@@ -257,7 +309,10 @@ export function useStageCards(
   };
 
   // Zwraca klasy CSS dla obramowania Card na podstawie koloru
-  const getCardBorderClasses = (cardId: string, stage: 'stage1' | 'stage2' | 'stage3' | 'stage4' = 'stage1'): string => {
+  const getCardBorderClasses = (
+    cardId: string,
+    stage: 'stage1' | 'stage2' | 'stage3' | 'stage4' = 'stage1'
+  ): string => {
     const color = getCardColor(cardId, stage);
 
     switch (color) {
@@ -732,7 +787,8 @@ export function useStageCards(
 
   const getPlotOwnersClasses = (): string => {
     const status = getPlotOwnersStatus();
-    const baseClasses = 'inline-flex items-center gap-2 px-4 py-2 rounded-lg border font-medium text-sm transition-colors';
+    const baseClasses =
+      'inline-flex items-center gap-2 px-4 py-2 rounded-lg border font-medium text-sm transition-colors';
 
     switch (status) {
       case 'red':
@@ -752,7 +808,8 @@ export function useStageCards(
 
   const getLaneOccupationClasses = (): string => {
     const status = getLaneOccupationStatus();
-    const baseClasses = 'inline-flex items-center gap-2 px-4 py-2 rounded-lg border font-medium text-sm transition-colors';
+    const baseClasses =
+      'inline-flex items-center gap-2 px-4 py-2 rounded-lg border font-medium text-sm transition-colors';
 
     switch (status) {
       case 'red':

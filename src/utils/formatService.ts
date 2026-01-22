@@ -33,7 +33,6 @@ export const UtilsService = {
     }
   },
 
-
   findPatternInString(inputString: string, pattern: string, split: string) {
     // Dzielimy string na elementy według separatora ";;"
     const elements = inputString.split(split);
@@ -43,5 +42,4 @@ export const UtilsService = {
 
     return matchedElements;
   },
-
 };

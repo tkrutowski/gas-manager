@@ -248,7 +248,7 @@ export const useDesignerTrafficStore = defineStore('designerTraffic', () => {
    */
   function updateDesignerTraffic(
     id: number,
-    updates: Partial<Omit<DesignerTraffic, 'id' | 'createdAt'>>,
+    updates: Partial<Omit<DesignerTraffic, 'id' | 'createdAt'>>
   ): DesignerTraffic | null {
     loading.value = true;
     error.value = null;
@@ -345,4 +345,3 @@ export const useDesignerTrafficStore = defineStore('designerTraffic', () => {
     searchDesignerTraffic,
   };
 });
-

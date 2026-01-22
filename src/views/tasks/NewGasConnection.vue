@@ -1,49 +1,49 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import SidebarMenu from '@/components/tasks/SidebarMenu.vue';
-import GasConnectionForm from '@/components/tasks/GasConnectionForm.vue';
-import { useGasConnectionsStore } from '@/stores/gasConnections';
-import type { GasConnection } from '@/types/GasConnection';
+  import { ref, onMounted } from 'vue';
+  import { useRouter, useRoute } from 'vue-router';
+  import SidebarMenu from '@/components/tasks/SidebarMenu.vue';
+  import GasConnectionForm from '@/components/tasks/GasConnectionForm.vue';
+  import { useGasConnectionsStore } from '@/stores/gasConnections';
+  import type { GasConnection } from '@/types/GasConnection';
 
-const router = useRouter();
-const route = useRoute();
-const gasConnectionsStore = useGasConnectionsStore();
+  const router = useRouter();
+  const route = useRoute();
+  const gasConnectionsStore = useGasConnectionsStore();
 
-const gasConnection = ref<GasConnection | undefined>(undefined);
+  const gasConnection = ref<GasConnection | undefined>(undefined);
 
-onMounted(() => {
+  onMounted(() => {
     const id = route.query.id;
     if (id) {
-        const connectionId = typeof id === 'string' ? parseInt(id, 10) : Number(id);
-        if (!isNaN(connectionId)) {
-            const connection = gasConnectionsStore.getGasConnection(connectionId);
-            if (connection) {
-                gasConnection.value = connection;
-            }
+      const connectionId = typeof id === 'string' ? parseInt(id, 10) : Number(id);
+      if (!isNaN(connectionId)) {
+        const connection = gasConnectionsStore.getGasConnection(connectionId);
+        if (connection) {
+          gasConnection.value = connection;
         }
+      }
     }
-});
+  });
 
-const handleSubmit = (data: GasConnection) => {
+  const handleSubmit = (data: GasConnection) => {
     console.log('Zapisano dane:', data);
     // TODO: Implementacja zapisu do API
     router.push('/tasks/gas-connections');
-};
+  };
 
-const handleCancel = () => {
+  const handleCancel = () => {
     router.push('/tasks/gas-connections');
-};
+  };
 </script>
 
 <template>
-    <div class="flex h-screen bg-surface-50 dark:bg-surface-900 overflow-hidden">
-        <!-- Sidebar Menu -->
-        <SidebarMenu />
+  <div class="flex h-screen bg-surface-50 dark:bg-surface-900 overflow-hidden">
+    <!-- Sidebar Menu -->
+    <SidebarMenu />
 
-        <!-- Main Content -->
-        <div class="flex-1 overflow-y-auto">
-            <GasConnectionForm :gasConnection="gasConnection" @submit="handleSubmit" @cancel="handleCancel" />
-        </div>
+    <!-- Main Content -->
+    <div class="flex-1 overflow-y-auto">
+      <GasConnectionForm :gasConnection="gasConnection" @submit="handleSubmit" @cancel="handleCancel" />
     </div>
+  </div>
 </template>

@@ -4,7 +4,21 @@ import type { TaskType } from './TaskType';
 /**
  * Typ pliku (rozszerzenie)
  */
-export type FileType = 'PDF' | 'DOCX' | 'DOC' | 'XLSX' | 'XLS' | 'JPG' | 'JPEG' | 'PNG' | 'DWG' | 'DWF' | 'ZIP' | 'RAR' | 'TXT' | 'OTHER';
+export type FileType =
+  | 'PDF'
+  | 'DOCX'
+  | 'DOC'
+  | 'XLSX'
+  | 'XLS'
+  | 'JPG'
+  | 'JPEG'
+  | 'PNG'
+  | 'DWG'
+  | 'DWF'
+  | 'ZIP'
+  | 'RAR'
+  | 'TXT'
+  | 'OTHER';
 
 /**
  * Kategoria plików przypisanych do elementów

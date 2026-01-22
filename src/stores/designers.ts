@@ -56,7 +56,7 @@ function generateEmail(firstName: string, lastName: string): string {
   return `${name}@${['gmail.com', 'wp.pl', 'o2.pl', 'interia.pl', 'company.pl', 'design.pl'][Math.floor(Math.random() * 6)]}`;
 }
 
-  // Klucz localStorage dla projektantów
+// Klucz localStorage dla projektantów
 const STORAGE_KEY = 'gas-manager:designers';
 
 // Funkcja pomocnicza do ładowania danych z localStorage

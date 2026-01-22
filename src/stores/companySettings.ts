@@ -136,6 +136,4 @@ export const useCompanySettingsStore = defineStore('companySettings', () => {
     updateCompanySettings,
     updateAppInfoSettings,
   };
-}
-);
-
+});

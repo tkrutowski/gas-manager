@@ -1,4 +1,10 @@
-import type { AppDefaultSettings, SettingsStorage, GasConnectionTableSettings, GasConnectionStageSettings, StageCardConfig } from '@/types/Settings';
+import type {
+  AppDefaultSettings,
+  SettingsStorage,
+  GasConnectionTableSettings,
+  GasConnectionStageSettings,
+  StageCardConfig,
+} from '@/types/Settings';
 
 const SETTINGS_STORAGE_KEY = 'appDefaultSettings';
 
