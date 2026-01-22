@@ -14,6 +14,7 @@ import InputNumber from 'primevue/inputnumber';
 import DatePicker from 'primevue/datepicker';
 import Select from 'primevue/select';
 import SplitButton from 'primevue/splitbutton';
+import Toolbar from 'primevue/toolbar';
 import ConfirmPopup from 'primevue/confirmpopup';
 import { useConfirm } from 'primevue/useconfirm';
 import { useGasConnectionsStore } from '@/stores/gasConnections';
@@ -749,7 +750,7 @@ watch(
                         <p class="text-sm text-surface-600 dark:text-surface-400">Zarządzanie instalacjami gazowymi</p>
                     </div>
                     <!-- Grupa przycisków akcji -->
-                    <div
+                    <!-- <div
                         class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-4">
                         <div class="flex items-center gap-2">
                             <Button label="Nowy" icon="pi pi-plus" severity="success" @click="handleNew" />
@@ -757,7 +758,7 @@ watch(
                             <Button label="Usuń" icon="pi pi-trash" severity="danger" :disabled="!selectedRow"
                                 @click="handleDelete($event)" />
                         </div>
-                    </div>
+                    </div> -->
                 </div>
 
                 <div
@@ -765,10 +766,8 @@ watch(
                     <!-- Header z MultiSelect do wyboru kolumn -->
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center gap-4">
-                            <MultiSelect v-model="selectedColumns" :options="allColumns" optionLabel="header"
-                                placeholder="Wybierz kolumny" display="chip" class="w-80" :filter="true"
-                                filterPlaceholder="Szukaj kolumn..." @update:modelValue="onColumnToggle" />
-                            <div class="flex items-center gap-2 ml-8">
+                      
+                            <!-- <div class="flex items-center gap-2 ml-8">
                                 <Button label="Wszystkie" :outlined="selectedFilter !== 'all'"
                                     :severity="selectedFilter === 'all' ? undefined : 'secondary'"
                                     @click="handleFilterClick('all')" />
@@ -782,10 +781,73 @@ watch(
                                 <Button label="Przeterminowane" :outlined="selectedFilter !== 'overdue'"
                                     :severity="selectedFilter === 'overdue' ? undefined : 'secondary'"
                                     @click="handleFilterClick('overdue')" />
-                            </div>
+                            </div> -->
                         </div>
-                        <div class="flex items-center gap-4">
-                            <!-- Pole wyszukiwania z przyciskami -->
+                        <!-- Toolbar z przyciskami -->
+                        <Toolbar
+                            class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg w-full">
+                            <template #start>
+                                <div class="flex items-center gap-2">
+                                    <Button icon="pi pi-plus" severity="success" text rounded class="text-xs"
+                                        @click="handleNew" title="Utwórz nowe przyłącze" />
+                                    <Button icon="pi pi-pencil" :disabled="!selectedRow" text rounded class="text-xs!"
+                                        @click="handleEdit" title="Edycja" />
+                                    <Button icon="pi pi-trash" severity="danger" :disabled="!selectedRow" text rounded
+                                        class="text-xs!" @click="handleDelete($event)" title="Usuń" />
+                                                   <!-- Pionowa kreska separatora -->
+                                    <div class="h-8 w-px bg-surface-300 dark:bg-surface-600 mx-1"></div>
+                                    <Button icon="pi pi-eye" text severity="secondary" :disabled="!selectedRow"
+                                        title="Szczegóły przyłącza" @click="handleViewDetails" />
+                                    <Button icon="pi pi-eye-slash" text severity="secondary" :disabled="!selectedRow"
+                                        title="Szczegóły przyłącza - tylko do odczytu"
+                                        @click="handleViewDetailsReadonly" />
+                                                   <!-- Pionowa kreska separatora -->
+                                    <div class="h-8 w-px bg-surface-300 dark:bg-surface-600 mx-1"></div>
+                                </div>
+                            </template>
+
+                            <template #center>
+                                <div class="flex items-center gap-2">
+                                    <!-- Pionowa kreska separatora -->
+                                    <div class="h-8 w-px bg-surface-300 dark:bg-surface-600 mx-1"></div>
+                                    <Button icon="pi pi-list" :outlined="selectedFilter !== 'all'"
+                                        :severity="selectedFilter === 'all' ? undefined : 'secondary'"
+                                        :pt="{ root: { class: selectedFilter === 'all' ? 'bg-primary text-primary-contrast text-xs!' : 'text-xs! border-2! border-primary-500! text-primary-500!' } }"
+                                        @click="handleFilterClick('all')" title="Wszystkie" />
+                                    <Button icon="pi pi-check-circle" :outlined="selectedFilter !== 'finished'"
+                                        severity="success"
+                                        :pt="{ root: { class: selectedFilter === 'finished' ? 'bg-green-600 text-white text-xs!' : 'text-xs! border-2! border-green-500! text-green-500!' } }"
+                                        @click="handleFilterClick('finished')" title="Zrealizowane" />
+                                    <SplitButton icon="pi pi-times-circle"
+                                        :outlined="selectedFilter !== 'unfinished' && selectedFilter !== 'unfinished-technical' && selectedFilter !== 'unfinished-final'"
+                                        :model="unfinishedMenuItems" class="text-xs! border-2! border-primary-500! h-9!"
+                                        @click="handleFilterClick('unfinished')" title="Niezrealizowane" />
+                                    <Button icon="pi pi-exclamation-triangle" :outlined="selectedFilter !== 'overdue'"
+                                        severity="danger"
+                                        :pt="{ root: { class: selectedFilter === 'overdue' ? 'bg-red-600 text-white text-xs!' : 'text-xs! border-2! border-red-500! text-red-500!' } }"
+                                        @click="handleFilterClick('overdue')" title="Przeterminowane" />
+                                         <!-- Pionowa kreska separatora -->
+                                    <div class="h-8 w-px bg-surface-300 dark:bg-surface-600 mx-1"></div>
+                                 
+                                </div>
+                            </template>
+
+                            <template #end>
+                                           <!-- Pionowa kreska separatora -->
+                                           <div class="h-8 w-px bg-surface-300 dark:bg-surface-600 mx-1"></div>
+                                <div class="flex items-center gap-2">
+                                    <MultiSelect v-model="selectedColumns" :options="allColumns" optionLabel="header"
+                                placeholder="Wybierz kolumny" display="chip" class="w-80" :filter="true"
+                                filterPlaceholder="Szukaj kolumn..." @update:modelValue="onColumnToggle" />
+                                   
+                                    <Button icon="pi pi-cog" text severity="secondary" @click="handleOpenColumnSettings"
+                                        title="Ustawienia" />
+                                    <Button icon="pi pi-refresh" text severity="secondary"
+                                        @click="resetColumnConfig($event)" title="Resetuj konfigurację" />
+                                </div>
+                            </template>
+                        </Toolbar>
+                        <!-- <div class="flex items-center gap-4">
                             <div class="flex items-center gap-2 flex-1 max-w-md">
                                 <div class="flex items-center gap-1">
                                     <Button icon="pi pi-eye" text severity="secondary" :disabled="!selectedRow"
@@ -801,7 +863,7 @@ watch(
                                 <Button label="Resetuj konfigurację" icon="pi pi-refresh" severity="secondary" outlined
                                     @click="resetColumnConfig($event)" />
                             </div>
-                        </div>
+                        </div> -->
                     </div>
 
                     <!-- DataTable -->
