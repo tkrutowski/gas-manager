@@ -93,10 +93,12 @@ const gasDistributionOptions = computed(() => {
 
 const phaseOptions = computed(() => {
     return [
-        { label: 'Brak', value: Phase.NONE },
+        { label: 'W przygotowaniu', value: Phase.PREPARATION },
         { label: 'Projekt', value: Phase.PROJECT },
-        { label: 'Praca', value: Phase.WORK },
+        { label: 'Budowa', value: Phase.WORK },
         { label: 'Finanse', value: Phase.FINANSE },
+        { label: 'Zakończone', value: Phase.COMPLETED },
+        { label: 'Anulowane', value: Phase.CANCELED },
     ];
 });
 
@@ -779,35 +781,35 @@ watch(
                                     class="text-surface-600 dark:text-surface-400 font-medium whitespace-nowrap text-xs">Numer
                                     zadania</span>
                                 <span class="text-surface-700 dark:text-surface-300">{{ selectedRow.taskNo || '-'
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="flex flex-col">
                                 <span
                                     class="text-surface-600 dark:text-surface-400 font-medium whitespace-nowrap text-xs">Klient</span>
                                 <span class="text-surface-700 dark:text-surface-300 whitespace-nowrap">{{
                                     getPersonDisplayName(selectedRow.customer) || '-'
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="flex flex-col">
                                 <span
                                     class="text-surface-600 dark:text-surface-400 font-medium whitespace-nowrap text-xs">Adres</span>
                                 <span class="text-surface-700 dark:text-surface-300 whitespace-nowrap">{{
                                     formatAddress(selectedRow.address) || '-'
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="flex flex-col">
                                 <span
                                     class="text-surface-600 dark:text-surface-400 font-medium whitespace-nowrap text-xs">Faza</span>
                                 <span class="text-surface-700 dark:text-surface-300 whitespace-nowrap">{{
                                     formatPhase(selectedRow.phase) || '-'
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="flex flex-col">
                                 <span
                                     class="text-surface-600 dark:text-surface-400 font-medium whitespace-nowrap text-xs">Status</span>
                                 <span class="text-surface-700 dark:text-surface-300 whitespace-nowrap">{{
                                     selectedRow.isFinished ? 'Zakończone' : 'W trakcie'
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="flex flex-col">
                                 <span
@@ -815,21 +817,21 @@ watch(
                                     gazu</span>
                                 <span class="text-surface-700 dark:text-surface-300 whitespace-nowrap">{{
                                     selectedRow.gasDistribution?.name || '-'
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="flex flex-col">
                                 <span
                                     class="text-surface-600 dark:text-surface-400 font-medium whitespace-nowrap text-xs">Projektant</span>
                                 <span class="text-surface-700 dark:text-surface-300 whitespace-nowrap">{{
                                     getPersonDisplayName(selectedRow.designer) || '-'
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="flex flex-col">
                                 <span
                                     class="text-surface-600 dark:text-surface-400 font-medium whitespace-nowrap text-xs">Koordynator</span>
                                 <span class="text-surface-700 dark:text-surface-300 whitespace-nowrap">{{
                                     getPersonDisplayName(selectedRow.coordinator) || '-'
-                                    }}</span>
+                                }}</span>
                             </div>
                         </div>
                     </div>

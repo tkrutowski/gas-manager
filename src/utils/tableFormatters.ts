@@ -36,13 +36,18 @@ export function formatMoney(amount: number | undefined | null): string {
 export function formatPhase(phase: Phase | undefined | null): string {
   if (!phase) return 'Brak';
   switch (phase) {
+    case Phase.PREPARATION:
+      return 'W przygotowaniu';
     case Phase.PROJECT:
-      return 'Projekt';
+      return 'Projektowanie';
     case Phase.WORK:
-      return 'Praca';
+      return 'Budowa';
     case Phase.FINANSE:
       return 'Finanse';
-    case Phase.NONE:
+    case Phase.COMPLETED:
+      return 'Zakończone';
+    case Phase.CANCELED:
+      return 'Anulowane';
     default:
       return 'Brak';
   }

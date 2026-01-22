@@ -177,7 +177,7 @@ function generateMockGasConnections(): GasConnection[] {
   const designerTrafficList = designerTrafficStore.getAllDesignerTraffic({ status: true });
 
   const gasConnections: GasConnection[] = [];
-  const phases: Phase[] = [Phase.NONE, Phase.PROJECT, Phase.WORK, Phase.FINANSE];
+  const phases: Phase[] = [Phase.PREPARATION, Phase.PROJECT, Phase.WORK, Phase.FINANSE, Phase.COMPLETED, Phase.CANCELED];
 
   let id = 1;
   let plotId = 1;
@@ -308,21 +308,21 @@ function generateMockGasConnections(): GasConnection[] {
 
       // GasConnectionDesign - różne w zależności od fazy
       const gasConnectionDesign: GasConnectionDesign = {
-        projectOrderSubmissionDate: phase !== Phase.NONE ? randomPastDate(200) : undefined,
-        projectOrderConfirmationDate: phase !== Phase.NONE ? randomPastDate(180) : undefined,
-        proxySubmissionDate: phase !== Phase.NONE ? randomPastDate(150) : undefined,
-        proxyReceiptDate: phase !== Phase.NONE ? randomPastDate(120) : undefined,
-        mapSubmissionDate: phase !== Phase.NONE ? randomPastDate(100) : undefined,
-        mapReceiptDate: phase !== Phase.NONE ? randomPastDate(80) : undefined,
+        projectOrderSubmissionDate: phase !== Phase.PREPARATION ? randomPastDate(200) : undefined,
+        projectOrderConfirmationDate: phase !== Phase.PREPARATION ? randomPastDate(180) : undefined,
+        proxySubmissionDate: phase !== Phase.PREPARATION ? randomPastDate(150) : undefined,
+        proxyReceiptDate: phase !== Phase.PREPARATION ? randomPastDate(120) : undefined,
+        mapSubmissionDate: phase !== Phase.PREPARATION ? randomPastDate(100) : undefined,
+        mapReceiptDate: phase !== Phase.PREPARATION ? randomPastDate(80) : undefined,
         mapDeliveredBy:
-          phase !== Phase.NONE && Math.random() > 0.3
+          phase !== Phase.PREPARATION && Math.random() > 0.3
             ? ([MapDeliveredBy.Geodeta, MapDeliveredBy.Klient, MapDeliveredBy.Ośrodek][
                 Math.floor(Math.random() * 3)
               ] as MapDeliveredBy)
             : undefined,
         mapSurveyor: mapSurveyor,
-        extractSubmissionDate: phase !== Phase.NONE ? randomPastDate(90) : undefined,
-        extractReceiptDate: phase !== Phase.NONE ? randomPastDate(70) : undefined,
+        extractSubmissionDate: phase !== Phase.PREPARATION ? randomPastDate(90) : undefined,
+        extractReceiptDate: phase !== Phase.PREPARATION ? randomPastDate(70) : undefined,
         withoutZud: Math.random() > 0.7,
         zudpSubmissionDate:
           phase === Phase.PROJECT || phase === Phase.WORK || phase === Phase.FINANSE ? randomPastDate(60) : undefined,
@@ -433,20 +433,20 @@ function generateMockGasConnections(): GasConnection[] {
         pgn: pgn,
         taskNo: taskNo,
         contractNo: contractNo,
-        contractDate: phase !== Phase.NONE ? randomPastDate(250) : undefined,
-        conditionNo: phase !== Phase.NONE ? `WAR/${new Date().getFullYear()}/${String(id - 1).padStart(3, '0')}` : '',
-        conditionDate: phase !== Phase.NONE ? randomPastDate(240) : undefined,
+        contractDate: phase !== Phase.PREPARATION ? randomPastDate(250) : undefined,
+        conditionNo: phase !== Phase.PREPARATION ? `WAR/${new Date().getFullYear()}/${String(id - 1).padStart(3, '0')}` : '',
+        conditionDate: phase !== Phase.PREPARATION ? randomPastDate(240) : undefined,
         gasDistribution:
           gasDistributions.length > 0
             ? gasDistributions[Math.floor(Math.random() * gasDistributions.length)]
             : undefined,
         connectionAgreementNumber:
-          phase !== Phase.NONE ? `UM/${new Date().getFullYear()}/${String(id - 1).padStart(3, '0')}` : '',
-        sapUpNo: phase !== Phase.NONE ? `SAP-${String(id - 1).padStart(5, '0')}` : '',
+          phase !== Phase.PREPARATION ? `UM/${new Date().getFullYear()}/${String(id - 1).padStart(3, '0')}` : '',
+        sapUpNo: phase !== Phase.PREPARATION ? `SAP-${String(id - 1).padStart(5, '0')}` : '',
         accelerationDate: Math.random() > 0.7 ? randomFutureDate(30) : undefined,
         taskValue: taskValue,
         finishDeadline: randomFutureDate(180),
-        projectDeadline: phase !== Phase.NONE ? randomFutureDate(120) : undefined,
+        projectDeadline: phase !== Phase.PREPARATION ? randomFutureDate(120) : undefined,
         projectValue: projectValue,
         wsgFinalPickupDate: phase === Phase.FINANSE ? randomPastDate(5) : undefined,
         constructionValue: constructionValue,
@@ -491,10 +491,12 @@ export const useGasConnectionsStore = defineStore('gasConnections', () => {
   const totalCount = computed(() => gasConnections.value.length);
   const byPhase = computed(() => {
     return {
-      [Phase.NONE]: gasConnections.value.filter(gc => gc.phase === Phase.NONE),
+      [Phase.PREPARATION]: gasConnections.value.filter(gc => gc.phase === Phase.PREPARATION),
       [Phase.PROJECT]: gasConnections.value.filter(gc => gc.phase === Phase.PROJECT),
       [Phase.WORK]: gasConnections.value.filter(gc => gc.phase === Phase.WORK),
       [Phase.FINANSE]: gasConnections.value.filter(gc => gc.phase === Phase.FINANSE),
+      [Phase.COMPLETED]: gasConnections.value.filter(gc => gc.phase === Phase.COMPLETED),
+      [Phase.CANCELED]: gasConnections.value.filter(gc => gc.phase === Phase.CANCELED),
     };
   });
   const finished = computed(() => gasConnections.value.filter(gc => gc.isFinished));

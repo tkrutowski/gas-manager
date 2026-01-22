@@ -145,10 +145,12 @@ export interface Pgn {
  * Faza projektu
  */
 export enum Phase {
-  NONE = 'NONE',
+  PREPARATION = 'PREPARATION',
   PROJECT = 'PROJECT',
   WORK = 'WORK',
   FINANSE = 'FINANSE',
+  COMPLETED = 'COMPLETED',
+  CANCELED = 'CANCELED',
 }
 
 /**
