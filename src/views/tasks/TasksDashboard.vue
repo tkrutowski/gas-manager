@@ -123,22 +123,23 @@ const overdueInvoices = computed(() => {
 </script>
 
 <template>
-    <div class="flex h-screen bg-[#0a0a0a] overflow-hidden">
+    <div class="flex h-screen bg-surface-0 dark:bg-surface-950 overflow-hidden">
         <!-- Sidebar Menu -->
         <SidebarMenu />
 
         <!-- Main Content -->
         <div class="flex-1 overflow-y-auto p-6">
             <div class="max-w-7xl mx-auto">
-                <h1 class="text-3xl font-bold text-white mb-6">Pulpit</h1>
+                <h1 class="text-3xl font-bold text-surface-700 dark:text-surface-300 mb-6">Pulpit</h1>
 
                 <!-- Dashboard Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <!-- Card 1: Etap Projektowania -->
-                    <div class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-6 relative">
+                    <div
+                        class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-6 relative">
                         <!-- Badge -->
                         <div
-                            class="absolute top-4 right-4 bg-green-900/50 text-green-400 text-xs font-medium px-2 py-1 rounded">
+                            class="absolute top-4 right-4 bg-green-900/50 dark:bg-green-900/50 text-green-400 text-xs font-medium px-2 py-1 rounded">
                             +2 od wczoraj
                         </div>
 
@@ -148,31 +149,34 @@ const overdueInvoices = computed(() => {
                         </div>
 
                         <!-- Title -->
-                        <h3 class="text-white font-semibold text-lg mb-4">Etap Projektowania</h3>
+                        <h3 class="text-surface-700 dark:text-surface-300 font-semibold text-lg mb-4">Etap Projektowania
+                        </h3>
 
                         <!-- Main Metric -->
                         <div class="mb-4">
-                            <span class="text-4xl font-bold text-white">{{ designActiveCount }}</span>
-                            <span class="text-white/70 ml-2">aktywnych</span>
+                            <span class="text-4xl font-bold text-surface-700 dark:text-surface-300">{{ designActiveCount
+                                }}</span>
+                            <span class="text-surface-600 dark:text-surface-400 ml-2">aktywnych</span>
                         </div>
 
                         <!-- Progress Bar -->
-                        <div class="w-full bg-[#2a2a2a] rounded-full h-2 mb-4">
+                        <div class="w-full bg-surface-200 dark:bg-surface-700 rounded-full h-2 mb-4">
                             <div class="bg-blue-500 h-2 rounded-full transition-all duration-300"
                                 :style="{ width: `${designProgress}%` }"></div>
                         </div>
 
                         <!-- Additional Info -->
-                        <p class="text-white/60 text-sm">
+                        <p class="text-surface-600 dark:text-surface-400 text-sm">
                             {{ designAwaitingApproval }} oczekuje na zgodę urzędu
                         </p>
                     </div>
 
                     <!-- Card 2: Etap Wykonawstwa -->
-                    <div class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-6 relative">
+                    <div
+                        class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-6 relative">
                         <!-- Badge -->
                         <div
-                            class="absolute top-4 right-4 bg-green-900/50 text-green-400 text-xs font-medium px-2 py-1 rounded">
+                            class="absolute top-4 right-4 bg-green-900/50 dark:bg-green-900/50 text-green-400 text-xs font-medium px-2 py-1 rounded">
                             Bez zmian
                         </div>
 
@@ -182,35 +186,39 @@ const overdueInvoices = computed(() => {
                         </div>
 
                         <!-- Title -->
-                        <h3 class="text-white font-semibold text-lg mb-4">Etap Wykonawstwa</h3>
+                        <h3 class="text-surface-700 dark:text-surface-300 font-semibold text-lg mb-4">Etap Wykonawstwa
+                        </h3>
 
                         <!-- Main Metric -->
                         <div class="mb-4">
-                            <span class="text-4xl font-bold text-white">{{ executionActiveCount }}</span>
-                            <span class="text-white/70 ml-2">w toku</span>
+                            <span class="text-4xl font-bold text-surface-700 dark:text-surface-300">{{
+                                executionActiveCount }}</span>
+                            <span class="text-surface-600 dark:text-surface-400 ml-2">w toku</span>
                         </div>
 
                         <!-- Progress Bar -->
-                        <div class="w-full bg-[#2a2a2a] rounded-full h-2 mb-4">
+                        <div class="w-full bg-surface-200 dark:bg-surface-700 rounded-full h-2 mb-4">
                             <div class="bg-yellow-500 h-2 rounded-full transition-all duration-300"
                                 :style="{ width: `${executionProgress}%` }"></div>
                         </div>
 
                         <!-- Additional Info -->
                         <div v-if="delayedProjects.length > 0" class="flex items-center gap-2 text-sm">
-                            <ExclamationTriangleIcon class="w-4 h-4 text-red-400 flex-shrink-0" />
+                            <ExclamationTriangleIcon class="w-4 h-4 text-red-400 shrink-0" />
                             <p class="text-red-400">
                                 1 projekt opóźniony{{ delayedProjectAddress ? ` (${delayedProjectAddress})` : '' }}
                             </p>
                         </div>
-                        <p v-else class="text-white/60 text-sm">Wszystkie projekty w terminie</p>
+                        <p v-else class="text-surface-600 dark:text-surface-400 text-sm">Wszystkie projekty w terminie
+                        </p>
                     </div>
 
                     <!-- Card 3: Finanse i Faktury -->
-                    <div class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-6 relative">
+                    <div
+                        class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-6 relative">
                         <!-- Badge -->
                         <div
-                            class="absolute top-4 right-4 bg-green-900/50 text-green-400 text-xs font-medium px-2 py-1 rounded">
+                            class="absolute top-4 right-4 bg-green-900/50 dark:bg-green-900/50 text-green-400 text-xs font-medium px-2 py-1 rounded">
                             +3 opłacone
                         </div>
 
@@ -220,22 +228,24 @@ const overdueInvoices = computed(() => {
                         </div>
 
                         <!-- Title -->
-                        <h3 class="text-white font-semibold text-lg mb-4">Finanse i Faktury</h3>
+                        <h3 class="text-surface-700 dark:text-surface-300 font-semibold text-lg mb-4">Finanse i Faktury
+                        </h3>
 
                         <!-- Main Metric -->
                         <div class="mb-4">
-                            <span class="text-4xl font-bold text-white">{{ pendingInvoices }}</span>
-                            <span class="text-white/70 ml-2">oczekujące</span>
+                            <span class="text-4xl font-bold text-surface-700 dark:text-surface-300">{{ pendingInvoices
+                                }}</span>
+                            <span class="text-surface-600 dark:text-surface-400 ml-2">oczekujące</span>
                         </div>
 
                         <!-- Progress Bar -->
-                        <div class="w-full bg-[#2a2a2a] rounded-full h-2 mb-4">
+                        <div class="w-full bg-surface-200 dark:bg-surface-700 rounded-full h-2 mb-4">
                             <div class="bg-green-500 h-2 rounded-full transition-all duration-300"
                                 :style="{ width: `${financeProgress}%` }"></div>
                         </div>
 
                         <!-- Additional Info -->
-                        <p class="text-white/60 text-sm">
+                        <p class="text-surface-600 dark:text-surface-400 text-sm">
                             {{ overdueInvoices }} faktury przeterminowane > 7 dni
                         </p>
                     </div>
