@@ -184,9 +184,14 @@ const currentSettingsSection = ref<'customer' | 'endCustomer' | 'finance' | 'tea
 const selectedCustomerForDetails = ref<Customer | null>(null);
 const isNewEndCustomer = ref(false);
 const phaseHelpPopover = ref();
+const saveDraftHelpPopover = ref();
 
 const togglePhaseHelp = (event: Event) => {
   phaseHelpPopover.value?.toggle(event);
+};
+
+const toggleSaveDraftHelp = (event: Event) => {
+  saveDraftHelpPopover.value?.toggle(event);
 };
 
 // Validation errors
@@ -761,8 +766,30 @@ const handleSaveDraft = () => {
           <p class="text-sm text-gray-600 dark:text-gray-400">Zarządzanie instalacjami gazowymi • Nowe zlecenie</p>
         </div>
         <div class="flex items-center gap-2">
+          <div class="flex items-center gap-1">
+            <button type="button" class="inline-flex items-center p-1 border-0 bg-transparent cursor-help"
+              @click="toggleSaveDraftHelp($event)">
+              <InformationCircleIcon
+                class="w-7 h-7 text-gray-400 dark:text-gray-500 hover:text-primary-400 transition-colors" />
+            </button>
+            <Popover ref="saveDraftHelpPopover">
+              <div class="p-3" style="max-width: 320px">
+                <p class="text-sm text-surface-700 dark:text-surface-300 leading-relaxed">
+                  <strong class="font-semibold">Zapisz szkic</strong> pozwala na zapisanie danych z formularza, aby móc
+                  dokończyć wpisywanie później.
+                </p>
+                <p class="text-sm text-surface-600 dark:text-surface-400 mt-2 leading-relaxed">
+                  Dane są automatycznie wczytywane po ponownym otwarciu formularza.
+                </p>
+                <p class="text-sm text-surface-600 dark:text-surface-400 mt-2 leading-relaxed">
+                  <strong class="font-semibold">Uwaga:</strong> Można zapisać tylko jeden szkic. Nowy szkic zastąpi
+                  poprzedni.
+                </p>
+              </div>
+            </Popover>
+          </div>
           <SecondaryButton type="button" @click="handleSaveDraft" text="Zapisz szkic" icon="pi pi-download"
-            iconPos="left" iconSize="sm" title="Zapisz szkic formularza" />
+          iconPos="left" iconSize="sm" title="Zapisz szkic formularza" />
           <Button type="button" icon="pi pi-trash" severity="danger" :disabled="!hasDraft" variant="outlined"
             @click="handleDeleteDraft" title="Usuń zapisany szkic" />
         </div>
@@ -1103,7 +1130,7 @@ const handleSaveDraft = () => {
               <button type="button" class="inline-flex items-center p-0 border-0 bg-transparent cursor-help"
                 @click="togglePhaseHelp($event)">
                 <InformationCircleIcon
-                  class="w-5 h-5 text-gray-400 dark:text-gray-500 hover:text-primary-400 transition-colors" />
+                  class="w-6 h-6 text-gray-400 dark:text-gray-500 hover:text-primary-400 transition-colors" />
               </button>
               <Popover ref="phaseHelpPopover">
                 <div class="p-3" style="max-width: 320px">
