@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, computed, onMounted } from 'vue';
+  import { ref, computed, onMounted, onUnmounted } from 'vue';
   import { useRouter, useRoute } from 'vue-router';
   import { useAuthStore } from '@/stores/auth.ts';
   import { useCompanySettingsStore } from '@/stores/companySettings.ts';
@@ -43,6 +43,26 @@
 
   const isCollapsed = ref(false);
 
+  // Check if device is mobile and set collapsed state accordingly
+  const checkMobileAndCollapse = () => {
+    if (window.innerWidth < 768) {
+      // md breakpoint in Tailwind is 768px
+      isCollapsed.value = true;
+    }
+  };
+
+  onMounted(() => {
+    checkMobileAndCollapse();
+    // Listen for window resize events
+    window.addEventListener('resize', checkMobileAndCollapse);
+    updateTheme();
+  });
+
+  onUnmounted(() => {
+    // Clean up event listener
+    window.removeEventListener('resize', checkMobileAndCollapse);
+  });
+
   // Dark mode management
   const getInitialTheme = (): boolean => {
     const saved = localStorage.getItem('theme');
@@ -69,10 +89,6 @@
       localStorage.setItem('theme', 'light');
     }
   };
-
-  onMounted(() => {
-    updateTheme();
-  });
 
   const handleLogout = () => {
     authStore.logout();

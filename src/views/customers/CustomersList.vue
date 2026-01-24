@@ -277,7 +277,7 @@
             <h1 class="text-3xl font-bold text-surface-700 dark:text-surface-300 mb-2">Lista klientów</h1>
             <p class="text-sm text-surface-600 dark:text-surface-400">Zarządzanie klientami</p>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="hidden md:flex items-center gap-2">
             <router-link to="/customers/grid">
               <Button
                 icon="pi pi-th-large"

@@ -294,7 +294,7 @@
               Wybierz klienta z listy. Lista i kafelki.
             </p>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="hidden md:flex items-center gap-2">
             <router-link to="/customers/list">
               <Button
                 icon="pi pi-list"
