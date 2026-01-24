@@ -326,7 +326,10 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   }
 
+  const customerTableSettingsVersion = ref(0);
+
   const getCustomerTableSettings = computed((): CustomerTableSettings | null => {
+    customerTableSettingsVersion.value;
     return settingsService.getCustomerTableSettings();
   });
 
@@ -354,16 +357,20 @@ export const useSettingsStore = defineStore('settings', () => {
   function saveCustomerTableSettings(
     defaultSortField?: string,
     defaultSortOrder?: number,
-    defaultFilter?: CustomerTableFilter
+    defaultFilter?: CustomerTableFilter,
+    autoSave?: boolean
   ): void {
     loading.value = true;
     error.value = null;
     try {
-      settingsService.updateCustomerTableSettings({
+      const payload: Parameters<typeof settingsService.updateCustomerTableSettings>[0] = {
         defaultSortField,
         defaultSortOrder,
         defaultFilter,
-      });
+      };
+      if (autoSave !== undefined) payload.autoSaveSettings = autoSave;
+      settingsService.updateCustomerTableSettings(payload);
+      customerTableSettingsVersion.value += 1;
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Błąd podczas zapisywania ustawień tabeli klientów';
     } finally {
@@ -376,6 +383,7 @@ export const useSettingsStore = defineStore('settings', () => {
     error.value = null;
     try {
       settingsService.removeModuleSettings('customerTable');
+      customerTableSettingsVersion.value += 1;
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Błąd podczas resetowania ustawień tabeli klientów';
     } finally {

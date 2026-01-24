@@ -15,7 +15,6 @@
       globalSearchQuery?: string;
       showSearch?: boolean;
       showSettings?: boolean;
-      showViewToggle?: boolean;
     }>(),
     {
       selectedRow: null,
@@ -23,7 +22,6 @@
       globalSearchQuery: '',
       showSearch: true,
       showSettings: true,
-      showViewToggle: false,
     }
   );
 
@@ -100,7 +98,7 @@
       <div class="flex items-center gap-2">
         <div class="h-8 w-px bg-surface-300 dark:bg-surface-600 mx-1" />
         <Button
-          icon="pi pi-list"
+          icon="pi pi-list-check"
           :outlined="selectedFilter !== 'all'"
           :class="
             selectedFilter === 'all'
@@ -142,15 +140,6 @@
           "
           @click="emit('filter-click', 'favorites')"
           title="Ulubieni"
-        />
-        <div class="h-8 w-px bg-surface-300 dark:bg-surface-600 mx-1" />
-        <Button
-          v-if="showViewToggle"
-          icon="pi pi-th-large"
-          text
-          severity="secondary"
-          title="Przełącz widok"
-          @click="emit('view-toggle')"
         />
       </div>
     </template>

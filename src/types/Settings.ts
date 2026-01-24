@@ -144,6 +144,7 @@ export interface CustomerTableSettings extends ModuleSettings {
   defaultSortOrder?: number; // 1 = rosnąco, -1 = malejąco
   defaultFilter?: CustomerTableFilter;
   favoriteCustomerIds?: number[];
+  autoSaveSettings?: boolean;
 }
 
 /**

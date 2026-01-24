@@ -8,6 +8,7 @@
   import DataTable from 'primevue/datatable';
   import type { DataTableSortEvent } from 'primevue/datatable';
   import Column from 'primevue/column';
+  import Button from 'primevue/button';
   import ConfirmPopup from 'primevue/confirmpopup';
   import { useConfirm } from 'primevue/useconfirm';
   import { useCustomersStore } from '@/stores/customers';
@@ -35,6 +36,7 @@
   const selectedFilter = ref<CustomerTableFilter>('all');
   const defaultSortField = ref<string | undefined>(undefined);
   const defaultSortOrder = ref<number | undefined>(undefined);
+  const autoSaveSettings = ref(false);
   const showSettingsDialog = ref(false);
   const showFormDialog = ref(false);
   const showInfoDialog = ref(false);
@@ -120,7 +122,9 @@
 
   function handleFilterClick(f: CustomerTableFilter) {
     selectedFilter.value = f;
-    settingsStore.saveCustomerTableSettings(defaultSortField.value, defaultSortOrder.value, f);
+    if (autoSaveSettings.value) {
+      settingsStore.saveCustomerTableSettings(defaultSortField.value, defaultSortOrder.value, f);
+    }
   }
 
   function handleNew() {
@@ -145,7 +149,7 @@
       rejectProps: { label: 'Anuluj', severity: 'secondary', outlined: true },
       acceptProps: { label: 'Usuń', severity: 'danger' },
       accept: () => {
-        customersStore.deleteCustomer(c.id, false);
+        customersStore.deleteCustomer(c.id, true);
         customers.value = customersStore.getAllCustomers();
         selectedRow.value = null;
       },
@@ -170,14 +174,17 @@
   function handleSettingsSaved(
     sortField?: string,
     sortOrder?: number,
-    filter?: CustomerTableFilter
+    filter?: CustomerTableFilter,
+    autoSave?: boolean
   ) {
     defaultSortField.value = sortField;
     defaultSortOrder.value = sortOrder ?? undefined;
     if (filter != null) {
       selectedFilter.value = filter;
     }
-    settingsStore.saveCustomerTableSettings(sortField, sortOrder, filter);
+    if (autoSave !== undefined) {
+      autoSaveSettings.value = autoSave;
+    }
   }
 
   function onSort(event: DataTableSortEvent) {
@@ -185,6 +192,9 @@
     const order = event.sortOrder === 1 || event.sortOrder === -1 ? event.sortOrder : undefined;
     defaultSortField.value = field;
     defaultSortOrder.value = order;
+    if (autoSaveSettings.value) {
+      settingsStore.saveCustomerTableSettings(field, order, selectedFilter.value);
+    }
   }
 
   function handleResetConfig(event: Event) {
@@ -200,6 +210,7 @@
         defaultSortField.value = undefined;
         defaultSortOrder.value = undefined;
         selectedFilter.value = 'all';
+        autoSaveSettings.value = false;
       },
     });
   }
@@ -210,10 +221,12 @@
       defaultSortField.value = cfg.defaultSortField;
       defaultSortOrder.value = cfg.defaultSortOrder ?? undefined;
       selectedFilter.value = (cfg.defaultFilter as CustomerTableFilter) ?? 'all';
+      autoSaveSettings.value = cfg.autoSaveSettings ?? false;
     } else {
       defaultSortField.value = undefined;
       defaultSortOrder.value = undefined;
       selectedFilter.value = 'all';
+      autoSaveSettings.value = false;
     }
   }
 
@@ -265,11 +278,13 @@
             <p class="text-sm text-surface-600 dark:text-surface-400">Zarządzanie klientami</p>
           </div>
           <div class="flex items-center gap-2">
-            <router-link
-              to="/customers/grid"
-              class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-primary-600 dark:border-primary-400 bg-surface-50 dark:bg-surface-900 text-primary-600 dark:text-primary-400 hover:bg-surface-100 dark:hover:bg-surface-800 text-sm"
-            >
-              Kafelki
+            <router-link to="/customers/grid">
+              <Button
+                icon="pi pi-th-large"
+                text
+                severity="primary"
+                title="Przełącz na widok kafelków"
+              />
             </router-link>
           </div>
         </div>
@@ -365,6 +380,7 @@
       :default-sort-field="defaultSortField"
       :default-sort-order="defaultSortOrder"
       :default-filter="selectedFilter"
+      :auto-save-settings="autoSaveSettings"
       @update:visible="showSettingsDialog = $event"
       @saved="handleSettingsSaved"
       @close="showSettingsDialog = false"

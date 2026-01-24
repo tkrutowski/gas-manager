@@ -206,13 +206,17 @@ class SettingsService {
   }
 
   /**
-   * Aktualizuje ustawienia tabeli klientów (sortowanie, filtr, ulubieni)
+   * Aktualizuje ustawienia tabeli klientów (sortowanie, filtr, ulubieni, auto-save)
    */
   updateCustomerTableSettings(
     settings: Partial<
       Pick<
         CustomerTableSettings,
-        'defaultSortField' | 'defaultSortOrder' | 'defaultFilter' | 'favoriteCustomerIds'
+        | 'defaultSortField'
+        | 'defaultSortOrder'
+        | 'defaultFilter'
+        | 'favoriteCustomerIds'
+        | 'autoSaveSettings'
       >
     >
   ): void {
@@ -226,6 +230,7 @@ class SettingsService {
         defaultSortOrder: settings.defaultSortOrder,
         defaultFilter: settings.defaultFilter,
         favoriteCustomerIds: settings.favoriteCustomerIds ?? [],
+        autoSaveSettings: settings.autoSaveSettings ?? false,
       };
       this.saveModuleSettings(newSettings);
       return;
@@ -234,6 +239,7 @@ class SettingsService {
     if (settings.defaultSortOrder !== undefined) current.defaultSortOrder = settings.defaultSortOrder;
     if (settings.defaultFilter !== undefined) current.defaultFilter = settings.defaultFilter;
     if (settings.favoriteCustomerIds !== undefined) current.favoriteCustomerIds = settings.favoriteCustomerIds;
+    if (settings.autoSaveSettings !== undefined) current.autoSaveSettings = settings.autoSaveSettings;
     this.saveModuleSettings(current);
   }
 
