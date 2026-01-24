@@ -1,20 +1,25 @@
 <script setup lang="ts">
-  import { ref } from 'vue';
+  import { ref, watch } from 'vue';
   import { useCustomersStore } from '@/stores/customers';
   import type { Customer } from '@/types/Customer';
   import { UserIcon, PhoneIcon, MapPinIcon, DocumentTextIcon } from '@heroicons/vue/24/outline';
   import SecondaryButton from '@/components/SecondaryButton.vue';
   import PrimaryButton from '@/components/PrimaryButton.vue';
 
+  const props = defineProps<{
+    customer?: Customer | null;
+  }>();
+
   const emit = defineEmits<{
     close: [];
     customerAdded: [customer: Customer];
+    customerUpdated: [customer: Customer];
   }>();
 
   const customersStore = useCustomersStore();
   const visible = ref(true);
 
-  const formData = ref<Partial<Customer>>({
+  const defaultFormData = (): Partial<Customer> => ({
     customerType: 'person',
     firstName: '',
     lastName: '',
@@ -31,14 +36,35 @@
       city: '',
       street: '',
       zip: '',
-      coordinates: {
-        id: 0,
-        latitude: '',
-        longitude: '',
-      },
+      coordinates: { id: 0, latitude: '', longitude: '' },
     },
     status: true,
   });
+
+  const formData = ref<Partial<Customer>>(defaultFormData());
+
+  watch(
+    () => props.customer,
+    (c) => {
+      if (c) {
+        formData.value = {
+          ...defaultFormData(),
+          ...c,
+          address: c.address
+            ? {
+                ...c.address,
+                coordinates: c.address.coordinates
+                  ? { ...c.address.coordinates }
+                  : { id: 0, latitude: '', longitude: '' },
+              }
+            : defaultFormData().address,
+        };
+      } else {
+        formData.value = defaultFormData();
+      }
+    },
+    { immediate: true }
+  );
 
   const errors = ref<Record<string, string>>({});
 
@@ -93,19 +119,40 @@
   };
 
   const handleSubmit = () => {
-    if (!validate()) {
-      return;
-    }
+    if (!validate()) return;
 
+    const id = props.customer?.id;
     try {
-      const newCustomer = customersStore.addCustomer(
-        formData.value as Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>
-      );
-      emit('customerAdded', newCustomer);
-      visible.value = false;
-      emit('close');
+      if (id != null) {
+        const updated = customersStore.updateCustomer(id, {
+          customerType: formData.value!.customerType!,
+          firstName: formData.value!.firstName,
+          lastName: formData.value!.lastName,
+          companyName: formData.value!.companyName,
+          nip: formData.value!.nip,
+          regon: formData.value!.regon,
+          krs: formData.value!.krs,
+          phone: formData.value!.phone,
+          email: formData.value!.email,
+          info: formData.value!.info,
+          address: formData.value!.address!,
+          status: formData.value!.status!,
+        });
+        if (updated) {
+          emit('customerUpdated', updated);
+          visible.value = false;
+          emit('close');
+        }
+      } else {
+        const newCustomer = customersStore.addCustomer(
+          formData.value as Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>
+        );
+        emit('customerAdded', newCustomer);
+        visible.value = false;
+        emit('close');
+      }
     } catch (error) {
-      console.error('Błąd podczas dodawania klienta:', error);
+      console.error(id != null ? 'Błąd podczas aktualizacji klienta' : 'Błąd podczas dodawania klienta', error);
     }
   };
 
@@ -119,7 +166,7 @@
   <Dialog
     v-model:visible="visible"
     modal
-    header="Dodaj Nowego Klienta"
+    :header="customer ? 'Edytuj klienta' : 'Dodaj nowego klienta'"
     :style="{ width: '800px' }"
     :pt="{
       root: { class: '!bg-surface-0 dark:!bg-surface-950' },

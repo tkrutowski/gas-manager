@@ -6,6 +6,8 @@ import type {
   GasConnectionTableSettings,
   GasConnectionTableColumnConfig,
   StageCardConfig,
+  CustomerTableSettings,
+  CustomerTableFilter,
 } from '@/types/Settings';
 import { useCustomersStore } from './customers';
 import { useDesignersStore } from './designers';
@@ -324,6 +326,63 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   }
 
+  const getCustomerTableSettings = computed((): CustomerTableSettings | null => {
+    return settingsService.getCustomerTableSettings();
+  });
+
+  const favoritesVersionCustomers = ref(0);
+
+  const favoriteCustomerIds = computed((): number[] => {
+    favoritesVersionCustomers.value;
+    const t = settingsService.getCustomerTableSettings();
+    return t?.favoriteCustomerIds ?? [];
+  });
+
+  function addFavoriteCustomer(id: number): void {
+    const ids = favoriteCustomerIds.value;
+    if (ids.includes(id)) return;
+    settingsService.updateCustomerTableSettings({ favoriteCustomerIds: [...ids, id] });
+    favoritesVersionCustomers.value += 1;
+  }
+
+  function removeFavoriteCustomer(id: number): void {
+    const ids = favoriteCustomerIds.value.filter((x) => x !== id);
+    settingsService.updateCustomerTableSettings({ favoriteCustomerIds: ids });
+    favoritesVersionCustomers.value += 1;
+  }
+
+  function saveCustomerTableSettings(
+    defaultSortField?: string,
+    defaultSortOrder?: number,
+    defaultFilter?: CustomerTableFilter
+  ): void {
+    loading.value = true;
+    error.value = null;
+    try {
+      settingsService.updateCustomerTableSettings({
+        defaultSortField,
+        defaultSortOrder,
+        defaultFilter,
+      });
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Błąd podczas zapisywania ustawień tabeli klientów';
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  function resetCustomerTableSettings(): void {
+    loading.value = true;
+    error.value = null;
+    try {
+      settingsService.removeModuleSettings('customerTable');
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Błąd podczas resetowania ustawień tabeli klientów';
+    } finally {
+      loading.value = false;
+    }
+  }
+
   /**
    * Pobiera konfigurację Cardów dla konkretnego etapu
    */
@@ -355,6 +414,8 @@ export const useSettingsStore = defineStore('settings', () => {
     getGasConnectionSettings,
     getGasConnectionTableSettings,
     favoriteConnectionIds,
+    getCustomerTableSettings,
+    favoriteCustomerIds,
     // Methods - Generic
     setDefaultValue,
     removeDefaultValue,
@@ -369,6 +430,11 @@ export const useSettingsStore = defineStore('settings', () => {
     resetGasConnectionTableSettings,
     addFavoriteConnection,
     removeFavoriteConnection,
+    // Methods - Customer Table
+    saveCustomerTableSettings,
+    resetCustomerTableSettings,
+    addFavoriteCustomer,
+    removeFavoriteCustomer,
     // Methods - Stage Settings
     getStageSettings,
     saveStageSettings,

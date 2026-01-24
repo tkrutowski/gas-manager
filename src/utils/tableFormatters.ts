@@ -1,8 +1,18 @@
 import type { Designer, DesignerTraffic } from '@/types/Designer';
 import type { Coordinator } from '@/types/Coordinator';
 import type { Customer } from '@/types/Customer';
+import type { Address } from '@/types/Address';
 import type { WorkRangeGasConnection, WorkRangeGasStation, WorkRangeConnection } from '@/types/WorkRange';
 import { Phase } from '@/types/GasConnection';
+
+/**
+ * Formatuje adres (ulica, miasto, kod)
+ */
+export function formatAddress(address: Address | undefined | null): string {
+  if (!address) return '';
+  const parts = [address.street, address.city, address.zip].filter(Boolean);
+  return parts.join(', ');
+}
 
 /**
  * Formatuje datę do formatu yyyy-mm-dd (łatwiejsze sortowanie)
@@ -92,6 +102,17 @@ export function formatWorkRangeConnection(item: WorkRangeConnection | undefined 
   const material = item.material || '';
   const pressure = item.pressure?.viewValue || item.pressure?.name || '';
   return `${diameter}${material} ${pressure}`.trim();
+}
+
+/**
+ * Nazwa klienta w tabeli: osoby „nazwisko imię”, firmy „nazwa firmy”
+ */
+export function getCustomerName(customer: Customer | undefined | null): string {
+  if (!customer) return '';
+  if (customer.customerType === 'person') {
+    return `${customer.lastName || ''} ${customer.firstName || ''}`.trim();
+  }
+  return customer.companyName || '';
 }
 
 /**

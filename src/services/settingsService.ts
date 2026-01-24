@@ -4,6 +4,7 @@ import type {
   GasConnectionTableSettings,
   GasConnectionStageSettings,
   StageCardConfig,
+  CustomerTableSettings,
 } from '@/types/Settings';
 
 const SETTINGS_STORAGE_KEY = 'appDefaultSettings';
@@ -195,6 +196,45 @@ class SettingsService {
       currentSettings.favoriteConnectionIds = settings.favoriteConnectionIds;
     }
     this.saveTableSettings(currentSettings);
+  }
+
+  /**
+   * Pobiera ustawienia tabeli klientów
+   */
+  getCustomerTableSettings(): CustomerTableSettings | null {
+    return this.getModuleSettings<CustomerTableSettings>('customerTable');
+  }
+
+  /**
+   * Aktualizuje ustawienia tabeli klientów (sortowanie, filtr, ulubieni)
+   */
+  updateCustomerTableSettings(
+    settings: Partial<
+      Pick<
+        CustomerTableSettings,
+        'defaultSortField' | 'defaultSortOrder' | 'defaultFilter' | 'favoriteCustomerIds'
+      >
+    >
+  ): void {
+    const current = this.getCustomerTableSettings();
+    if (!current) {
+      const newSettings: CustomerTableSettings = {
+        moduleName: 'customerTable',
+        version: '1.0.0',
+        updatedAt: new Date().toISOString(),
+        defaultSortField: settings.defaultSortField,
+        defaultSortOrder: settings.defaultSortOrder,
+        defaultFilter: settings.defaultFilter,
+        favoriteCustomerIds: settings.favoriteCustomerIds ?? [],
+      };
+      this.saveModuleSettings(newSettings);
+      return;
+    }
+    if (settings.defaultSortField !== undefined) current.defaultSortField = settings.defaultSortField;
+    if (settings.defaultSortOrder !== undefined) current.defaultSortOrder = settings.defaultSortOrder;
+    if (settings.defaultFilter !== undefined) current.defaultFilter = settings.defaultFilter;
+    if (settings.favoriteCustomerIds !== undefined) current.favoriteCustomerIds = settings.favoriteCustomerIds;
+    this.saveModuleSettings(current);
   }
 
   /**

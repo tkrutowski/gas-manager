@@ -13,6 +13,8 @@
     ArrowRightOnRectangleIcon,
     MoonIcon,
     SunIcon,
+    ListBulletIcon,
+    Squares2X2Icon,
   } from '@heroicons/vue/24/outline';
 
   const router = useRouter();
@@ -41,6 +43,10 @@
       icon: UserGroupIcon,
       color: 'bg-green-500',
       route: '/customers',
+      listRoute: '/customers/list',
+      gridRoute: '/customers/grid',
+      listIcon: ListBulletIcon,
+      gridIcon: Squares2X2Icon,
     },
     {
       id: 'finance',
@@ -194,12 +200,17 @@
 
       <!-- Karty modułów -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-        <button
+        <div
           v-for="module in modules"
           :key="module.id"
-          @click="handleModuleClick(module.route)"
           class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-6 hover:border-surface-300 dark:hover:border-surface-600 hover:bg-surface-100 dark:hover:bg-surface-800 transition-all text-left relative group"
         >
+          <button
+            type="button"
+            class="absolute inset-0 rounded-xl text-left"
+            aria-label="Otwórz moduł"
+            @click="handleModuleClick(module.route)"
+          />
           <!-- Badge ADMIN -->
           <span
             v-if="module.isAdmin"
@@ -208,8 +219,31 @@
             ADMIN
           </span>
 
+          <!-- Lista / Kafelki (Klienci) -->
+          <div
+            v-if="module.listRoute && module.gridRoute && module.listIcon && module.gridIcon"
+            class="absolute top-4 right-4 flex gap-1 z-10"
+          >
+            <button
+              type="button"
+              class="p-1.5 rounded-lg bg-surface-200 dark:bg-surface-700 hover:bg-surface-300 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 transition-colors"
+              title="Lista"
+              @click.stop="handleModuleClick(module.listRoute)"
+            >
+              <component :is="module.listIcon" class="w-5 h-5" />
+            </button>
+            <button
+              type="button"
+              class="p-1.5 rounded-lg bg-surface-200 dark:bg-surface-700 hover:bg-surface-300 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 transition-colors"
+              title="Kafelki"
+              @click.stop="handleModuleClick(module.gridRoute)"
+            >
+              <component :is="module.gridIcon" class="w-5 h-5" />
+            </button>
+          </div>
+
           <!-- Ikona -->
-          <div class="mb-4">
+          <div class="mb-4 relative">
             <div :class="[module.color, 'w-12 h-12 rounded-lg flex items-center justify-center']">
               <component :is="module.icon" :class="[module.textColor || 'text-white', 'w-6 h-6']" />
             </div>
@@ -218,7 +252,7 @@
           <!-- Tytuł i opis -->
           <h3 class="text-xl font-bold text-surface-700 dark:text-surface-300 mb-2">{{ module.title }}</h3>
           <p class="text-surface-600 dark:text-surface-400 text-sm leading-relaxed">{{ module.description }}</p>
-        </button>
+        </div>
       </div>
 
       <!-- Footer -->

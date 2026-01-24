@@ -131,12 +131,29 @@ export interface GasConnectionStageSettings extends ModuleSettings {
 }
 
 /**
+ * Typ filtru tabeli klientów
+ */
+export type CustomerTableFilter = 'all' | 'active' | 'inactive' | 'favorites';
+
+/**
+ * Ustawienia tabeli klientów (bez kolumn – stała lista)
+ */
+export interface CustomerTableSettings extends ModuleSettings {
+  moduleName: 'customerTable';
+  defaultSortField?: string;
+  defaultSortOrder?: number; // 1 = rosnąco, -1 = malejąco
+  defaultFilter?: CustomerTableFilter;
+  favoriteCustomerIds?: number[];
+}
+
+/**
  * Unia typów dla wszystkich modułów (łatwe rozszerzanie)
  */
 export type AppDefaultSettings =
   | GasConnectionDefaultSettings
   | GasConnectionTableSettings
   | GasConnectionStageSettings
+  | CustomerTableSettings
   | CompanySettings
   | AppInfoSettings; // | OtherModuleSettings | ...
 

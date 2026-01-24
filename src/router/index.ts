@@ -95,6 +95,30 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/customers',
+      name: 'customers-dashboard',
+      component: () => import('../views/customers/CustomersDashboard.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/customers/new',
+      name: 'new-customer',
+      component: () => import('../views/customers/NewCustomer.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/customers/list',
+      name: 'customers-list',
+      component: () => import('../views/customers/CustomersList.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/customers/grid',
+      name: 'customers-grid',
+      component: () => import('../views/customers/CustomersGrid.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/:pathMatch(.*)*',
       redirect: '/',
     },
