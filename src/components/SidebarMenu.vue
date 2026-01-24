@@ -1,8 +1,8 @@
 <script setup lang="ts">
   import { ref, computed, onMounted } from 'vue';
   import { useRouter, useRoute } from 'vue-router';
-  import { useAuthStore } from '@/stores/auth';
-  import { useCompanySettingsStore } from '@/stores/companySettings';
+  import { useAuthStore } from '@/stores/auth.ts';
+  import { useCompanySettingsStore } from '@/stores/companySettings.ts';
   import {
     Squares2X2Icon,
     WrenchScrewdriverIcon,

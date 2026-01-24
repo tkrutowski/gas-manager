@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import SidebarMenu from '@/components/tasks/SidebarMenu.vue';
+import SidebarMenu from '@/components/SidebarMenu.vue';
 import GasConnectionForm from '@/components/tasks/GasConnectionForm.vue';
 import { useGasConnectionsStore } from '@/stores/gasConnections';
 import type { GasConnection } from '@/types/GasConnection';

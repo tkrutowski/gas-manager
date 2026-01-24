@@ -1,8 +1,8 @@
 <script setup lang="ts">
   import { ref, computed, onMounted } from 'vue';
-  import SidebarMenu from '@/components/tasks/SidebarMenu.vue';
+  import SidebarMenu from '@/components/SidebarMenu.vue';
   import CustomerTableSettingsDialog from '@/components/customers/CustomerTableSettingsDialog.vue';
-  import CustomerFormDialog from '@/components/CustomerFormDialog.vue';
+  import CustomerFormDialog from '@/components/customers/CustomerFormDialog.vue';
   import CustomerInfoDialog from '@/components/customers/CustomerInfoDialog.vue';
   import CustomersToolbar from '@/components/customers/CustomersToolbar.vue';
   import DataTable from 'primevue/datatable';

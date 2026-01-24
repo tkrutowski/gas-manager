@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { ref, onMounted, computed } from 'vue';
   import { useRouter, useRoute } from 'vue-router';
-  import SidebarMenu from '@/components/tasks/SidebarMenu.vue';
+  import SidebarMenu from '@/components/SidebarMenu.vue';
   import ProjectTab from '@/components/tasks/ProjectTab.vue';
   import ProjectCdTab from '@/components/tasks/ProjectCdTab.vue';
   import ConstructionTab from '@/components/tasks/ConstructionTab.vue';

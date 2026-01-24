@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { computed } from 'vue';
   import { useRouter } from 'vue-router';
-  import SidebarMenu from '@/components/tasks/SidebarMenu.vue';
+  import SidebarMenu from '@/components/SidebarMenu.vue';
   import { useCustomersStore } from '@/stores/customers';
   import {
     UserGroupIcon,

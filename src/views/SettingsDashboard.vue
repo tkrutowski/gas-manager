@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { computed, ref, watch } from 'vue';
-  import SidebarMenu from '@/components/tasks/SidebarMenu.vue';
+  import SidebarMenu from '@/components/SidebarMenu.vue';
   import PrimaryButton from '@/components/PrimaryButton.vue';
   import { useCompanySettingsStore } from '@/stores/companySettings';
   import {

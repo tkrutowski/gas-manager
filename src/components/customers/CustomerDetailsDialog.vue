@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, computed } from 'vue';
-  import type { Customer } from '@/types/Customer';
+  import type { Customer } from '@/types/Customer.ts';
   import { UserIcon, MapPinIcon } from '@heroicons/vue/24/outline';
 
   const props = defineProps<{

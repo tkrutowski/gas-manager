@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { ref, computed, onMounted, watch } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
-  import SidebarMenu from '@/components/tasks/SidebarMenu.vue';
+  import SidebarMenu from '@/components/SidebarMenu.vue';
   import SurveyorFormDialog from '@/components/tasks/SurveyorFormDialog.vue';
   import PrimaryButton from '@/components/PrimaryButton.vue';
   import { useSurveyorsStore } from '@/stores/surveyors';

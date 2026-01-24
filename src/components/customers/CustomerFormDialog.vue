@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { ref, watch } from 'vue';
-  import { useCustomersStore } from '@/stores/customers';
-  import type { Customer } from '@/types/Customer';
+  import { useCustomersStore } from '@/stores/customers.ts';
+  import type { Customer } from '@/types/Customer.ts';
   import { UserIcon, PhoneIcon, MapPinIcon, DocumentTextIcon } from '@heroicons/vue/24/outline';
   import SecondaryButton from '@/components/SecondaryButton.vue';
   import PrimaryButton from '@/components/PrimaryButton.vue';

@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { computed } from 'vue';
-  import SidebarMenu from '@/components/tasks/SidebarMenu.vue';
+  import SidebarMenu from '@/components/SidebarMenu.vue';
   import { useGasConnectionsStore } from '@/stores/gasConnections';
   import { Phase } from '@/types/GasConnection';
   import {

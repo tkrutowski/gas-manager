@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { ref, computed, onMounted, watch } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
-  import SidebarMenu from '@/components/tasks/SidebarMenu.vue';
+  import SidebarMenu from '@/components/SidebarMenu.vue';
   import DesignerTrafficFormDialog from '@/components/tasks/DesignerTrafficFormDialog.vue';
   import PrimaryButton from '@/components/PrimaryButton.vue';
   import { useDesignerTrafficStore } from '@/stores/designerTraffic';

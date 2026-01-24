@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import SidebarMenu from '@/components/tasks/SidebarMenu.vue';
+import SidebarMenu from '@/components/SidebarMenu.vue';
 import ColumnSettingsDialog from '@/components/tasks/ColumnSettingsDialog.vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';

@@ -1,8 +1,8 @@
 <script setup lang="ts">
   import { ref, onMounted } from 'vue';
   import { useRouter } from 'vue-router';
-  import SidebarMenu from '@/components/tasks/SidebarMenu.vue';
-  import CustomerFormDialog from '@/components/CustomerFormDialog.vue';
+  import SidebarMenu from '@/components/SidebarMenu.vue';
+  import CustomerFormDialog from '@/components/customers/CustomerFormDialog.vue';
   import {
     HomeIcon,
     UserGroupIcon,
