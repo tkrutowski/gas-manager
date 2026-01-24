@@ -427,9 +427,8 @@ export const useCustomersStore = defineStore('customers', () => {
 
     const lowerQuery = query.toLowerCase();
     return customers.value.filter(c => {
-      // Obsługa kompatybilności wstecznej - sprawdź czy są stare dane z phone/email jako string
-      const phones = c.phones || (c.phone ? [c.phone] : []);
-      const emails = c.emails || (c.email ? [c.email] : []);
+      const phones = c.phones || [];
+      const emails = c.emails || [];
       
       if (c.customerType === 'person') {
         return (

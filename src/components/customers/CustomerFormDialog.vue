@@ -326,7 +326,7 @@
           <div>
             <h3 class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">Telefony</h3>
             <div class="space-y-2">
-              <div v-for="(phone, index) in (formData.phones || [])" :key="index" class="flex items-center gap-2">
+              <div v-for="(_phone, index) in (formData.phones || [])" :key="index" class="flex items-center gap-2">
                 <PhoneIcon class="w-4 h-4 text-primary-400" />
                 <InputText
                   v-model="formData.phones![index]"
@@ -356,7 +356,7 @@
           <div>
             <h3 class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">Adresy e-mail</h3>
             <div class="space-y-2">
-              <div v-for="(email, index) in (formData.emails || [])" :key="index" class="flex items-center gap-2">
+              <div v-for="(_email, index) in (formData.emails || [])" :key="index" class="flex items-center gap-2">
                 <EnvelopeIcon class="w-4 h-4 text-primary-400" />
                 <InputText
                   v-model="formData.emails![index]"

@@ -27,7 +27,7 @@
 
     "types": ["node"]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "env.d.ts"],
   "extends": [
     "@vue/tsconfig/tsconfig.json"
   ],

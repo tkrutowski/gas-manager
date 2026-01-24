@@ -96,7 +96,6 @@
   };
 
   const userName = computed(() => authStore.user?.name || '');
-  const userRole = computed(() => authStore.user?.role || 'Administrator');
   const userEmail = computed(() => authStore.user?.email || '');
 
   // App name from settings

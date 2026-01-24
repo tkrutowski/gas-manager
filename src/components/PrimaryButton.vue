@@ -9,7 +9,7 @@
     iconPos?: 'left' | 'right'; // Pozycja ikony PrimeVue
   }
 
-  const props = withDefaults(defineProps<Props>(), {
+  withDefaults(defineProps<Props>(), {
     type: 'button',
     size: 'md',
     disabled: false,

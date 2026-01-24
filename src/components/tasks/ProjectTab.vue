@@ -1,6 +1,5 @@
 <script setup lang="ts">
   import { ref, computed, watch } from 'vue';
-  import { useSettingsStore } from '@/stores/settings';
   import { useSurveyorsStore } from '@/stores/surveyors';
   import { useDesignersStore } from '@/stores/designers';
   import { useStageCards } from '@/composables/useStageCards';
@@ -27,7 +26,6 @@
   const props = defineProps<Props>();
 
   // Stores
-  const settingsStore = useSettingsStore();
   const surveyorsStore = useSurveyorsStore();
   const designersStore = useDesignersStore();
 

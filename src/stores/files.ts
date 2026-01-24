@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import { defineStore } from 'pinia';
 import type { File, CategorizedFile, FileType, FileCategory } from '../types/File';
 import type { TaskType } from '../types/TaskType';
@@ -10,16 +10,6 @@ const STORAGE_KEY = 'gas-manager:files';
 // Funkcja pomocnicza do generowania daty w przeszłości
 function randomPastDate(daysAgo: number = 365): Date {
   return new Date(Date.now() - Math.random() * daysAgo * 24 * 60 * 60 * 1000);
-}
-
-// Funkcja pomocnicza do generowania losowego TaskType
-function generateTaskType(): TaskType {
-  const types: TaskType[] = [
-    { name: 'GAS_CONNECTION', viewName: 'przylacze' },
-    { name: 'GAS_PIPELINE', viewName: 'gazociag' },
-    { name: 'GAS_INTERNAL', viewName: 'wewnetrzna' },
-  ];
-  return types[Math.floor(Math.random() * types.length)];
 }
 
 // Mockowani użytkownicy
@@ -71,15 +61,6 @@ function getRandomUser(): User {
   return mockUsers[Math.floor(Math.random() * mockUsers.length)];
 }
 
-// Funkcja pomocnicza do formatowania rozmiaru pliku
-function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 Bytes';
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
-}
-
 // Funkcja pomocnicza do generowania losowego typu pliku
 function getRandomFileType(): FileType {
   const types: FileType[] = ['PDF', 'DOCX', 'JPG', 'PNG', 'DWG', 'XLSX', 'ZIP'];
@@ -95,6 +76,7 @@ function generateFileName(type: FileType, index: number): string {
     PNG: ['Schemat', 'Rysunek', 'Wykres'],
     DWG: ['Rzut_piwnic', 'Schemat_aksonometryczny', 'Plan_Sytuacyjny'],
     XLSX: ['Kalkulacja', 'Tabela_Kosztów', 'Wykaz_Materiałów'],
+    XLS: ['Kalkulacja', 'Tabela_Kosztów', 'Wykaz_Materiałów'],
     ZIP: ['Archiwum', 'Backup', 'Kopia_Zapasowa'],
     DOC: [],
     JPEG: [],
@@ -119,6 +101,7 @@ function generateFileSize(type: FileType): number {
     PNG: [200000, 3000000], // 0.2 - 3 MB
     DWG: [1000000, 20000000], // 1 - 20 MB
     XLSX: [50000, 1000000], // 0.05 - 1 MB
+    XLS: [50000, 1000000], // 0.05 - 1 MB
     ZIP: [1000000, 10000000], // 1 - 10 MB
     DOC: [100000, 2000000],
     JPEG: [500000, 5000000],
@@ -133,7 +116,7 @@ function generateFileSize(type: FileType): number {
 }
 
 // Funkcja pomocnicza do generowania opisu pliku
-function generateDescription(type: FileType, name: string): string {
+function generateDescription(type: FileType, _name: string): string {
   const descriptions: Record<FileType, string[]> = {
     PDF: [
       'Zaktualizowany podkład geodezyjny',
@@ -156,6 +139,7 @@ function generateDescription(type: FileType, name: string): string {
     PNG: ['Schemat techniczny instalacji', 'Rysunek poglądowy', 'Wykres zależności'],
     DWG: ['Rysunek techniczny w formacie CAD', 'Plan sytuacyjny z warstwami', 'Schemat instalacji gazowej'],
     XLSX: ['Kalkulacja kosztów materiałów', 'Tabela z wykazem elementów', 'Wykaz materiałów i ilości'],
+    XLS: ['Kalkulacja kosztów materiałów', 'Tabela z wykazem elementów', 'Wykaz materiałów i ilości'],
     ZIP: ['Archiwum z dokumentacją', 'Kopia zapasowa plików', 'Komplet dokumentów projektu'],
     DOC: [],
     JPEG: [],

@@ -54,7 +54,7 @@ class SettingsService {
    */
   updateModuleSetting<T extends AppDefaultSettings>(
     moduleName: string,
-    updateFn: (settings: T | null) => Partial<T['defaults']>
+    updateFn: (settings: T | null) => Partial<T extends { defaults: infer D } ? D : never>
   ): void {
     const currentSettings = this.getModuleSettings<T>(moduleName);
     const updatedDefaults = updateFn(currentSettings);
@@ -66,13 +66,18 @@ class SettingsService {
         version: '1.0.0',
         updatedAt: new Date().toISOString(),
         defaults: updatedDefaults,
-      } as T;
+      } as unknown as T;
       this.saveModuleSettings(newSettings);
       return;
     }
 
-    // Aktualizujemy istniejące ustawienia
-    currentSettings.defaults = { ...currentSettings.defaults, ...updatedDefaults };
+    // Aktualizujemy istniejące ustawienia tylko jeśli mają właściwość defaults
+    if ('defaults' in currentSettings && typeof currentSettings === 'object' && currentSettings !== null) {
+      const settingsWithDefaults = currentSettings as T & { defaults: Record<string, unknown> };
+      if (settingsWithDefaults.defaults) {
+        settingsWithDefaults.defaults = { ...settingsWithDefaults.defaults, ...updatedDefaults };
+      }
+    }
     this.saveModuleSettings(currentSettings);
   }
 

@@ -3,7 +3,6 @@
   import { LMap, LTileLayer, LMarker } from '@vue-leaflet/vue-leaflet';
   import 'leaflet/dist/leaflet.css';
   import L from 'leaflet';
-  import { MapPinIcon } from '@heroicons/vue/24/outline';
 
   // Fix dla domyślnej ikony markera w Leaflet
   delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -44,14 +43,6 @@
     { immediate: true }
   );
 
-  // Kontrolki zoom
-  const zoomIn = () => {
-    zoom.value = Math.min(zoom.value + 1, 18);
-  };
-
-  const zoomOut = () => {
-    zoom.value = Math.max(zoom.value - 1, 1);
-  };
 
   onMounted(() => {
     if (props.latitude && props.longitude) {
