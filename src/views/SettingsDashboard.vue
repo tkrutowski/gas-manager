@@ -486,6 +486,12 @@
             </section>
           </div>
         </div>
+
+        <p
+          class="mt-10 text-center text-xl md:text-2xl font-medium text-surface-600 dark:text-surface-400 max-w-3xl mx-auto leading-relaxed"
+        >
+          To są przykładowe kafelki. Niektóre zostaną usunięte, pojawią się również nowe.
+        </p>
       </main>
     </div>
   </div>
