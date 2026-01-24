@@ -99,9 +99,9 @@
       case 'customerType':
         return row.customerType === 'person' ? 'Osoba' : 'Firma';
       case 'email':
-        return row.email ?? '';
+        return row.emails?.[0] ?? '';
       case 'phone':
-        return row.phone ?? '';
+        return row.phones?.[0] ?? '';
       case 'nip':
         return row.nip ?? '';
       case 'regon':
@@ -270,7 +270,7 @@
     <ConfirmPopup />
     <SidebarMenu :menu-items="customersMenuItems" />
 
-    <div class="flex-1 overflow-y-auto p-6">
+    <div class="flex-1 overflow-y-auto p-1 md:p-6">
       <div class="max-w-full mx-auto">
         <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -284,13 +284,14 @@
                 text
                 severity="primary"
                 title="Przełącz na widok kafelków"
+                class="grid-view-button"
               />
             </router-link>
           </div>
         </div>
 
         <div
-          class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-6"
+          class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-1 md:p-6"
         >
           <CustomersToolbar
             :selected-filter="selectedFilter"
@@ -402,3 +403,9 @@
     />
   </div>
 </template>
+
+<style scoped>
+.grid-view-button :deep(.p-button-icon) {
+  font-size: 1.5rem;
+}
+</style>

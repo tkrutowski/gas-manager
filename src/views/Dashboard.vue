@@ -15,6 +15,7 @@
     SunIcon,
     ListBulletIcon,
     Squares2X2Icon,
+    PlusIcon,
   } from '@heroicons/vue/24/outline';
 
   const router = useRouter();
@@ -207,7 +208,7 @@
         >
           <button
             type="button"
-            class="absolute inset-0 rounded-xl text-left"
+            class="absolute inset-0 rounded-xl text-left cursor-pointer"
             aria-label="Otwórz moduł"
             @click="handleModuleClick(module.route)"
           />
@@ -219,26 +220,34 @@
             ADMIN
           </span>
 
-          <!-- Lista / Kafelki (Klienci) -->
+          <!-- Dodaj klienta / Lista / Kafelki (Klienci) -->
           <div
             v-if="module.listRoute && module.gridRoute && module.listIcon && module.gridIcon"
             class="absolute top-4 right-4 flex gap-1 z-10"
           >
             <button
               type="button"
-              class="p-1.5 rounded-lg bg-surface-200 dark:bg-surface-700 hover:bg-surface-300 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 transition-colors"
-              title="Lista"
-              @click.stop="handleModuleClick(module.listRoute)"
+              class="p-1.5 rounded-lg bg-surface-200 dark:bg-surface-700 hover:bg-surface-300 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 transition-colors cursor-pointer"
+              title="Dodaj nowego klienta"
+              @click.stop="handleModuleClick('/customers/new')"
             >
-              <component :is="module.listIcon" class="w-5 h-5" />
+              <PlusIcon class="w-5 h-5 text-yellow-400" />
             </button>
             <button
               type="button"
-              class="p-1.5 rounded-lg bg-surface-200 dark:bg-surface-700 hover:bg-surface-300 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 transition-colors"
+              class="p-1.5 rounded-lg bg-surface-200 dark:bg-surface-700 hover:bg-surface-300 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 transition-colors cursor-pointer"
+              title="Lista"
+              @click.stop="handleModuleClick(module.listRoute)"
+            >
+              <component :is="module.listIcon" class="w-5 h-5 text-yellow-400" />
+            </button>
+            <button
+              type="button"
+              class="p-1.5 rounded-lg bg-surface-200 dark:bg-surface-700 hover:bg-surface-300 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 transition-colors cursor-pointer"
               title="Kafelki"
               @click.stop="handleModuleClick(module.gridRoute)"
             >
-              <component :is="module.gridIcon" class="w-5 h-5" />
+              <component :is="module.gridIcon" class="w-5 h-5 text-yellow-400" />
             </button>
           </div>
 

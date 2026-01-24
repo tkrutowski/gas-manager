@@ -8,9 +8,11 @@
   import FinanceTab from '@/components/tasks/FinanceTab.vue';
   import WorkRangeTab from '@/components/tasks/WorkRangeTab.vue';
   import FilesTab from '@/components/tasks/FilesTab.vue';
+  import CustomerDetailsDialog from '@/components/customers/CustomerDetailsDialog.vue';
   import { useGasConnectionsStore } from '@/stores/gasConnections';
   import type { GasConnection } from '@/types/GasConnection';
   import { getPersonDisplayName, formatDate, formatMoney } from '@/utils/tableFormatters';
+  import { EyeIcon } from '@heroicons/vue/24/outline';
   import Tabs from 'primevue/tabs';
   import TabList from 'primevue/tablist';
   import Tab from 'primevue/tab';
@@ -25,6 +27,7 @@
   const gasConnection = ref<GasConnection | undefined>(undefined);
   const isReadonly = computed(() => route.query.readonly === 'true');
   const activeTab = ref<string>('projekt');
+  const showCustomerDetailsDialog = ref(false);
 
   onMounted(() => {
     const id = route.query.id;
@@ -71,6 +74,18 @@
     }
     return parts.join(', ') || '-';
   });
+
+  // Funkcja do otwierania dialogu szczegółów klienta
+  const openCustomerDetails = () => {
+    if (gasConnection.value?.customer) {
+      showCustomerDetailsDialog.value = true;
+    }
+  };
+
+  // Funkcja do zamykania dialogu
+  const closeCustomerDetails = () => {
+    showCustomerDetailsDialog.value = false;
+  };
 </script>
 
 <template>
@@ -114,9 +129,20 @@
               <div class="grid grid-cols-1 gap-2">
                 <div>
                   <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1"> Nazwisko </label>
-                  <p class="text-sm font-semibold text-surface-700 dark:text-surface-300">
-                    {{ customerName }}
-                  </p>
+                  <div class="flex items-center gap-2">
+                    <p class="text-sm font-semibold text-surface-700 dark:text-surface-300">
+                      {{ customerName }}
+                    </p>
+                    <button
+                      v-if="gasConnection?.customer"
+                      type="button"
+                      @click="openCustomerDetails"
+                      class="w-8 h-8 inline-flex items-center justify-center rounded-full text-xs font-medium transition-colors hover:bg-surface-100 dark:hover:bg-surface-800 cursor-pointer"
+                      title="Zobacz szczegóły klienta"
+                    >
+                      <EyeIcon class="w-5 h-5 text-yellow-400" />
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1"> Gmina / Miasto </label>
@@ -274,5 +300,12 @@
         </div>
       </div>
     </div>
+
+    <!-- Customer Details Dialog -->
+    <CustomerDetailsDialog
+      v-if="showCustomerDetailsDialog && gasConnection?.customer"
+      :customer="gasConnection.customer"
+      @close="closeCustomerDetails"
+    />
   </div>
 </template>

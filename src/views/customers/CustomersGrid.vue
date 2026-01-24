@@ -1,9 +1,9 @@
 <script setup lang="ts">
   import { ref, computed, onMounted } from 'vue';
-  import { useRouter } from 'vue-router';
   import SidebarMenu from '@/components/SidebarMenu.vue';
   import CustomerFormDialog from '@/components/customers/CustomerFormDialog.vue';
   import CustomerInfoDialog from '@/components/customers/CustomerInfoDialog.vue';
+  import CustomerDetailsDialog from '@/components/customers/CustomerDetailsDialog.vue';
   import CustomerTableSettingsDialog from '@/components/customers/CustomerTableSettingsDialog.vue';
   import CustomersToolbar from '@/components/customers/CustomersToolbar.vue';
   import DataView from 'primevue/dataview';
@@ -24,9 +24,9 @@
     UserGroupIcon,
     ListBulletIcon,
     Squares2X2Icon,
+    EyeIcon,
   } from '@heroicons/vue/24/outline';
 
-  const router = useRouter();
   const customersStore = useCustomersStore();
   const settingsStore = useSettingsStore();
   const confirm = useConfirm();
@@ -47,7 +47,9 @@
   const showSettingsDialog = ref(false);
   const showFormDialog = ref(false);
   const showInfoDialog = ref(false);
+  const showDetailsDialog = ref(false);
   const customerForEdit = ref<Customer | null>(null);
+  const customerForDetails = ref<Customer | null>(null);
   const customers = ref<Customer[]>([]);
   const globalSearchQuery = ref('');
 
@@ -98,9 +100,9 @@
       case 'customerType':
         return row.customerType === 'person' ? 'Osoba' : 'Firma';
       case 'email':
-        return row.email ?? '';
+        return row.emails?.[0] ?? '';
       case 'phone':
-        return row.phone ?? '';
+        return row.phones?.[0] ?? '';
       case 'nip':
         return row.nip ?? '';
       case 'regon':
@@ -153,13 +155,15 @@
   }
 
   function handleCall(c: Customer) {
-    if (!c.phone) return;
-    window.location.href = `tel:${c.phone.replace(/\s+/g, '')}`;
+    const phone = c.phones?.[0];
+    if (!phone) return;
+    window.location.href = `tel:${phone.replace(/\s+/g, '')}`;
   }
 
   function handleEmail(c: Customer) {
-    if (!c.email) return;
-    window.location.href = `mailto:${c.email}`;
+    const email = c.emails?.[0];
+    if (!email) return;
+    window.location.href = `mailto:${email}`;
   }
 
   function openDialogNew() {
@@ -193,6 +197,16 @@
 
   function handleOpenInfo() {
     showInfoDialog.value = true;
+  }
+
+  function handleOpenDetails(c: Customer) {
+    customerForDetails.value = c;
+    showDetailsDialog.value = true;
+  }
+
+  function onDetailsClose() {
+    showDetailsDialog.value = false;
+    customerForDetails.value = null;
   }
 
   function handleOpenSettings() {
@@ -285,7 +299,7 @@
     <ConfirmPopup />
     <SidebarMenu :menu-items="customersMenuItems" />
 
-    <div class="flex-1 overflow-hidden p-6">
+    <div class="flex-1 overflow-hidden p-1 md:p-6">
       <div class="max-w-full mx-auto space-y-6">
         <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
@@ -301,13 +315,14 @@
                 text
                 severity="primary"
                 title="Przełącz na widok listy"
+                class="list-view-button"
               />
             </router-link>
           </div>
         </div>
 
         <div
-          class="bg-surface-0 dark:bg-surface-950 border border-surface-200 dark:border-surface-700 rounded-xl p-6"
+          class="bg-surface-0 dark:bg-surface-950 border border-surface-200 dark:border-surface-700 rounded-xl p-1 md:p-6"
         >
           <CustomersToolbar
             :selected-filter="selectedFilter"
@@ -382,43 +397,53 @@
                     <div class="space-y-1.5 text-xs text-surface-500 dark:text-surface-400 mb-4">
                       <div class="flex items-center gap-2">
                         <PhoneIcon class="w-4 h-4" />
-                        <span class="truncate">{{ c.phone || 'Brak telefonu' }}</span>
+                        <span class="truncate">{{ c.phones?.[0] || 'Brak telefonu' }}</span>
                       </div>
                       <div class="flex items-center gap-2">
                         <EnvelopeIcon class="w-4 h-4" />
-                        <span class="truncate">{{ c.email || 'Brak email' }}</span>
+                        <span class="truncate">{{ c.emails?.[0] || 'Brak email' }}</span>
                       </div>
                     </div>
 
                     <div
-                      class="mt-auto pt-3 border-t border-surface-200 dark:border-surface-700 flex items-center justify-end gap-1.5"
+                      class="mt-auto pt-3 border-t border-surface-200 dark:border-surface-700 flex items-center justify-between gap-1.5"
                     >
                       <button
                         type="button"
-                        class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-xs font-medium transition-colors"
-                        :class="[
-                          c.phone
-                            ? 'bg-green-700 text-white hover:bg-green-600 cursor-pointer'
-                            : 'bg-surface-200 dark:bg-surface-800 text-surface-400 cursor-not-allowed',
-                        ]"
-                        :disabled="!c.phone"
-                        @click.stop="handleCall(c)"
+                        class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-xs font-medium transition-colors bg-primary-500 text-surface-900 hover:bg-primary-600 cursor-pointer"
+                        title="Zobacz szczegóły"
+                        @click.stop="handleOpenDetails(c)"
                       >
-                        <PhoneIcon class="w-4 h-4" />
+                        <EyeIcon class="w-4 h-4" />
                       </button>
-                      <button
-                        type="button"
-                        class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-xs font-medium transition-colors"
-                        :class="[
-                          c.email
-                            ? 'bg-sky-700 text-white hover:bg-sky-600 cursor-pointer'
-                            : 'bg-surface-200 dark:bg-surface-800 text-surface-400 cursor-not-allowed',
-                        ]"
-                        :disabled="!c.email"
-                        @click.stop="handleEmail(c)"
-                      >
-                        <EnvelopeIcon class="w-4 h-4" />
-                      </button>
+                      <div class="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-xs font-medium transition-colors"
+                          :class="[
+                            c.phones?.length
+                              ? 'bg-green-700 text-white hover:bg-green-600 cursor-pointer'
+                              : 'bg-surface-200 dark:bg-surface-800 text-surface-400 cursor-not-allowed',
+                          ]"
+                          :disabled="!c.phones?.length"
+                          @click.stop="handleCall(c)"
+                        >
+                          <PhoneIcon class="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-xs font-medium transition-colors"
+                          :class="[
+                            c.emails?.length
+                              ? 'bg-sky-700 text-white hover:bg-sky-600 cursor-pointer'
+                              : 'bg-surface-200 dark:bg-surface-800 text-surface-400 cursor-not-allowed',
+                          ]"
+                          :disabled="!c.emails?.length"
+                          @click.stop="handleEmail(c)"
+                        >
+                          <EnvelopeIcon class="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </button>
@@ -455,5 +480,17 @@
       @update:visible="showInfoDialog = $event"
       @close="showInfoDialog = false"
     />
+
+    <CustomerDetailsDialog
+      v-if="showDetailsDialog && customerForDetails"
+      :customer="customerForDetails"
+      @close="onDetailsClose"
+    />
   </div>
 </template>
+
+<style scoped>
+.list-view-button :deep(.p-button-icon) {
+  font-size: 1.5rem;
+}
+</style>

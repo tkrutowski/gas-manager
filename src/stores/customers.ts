@@ -76,6 +76,25 @@ function generateKRS(): string {
 // Klucz localStorage dla klientów
 const STORAGE_KEY = 'gas-manager:customers';
 
+// Funkcja migracji danych - konwertuje stare dane z phone/email na phones/emails
+function migrateCustomerData(customers: any[]): Customer[] {
+  return customers.map((c: any) => {
+    // Jeśli klient ma stare pola phone/email, skonwertuj je na tablice
+    if (c.phone && !c.phones) {
+      c.phones = [c.phone];
+      delete c.phone;
+    }
+    if (c.email && !c.emails) {
+      c.emails = [c.email];
+      delete c.email;
+    }
+    // Upewnij się, że phones i emails są tablicami (lub undefined)
+    if (!c.phones) c.phones = [];
+    if (!c.emails) c.emails = [];
+    return c as Customer;
+  });
+}
+
 // Funkcja pomocnicza do ładowania danych z localStorage
 function loadFromLocalStorage(): Customer[] | null {
   try {
@@ -87,7 +106,11 @@ function loadFromLocalStorage(): Customer[] | null {
       return null;
     }
     const parsed = JSON.parse(stored);
-    return Array.isArray(parsed) ? parsed : null;
+    if (!Array.isArray(parsed)) {
+      return null;
+    }
+    // Migruj stare dane do nowego formatu
+    return migrateCustomerData(parsed);
   } catch (err) {
     console.warn('Błąd podczas ładowania klientów z localStorage:', err);
     return null;
@@ -167,16 +190,24 @@ function generateMockCustomers(): Customer[] {
   for (let i = 0; i < 50; i++) {
     const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
     const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-    const phone = generatePhone();
-    const email = generateEmail(firstName, lastName);
+    const phones: string[] = [generatePhone()];
+    // 30% osób ma dodatkowy telefon
+    if (Math.random() > 0.7) {
+      phones.push(generatePhone());
+    }
+    const emails: string[] = [generateEmail(firstName, lastName)];
+    // 20% osób ma dodatkowy email
+    if (Math.random() > 0.8) {
+      emails.push(generateEmail(firstName, lastName));
+    }
 
     customers.push({
       id: id++,
       customerType: 'person',
       firstName,
       lastName,
-      phone,
-      email,
+      phones,
+      emails,
       info:
         Math.random() > 0.5
           ? `Klient indywidualny, preferowany kontakt: ${Math.random() > 0.5 ? 'telefon' : 'email'}`
@@ -191,8 +222,20 @@ function generateMockCustomers(): Customer[] {
   // Generowanie 50 firm
   for (let i = 0; i < 50; i++) {
     const companyName = companyNames[Math.floor(Math.random() * companyNames.length)];
-    const phone = generatePhone();
-    const email = generateEmail(undefined, undefined, companyName);
+    const phones: string[] = [generatePhone()];
+    // 50% firm ma dodatkowy telefon (biuro, dział handlowy)
+    if (Math.random() > 0.5) {
+      phones.push(generatePhone());
+    }
+    // 10% firm ma trzeci telefon
+    if (Math.random() > 0.9) {
+      phones.push(generatePhone());
+    }
+    const emails: string[] = [generateEmail(undefined, undefined, companyName)];
+    // 40% firm ma dodatkowy email (biuro, dział handlowy)
+    if (Math.random() > 0.6) {
+      emails.push(generateEmail(undefined, undefined, companyName));
+    }
     const nip = generateNIP();
     const regon = generateREGON();
 
@@ -203,8 +246,8 @@ function generateMockCustomers(): Customer[] {
       nip,
       regon,
       krs: Math.random() > 0.4 ? generateKRS() : undefined, // 60% ma KRS
-      phone,
-      email,
+      phones,
+      emails,
       info: Math.random() > 0.4 ? `Firma działająca od ${2000 + Math.floor(Math.random() * 24)} roku` : undefined,
       address: generateMockAddress(id),
       status: Math.random() > 0.15, // 85% aktywnych
@@ -384,18 +427,22 @@ export const useCustomersStore = defineStore('customers', () => {
 
     const lowerQuery = query.toLowerCase();
     return customers.value.filter(c => {
+      // Obsługa kompatybilności wstecznej - sprawdź czy są stare dane z phone/email jako string
+      const phones = c.phones || (c.phone ? [c.phone] : []);
+      const emails = c.emails || (c.email ? [c.email] : []);
+      
       if (c.customerType === 'person') {
         return (
           c.firstName?.toLowerCase().includes(lowerQuery) ||
           c.lastName?.toLowerCase().includes(lowerQuery) ||
-          c.email.toLowerCase().includes(lowerQuery) ||
-          c.phone.includes(query)
+          emails.some(e => e.toLowerCase().includes(lowerQuery)) ||
+          phones.some(p => p.includes(query))
         );
       } else {
         return (
           c.companyName?.toLowerCase().includes(lowerQuery) ||
-          c.email.toLowerCase().includes(lowerQuery) ||
-          c.phone.includes(query) ||
+          emails.some(e => e.toLowerCase().includes(lowerQuery)) ||
+          phones.some(p => p.includes(query)) ||
           c.nip?.includes(query) ||
           c.regon?.includes(query)
         );

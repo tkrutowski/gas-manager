@@ -2,7 +2,7 @@
   import { ref, watch } from 'vue';
   import { useCustomersStore } from '@/stores/customers.ts';
   import type { Customer } from '@/types/Customer.ts';
-  import { UserIcon, PhoneIcon, MapPinIcon, DocumentTextIcon } from '@heroicons/vue/24/outline';
+  import { UserIcon, PhoneIcon, MapPinIcon, DocumentTextIcon, EnvelopeIcon, TrashIcon } from '@heroicons/vue/24/outline';
   import SecondaryButton from '@/components/SecondaryButton.vue';
   import PrimaryButton from '@/components/PrimaryButton.vue';
 
@@ -27,8 +27,8 @@
     nip: '',
     regon: '',
     krs: '',
-    phone: '',
-    email: '',
+    phones: [],
+    emails: [],
     info: '',
     address: {
       id: 0,
@@ -47,9 +47,16 @@
     () => props.customer,
     (c) => {
       if (c) {
+        // Obsługa kompatybilności wstecznej - jeśli są stare dane z phone/email jako string
+        const oldCustomer = c as any;
+        const phones = c.phones || (oldCustomer.phone ? [oldCustomer.phone] : []);
+        const emails = c.emails || (oldCustomer.email ? [oldCustomer.email] : []);
+        
         formData.value = {
           ...defaultFormData(),
           ...c,
+          phones: [...phones],
+          emails: [...emails],
           address: c.address
             ? {
                 ...c.address,
@@ -87,13 +94,14 @@
       }
     }
 
-    // Telefon i email są opcjonalne, ale jeśli są wypełnione, email musi mieć poprawny format
-    if (
-      formData.value.email &&
-      formData.value.email.trim() &&
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.value.email)
-    ) {
-      errors.value.email = 'Nieprawidłowy format email';
+    // Walidacja wszystkich emaili - każdy email musi mieć poprawny format
+    if (formData.value.emails && formData.value.emails.length > 0) {
+      const invalidEmails = formData.value.emails.filter(
+        (email) => email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+      );
+      if (invalidEmails.length > 0) {
+        errors.value.emails = 'Niektóre adresy email mają nieprawidłowy format';
+      }
     }
 
     if (!formData.value.address?.commune?.trim()) {
@@ -123,20 +131,27 @@
 
     const id = props.customer?.id;
     try {
+      // Usuń puste telefony i emaile przed zapisem
+      const cleanedData = {
+        ...formData.value,
+        phones: formData.value.phones?.filter(phone => phone.trim() !== '') || [],
+        emails: formData.value.emails?.filter(email => email.trim() !== '') || [],
+      };
+
       if (id != null) {
         const updated = customersStore.updateCustomer(id, {
-          customerType: formData.value!.customerType!,
-          firstName: formData.value!.firstName,
-          lastName: formData.value!.lastName,
-          companyName: formData.value!.companyName,
-          nip: formData.value!.nip,
-          regon: formData.value!.regon,
-          krs: formData.value!.krs,
-          phone: formData.value!.phone,
-          email: formData.value!.email,
-          info: formData.value!.info,
-          address: formData.value!.address!,
-          status: formData.value!.status!,
+          customerType: cleanedData.customerType!,
+          firstName: cleanedData.firstName,
+          lastName: cleanedData.lastName,
+          companyName: cleanedData.companyName,
+          nip: cleanedData.nip,
+          regon: cleanedData.regon,
+          krs: cleanedData.krs,
+          phones: cleanedData.phones,
+          emails: cleanedData.emails,
+          info: cleanedData.info,
+          address: cleanedData.address!,
+          status: cleanedData.status!,
         });
         if (updated) {
           emit('customerUpdated', updated);
@@ -145,7 +160,7 @@
         }
       } else {
         const newCustomer = customersStore.addCustomer(
-          formData.value as Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>
+          cleanedData as Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>
         );
         emit('customerAdded', newCustomer);
         visible.value = false;
@@ -159,6 +174,44 @@
   const handleClose = () => {
     visible.value = false;
     emit('close');
+  };
+
+  const handleAddPhone = () => {
+    if (!formData.value.phones) {
+      formData.value.phones = [];
+    }
+    // Sprawdź czy ostatni telefon nie jest pusty
+    const lastPhone = formData.value.phones[formData.value.phones.length - 1];
+    if (lastPhone && lastPhone.trim() !== '') {
+      formData.value.phones.push('');
+    } else if (formData.value.phones.length === 0) {
+      formData.value.phones.push('');
+    }
+  };
+
+  const handleRemovePhone = (index: number) => {
+    if (formData.value.phones) {
+      formData.value.phones.splice(index, 1);
+    }
+  };
+
+  const handleAddEmail = () => {
+    if (!formData.value.emails) {
+      formData.value.emails = [];
+    }
+    // Sprawdź czy ostatni email nie jest pusty
+    const lastEmail = formData.value.emails[formData.value.emails.length - 1];
+    if (lastEmail && lastEmail.trim() !== '') {
+      formData.value.emails.push('');
+    } else if (formData.value.emails.length === 0) {
+      formData.value.emails.push('');
+    }
+  };
+
+  const handleRemoveEmail = (index: number) => {
+    if (formData.value.emails) {
+      formData.value.emails.splice(index, 1);
+    }
   };
 </script>
 
@@ -269,23 +322,69 @@
           <PhoneIcon class="w-5 h-5 text-primary-400" />
           Dane Kontaktowe
         </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2"> Telefon </label>
-            <InputText
-              v-model="formData.phone"
-              class="w-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300"
-            />
+            <h3 class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">Telefony</h3>
+            <div class="space-y-2">
+              <div v-for="(phone, index) in (formData.phones || [])" :key="index" class="flex items-center gap-2">
+                <PhoneIcon class="w-4 h-4 text-primary-400" />
+                <InputText
+                  v-model="formData.phones![index]"
+                  class="flex-1 bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300"
+                />
+                <button
+                  type="button"
+                  class="p-1 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                  title="Usuń numer telefonu"
+                  @click="handleRemovePhone(index)"
+                >
+                  <TrashIcon class="w-4 h-4" />
+                </button>
+              </div>
+              <p v-if="!formData.phones || !formData.phones.length" class="text-sm text-surface-500 dark:text-surface-400">
+                Brak zdefiniowanych numerów telefonów.
+              </p>
+              <button
+                type="button"
+                class="text-xs text-primary-500 hover:text-primary-400"
+                @click="handleAddPhone"
+              >
+                + Dodaj numer telefonu
+              </button>
+            </div>
           </div>
           <div>
-            <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2"> Email </label>
-            <InputText
-              v-model="formData.email"
-              type="email"
-              :class="{ 'border-red-500': errors.email }"
-              class="w-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300"
-            />
-            <p v-if="errors.email" class="text-red-500 text-sm mt-1">{{ errors.email }}</p>
+            <h3 class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">Adresy e-mail</h3>
+            <div class="space-y-2">
+              <div v-for="(email, index) in (formData.emails || [])" :key="index" class="flex items-center gap-2">
+                <EnvelopeIcon class="w-4 h-4 text-primary-400" />
+                <InputText
+                  v-model="formData.emails![index]"
+                  type="email"
+                  :class="{ 'border-red-500': errors.emails }"
+                  class="flex-1 bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300"
+                />
+                <button
+                  type="button"
+                  class="p-1 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                  title="Usuń adres e-mail"
+                  @click="handleRemoveEmail(index)"
+                >
+                  <TrashIcon class="w-4 h-4" />
+                </button>
+              </div>
+              <p v-if="!formData.emails || !formData.emails.length" class="text-sm text-surface-500 dark:text-surface-400">
+                Brak zdefiniowanych adresów e-mail.
+              </p>
+              <button
+                type="button"
+                class="text-xs text-primary-500 hover:text-primary-400"
+                @click="handleAddEmail"
+              >
+                + Dodaj adres e-mail
+              </button>
+              <p v-if="errors.emails" class="text-red-500 text-sm mt-1">{{ errors.emails }}</p>
+            </div>
           </div>
         </div>
       </div>

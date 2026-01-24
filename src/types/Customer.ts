@@ -12,8 +12,8 @@ export interface Customer {
   regon?: string;
   krs?: string;
   // Wspólne pola:
-  phone?: string;
-  email?: string;
+  phones?: string[];
+  emails?: string[];
   info?: string;
   address: Address;
   status: boolean; // oznacza czy klient jest aktywny

@@ -42,7 +42,7 @@
 
   const noContactCount = computed(() => {
     return customersStore.customers.filter(
-      c => !(c.phone?.trim()) && !(c.email?.trim())
+      c => !(c.phones?.length) && !(c.emails?.length)
     ).length;
   });
 
