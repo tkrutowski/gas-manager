@@ -5,6 +5,7 @@ import PickList from 'primevue/picklist';
 import Select from 'primevue/select';
 import SecondaryButton from '@/components/SecondaryButton.vue';
 import PrimaryButton from '@/components/PrimaryButton.vue';
+import { ViewColumnsIcon, ArrowsUpDownIcon, FunnelIcon } from '@heroicons/vue/24/outline';
 import type { GasConnectionTableColumnConfig, GasConnectionTableFilter } from '@/types/Settings';
 
 const props = defineProps<{
@@ -165,61 +166,108 @@ const handleCancel = () => {
 </script>
 
 <template>
-  <Dialog :visible="visible" @update:visible="val => emit('update:visible', val)" modal :closable="true"
-    :draggable="false" :style="{ width: '50rem' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
-    header="Ustawienia kolumn" class="p-fluid">
-    <div class="mb-4">
-      <div class="mb-2 flex gap-4">
-        <div class="flex-1 text-center">
-          <span class="text-surface-700 dark:text-surface-300 font-semibold">Kolumny niewidoczne</span>
+  <Dialog
+    :visible="visible"
+    @update:visible="val => emit('update:visible', val)"
+    modal
+    :closable="true"
+    :draggable="false"
+    :style="{ width: '50rem' }"
+    :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
+    header="Ustawienia kolumn"
+    :pt="{
+      root: { class: '!bg-surface-0 dark:!bg-surface-950' },
+    }"
+    @hide="handleCancel"
+  >
+    <div class="space-y-6">
+      <!-- KOLUMNY -->
+      <div class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-6">
+        <h2 class="text-lg font-semibold text-surface-700 dark:text-surface-300 mb-4 flex items-center gap-2">
+          <ViewColumnsIcon class="w-5 h-5 text-primary-400" />
+          Kolumny
+        </h2>
+        <div class="mb-2 flex gap-4">
+          <div class="flex-1 text-center">
+            <span class="text-surface-700 dark:text-surface-300 font-semibold">Kolumny niewidoczne</span>
+          </div>
+          <div class="flex-1 text-center">
+            <span class="text-surface-700 dark:text-surface-300 font-semibold">Kolumny widoczne</span>
+          </div>
         </div>
-        <div class="flex-1 text-center">
-          <span class="text-surface-700 dark:text-surface-300 font-semibold">Kolumny widoczne</span>
+        <PickList
+          v-model="pickListColumns"
+          dataKey="field"
+          listStyle="height: 20rem"
+          :pt="{
+            root: { class: 'bg-surface-0 dark:bg-surface-900' },
+            sourceList: { class: 'bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700' },
+            targetList: { class: 'bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700' },
+          }"
+        >
+          <template #option="{ option }">
+            <div class="text-surface-700 dark:text-surface-300">{{ option.header }}</div>
+          </template>
+        </PickList>
+      </div>
+
+      <!-- DOMYŚLNE SORTOWANIE -->
+      <div class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-6">
+        <h2 class="text-lg font-semibold text-surface-700 dark:text-surface-300 mb-4 flex items-center gap-2">
+          <ArrowsUpDownIcon class="w-5 h-5 text-primary-400" />
+          Domyślne sortowanie
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2"> Kolumna </label>
+            <Select
+              v-model="selectedSortField"
+              :options="sortableColumns"
+              optionLabel="header"
+              optionValue="field"
+              placeholder="Wybierz kolumnę..."
+              :showClear="true"
+              class="w-full"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2"> Kierunek </label>
+            <Select
+              v-model="selectedSortOrder"
+              :options="sortOrderOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Wybierz kierunek..."
+              :showClear="false"
+              class="w-full"
+              :disabled="!selectedSortField"
+            />
+          </div>
         </div>
       </div>
-      <PickList v-model="pickListColumns" dataKey="field" listStyle="height: 20rem" :pt="{
-        root: { class: 'bg-surface-0 dark:bg-surface-900' },
-        sourceList: { class: 'bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700' },
-        targetList: { class: 'bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700' },
-      }">
-        <template #option="{ option }">
-          <div class="text-surface-700 dark:text-surface-300">{{ option.header }}</div>
-        </template>
-      </PickList>
-    </div>
 
-    <!-- Domyślne sortowanie -->
-    <div class="mb-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-      <h3 class="text-lg font-semibold text-surface-700 dark:text-surface-300 mb-4">Domyślne sortowanie</h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- DOMYŚLNY FILTR -->
+      <div class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-6">
+        <h2 class="text-lg font-semibold text-surface-700 dark:text-surface-300 mb-4 flex items-center gap-2">
+          <FunnelIcon class="w-5 h-5 text-primary-400" />
+          Domyślny filtr
+        </h2>
         <div>
-          <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2"> Kolumna </label>
-          <Select v-model="selectedSortField" :options="sortableColumns" optionLabel="header" optionValue="field"
-            placeholder="Wybierz kolumnę..." :showClear="true" class="w-full" />
+          <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2"> Filtr </label>
+          <Select
+            v-model="selectedFilter"
+            :options="filterOptions"
+            optionLabel="label"
+            optionValue="value"
+            class="w-full"
+          />
         </div>
-        <div>
-          <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2"> Kierunek </label>
-          <Select v-model="selectedSortOrder" :options="sortOrderOptions" optionLabel="label" optionValue="value"
-            placeholder="Wybierz kierunek..." :showClear="false" class="w-full" :disabled="!selectedSortField" />
-        </div>
-      </div>
-    </div>
-
-    <!-- Domyślny filtr -->
-    <div class="mb-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-      <h3 class="text-lg font-semibold text-surface-700 dark:text-surface-300 mb-4">Domyślny filtr</h3>
-      <div>
-        <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2"> Filtr </label>
-        <Select v-model="selectedFilter" :options="filterOptions" optionLabel="label" optionValue="value"
-          class="w-full" />
       </div>
     </div>
 
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <SecondaryButton type="button" text="Anuluj" @click="handleCancel" size="lg" />
-        <PrimaryButton type="button" @click="handleSave" text="Zapisz" size="lg" icon="pi pi-check" iconPos="left" />
-      </div>
+      <SecondaryButton type="button" text="Anuluj" @click="handleCancel" size="lg" />
+      <PrimaryButton type="button" @click="handleSave" text="Zapisz" size="lg" />
     </template>
   </Dialog>
 </template>
