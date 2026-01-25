@@ -2,8 +2,8 @@
   import { ref, onMounted } from 'vue';
   import { useRouter } from 'vue-router';
   import { EyeIcon, EyeSlashIcon, MoonIcon, SunIcon } from '@heroicons/vue/24/outline';
-  import { useAuthStore } from '../stores/auth';
-  import type { User } from '../types/User';
+  import { useAuthStore } from '@/stores/auth';
+  import type { User } from '@/types/User';
 
   const router = useRouter();
   const authStore = useAuthStore();

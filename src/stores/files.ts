@@ -2,7 +2,7 @@ import { ref } from 'vue';
 import { defineStore } from 'pinia';
 import type { File, CategorizedFile, FileType, FileCategory } from '../types/File';
 import type { TaskType } from '../types/TaskType';
-import type { User } from '../types/User';
+import type { User } from '../types/User.ts';
 
 // Klucz localStorage dla plików
 const STORAGE_KEY = 'gas-manager:files';
