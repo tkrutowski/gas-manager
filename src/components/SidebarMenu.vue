@@ -35,6 +35,10 @@ interface SidebarItem {
   children: SidebarChildItem[] | null;
 }
 
+const props = defineProps<{
+  menuItems?: SidebarItem[];
+}>();
+
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
@@ -132,7 +136,7 @@ const currentModuleTitle = computed(() => {
   return 'Admin Panel';
 });
 
-const menuItems: SidebarItem[] = [
+const defaultMenuItems: SidebarItem[] = [
   {
     id: 'modules-dashboard',
     label: 'Moduły',
@@ -203,6 +207,8 @@ const menuItems: SidebarItem[] = [
   },
 ];
 
+const menuItems = computed<SidebarItem[]>(() => props.menuItems ?? defaultMenuItems);
+
 const expandedItems = ref<string[]>([]);
 
 const toggleExpand = (itemId: string) => {
@@ -232,7 +238,7 @@ const isChildActive = (children: Array<{ route: string }> | null) => {
 watch(
   () => route.path,
   () => {
-    menuItems.forEach(item => {
+    menuItems.value.forEach(item => {
       if (item.children && isChildActive(item.children)) {
         if (!expandedItems.value.includes(item.id)) {
           expandedItems.value.push(item.id);
