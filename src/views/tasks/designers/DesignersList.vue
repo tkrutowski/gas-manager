@@ -17,7 +17,6 @@
   import { formatAddress, getPersonDisplayName } from '@/utils/tableFormatters';
   import type { Designer } from '@/types/Designer';
   import type { TasksListFilter } from '@/types/Settings';
-  import { HomeIcon, Squares2X2Icon, ListBulletIcon, PlusIcon } from '@heroicons/vue/24/outline';
 
   const designersStore = useDesignersStore();
   const settingsStore = useSettingsStore();
@@ -25,14 +24,6 @@
   const route = useRoute();
 
   const MODULE_NAME = 'designerTable' as const;
-
-  const designersMenuItems = [
-    { id: 'modules-dashboard', label: 'Moduły', icon: HomeIcon, route: '/', children: null },
-    { id: 'tasks-dashboard', label: 'Pulpit zadań', icon: Squares2X2Icon, route: '/tasks', children: null },
-    { id: 'designers-new', label: 'Nowy projektant', icon: PlusIcon, route: '/tasks/designers/new', children: null },
-    { id: 'designers-list', label: 'Lista', icon: ListBulletIcon, route: '/tasks/designers/list', children: null },
-    { id: 'designers-grid', label: 'Kafelki', icon: Squares2X2Icon, route: '/tasks/designers/grid', children: null },
-  ];
 
   const designers = ref<Designer[]>([]);
   const loading = ref(false);
@@ -251,7 +242,7 @@
 <template>
   <div class="flex h-screen bg-surface-0 dark:bg-surface-950 overflow-hidden">
     <ConfirmPopup />
-    <SidebarMenu :menu-items="designersMenuItems" />
+    <SidebarMenu />
 
     <div class="flex-1 overflow-y-auto p-1 md:p-6">
       <div class="max-w-full mx-auto">

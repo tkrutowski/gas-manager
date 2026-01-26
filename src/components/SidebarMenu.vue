@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth.ts';
 import { useCompanySettingsStore } from '@/stores/companySettings.ts';
@@ -31,10 +31,6 @@ interface SidebarItem {
   route: string | null;
   children: SidebarChildItem[] | null;
 }
-
-const props = defineProps<{
-  menuItems?: SidebarItem[];
-}>();
 
 const router = useRouter();
 const route = useRoute();
@@ -133,7 +129,7 @@ const currentModuleTitle = computed(() => {
   return 'Admin Panel';
 });
 
-const defaultMenuItems: SidebarItem[] = [
+const menuItems: SidebarItem[] = [
   {
     id: 'modules-dashboard',
     label: 'Moduły',
@@ -204,8 +200,6 @@ const defaultMenuItems: SidebarItem[] = [
   },
 ];
 
-const menuItems = computed<SidebarItem[]>(() => props.menuItems ?? defaultMenuItems);
-
 const expandedItems = ref<string[]>([]);
 
 const toggleExpand = (itemId: string) => {
@@ -230,6 +224,21 @@ const isChildActive = (children: Array<{ route: string }> | null) => {
   if (!children) return false;
   return children.some(child => route.path === child.route);
 };
+
+// Auto-expand active parent item
+watch(
+  () => route.path,
+  () => {
+    menuItems.forEach(item => {
+      if (item.children && isChildActive(item.children)) {
+        if (!expandedItems.value.includes(item.id)) {
+          expandedItems.value.push(item.id);
+        }
+      }
+    });
+  },
+  { immediate: true }
+);
 
 const handleItemClick = (item: SidebarItem) => {
   if (item.children) {

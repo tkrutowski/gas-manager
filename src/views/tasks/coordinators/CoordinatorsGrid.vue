@@ -16,7 +16,7 @@
   import type { Coordinator } from '@/types/Coordinator';
   import type { TasksListFilter } from '@/types/Settings';
   import { Phase } from '@/types/GasConnection';
-  import { PhoneIcon, EnvelopeIcon, EyeIcon, HomeIcon, Squares2X2Icon, ListBulletIcon, PlusIcon } from '@heroicons/vue/24/outline';
+  import { PhoneIcon, EnvelopeIcon, EyeIcon } from '@heroicons/vue/24/outline';
 
   const coordinatorsStore = useCoordinatorsStore();
   const gasConnectionsStore = useGasConnectionsStore();
@@ -26,14 +26,6 @@
   const router = useRouter();
 
   const MODULE_NAME = 'coordinatorTable' as const;
-
-  const coordinatorsMenuItems = [
-    { id: 'modules-dashboard', label: 'Moduły', icon: HomeIcon, route: '/', children: null },
-    { id: 'tasks-dashboard', label: 'Pulpit zadań', icon: Squares2X2Icon, route: '/tasks', children: null },
-    { id: 'coordinators-new', label: 'Nowy koordynator', icon: PlusIcon, route: '/tasks/coordinators/new', children: null },
-    { id: 'coordinators-list', label: 'Lista', icon: ListBulletIcon, route: '/tasks/coordinators/list', children: null },
-    { id: 'coordinators-grid', label: 'Kafelki', icon: Squares2X2Icon, route: '/tasks/coordinators/grid', children: null },
-  ];
 
   const selectedFilter = ref<TasksListFilter>('all');
   const selectedCoordinatorId = ref<number | null>(null);
@@ -257,7 +249,7 @@
 <template>
   <div class="flex h-screen bg-surface-0 dark:bg-surface-950 overflow-hidden">
     <!-- Sidebar -->
-    <SidebarMenu :menu-items="coordinatorsMenuItems" />
+    <SidebarMenu />
 
     <!-- Main content -->
     <div class="flex-1 overflow-hidden p-1 md:p-6">

@@ -16,7 +16,7 @@
   import type { Designer } from '@/types/Designer';
   import type { TasksListFilter } from '@/types/Settings';
   import { Phase } from '@/types/GasConnection';
-  import { MapPinIcon, PhoneIcon, EnvelopeIcon, EyeIcon, HomeIcon, Squares2X2Icon, ListBulletIcon, PlusIcon } from '@heroicons/vue/24/outline';
+  import { MapPinIcon, PhoneIcon, EnvelopeIcon, EyeIcon } from '@heroicons/vue/24/outline';
 
   const designersStore = useDesignersStore();
   const gasConnectionsStore = useGasConnectionsStore();
@@ -26,14 +26,6 @@
   const router = useRouter();
 
   const MODULE_NAME = 'designerTable' as const;
-
-  const designersMenuItems = [
-    { id: 'modules-dashboard', label: 'Moduły', icon: HomeIcon, route: '/', children: null },
-    { id: 'tasks-dashboard', label: 'Pulpit zadań', icon: Squares2X2Icon, route: '/tasks', children: null },
-    { id: 'designers-new', label: 'Nowy projektant', icon: PlusIcon, route: '/tasks/designers/new', children: null },
-    { id: 'designers-list', label: 'Lista', icon: ListBulletIcon, route: '/tasks/designers/list', children: null },
-    { id: 'designers-grid', label: 'Kafelki', icon: Squares2X2Icon, route: '/tasks/designers/grid', children: null },
-  ];
 
   const selectedFilter = ref<TasksListFilter>('all');
   const selectedDesignerId = ref<number | null>(null);
@@ -255,7 +247,7 @@
 <template>
   <div class="flex h-screen bg-surface-0 dark:bg-surface-950 overflow-hidden">
     <!-- Sidebar -->
-    <SidebarMenu :menu-items="designersMenuItems" />
+    <SidebarMenu />
 
     <!-- Main content -->
     <div class="flex-1 overflow-hidden p-1 md:p-6">

@@ -16,7 +16,7 @@
   import type { DesignerTraffic } from '@/types/Designer';
   import type { TasksListFilter } from '@/types/Settings';
   import { Phase } from '@/types/GasConnection';
-  import { PhoneIcon, EnvelopeIcon, EyeIcon, HomeIcon, Squares2X2Icon, ListBulletIcon, PlusIcon } from '@heroicons/vue/24/outline';
+  import { PhoneIcon, EnvelopeIcon, EyeIcon } from '@heroicons/vue/24/outline';
 
   const designerTrafficStore = useDesignerTrafficStore();
   const gasConnectionsStore = useGasConnectionsStore();
@@ -26,14 +26,6 @@
   const router = useRouter();
 
   const MODULE_NAME = 'designerTrafficTable' as const;
-
-  const designerTrafficMenuItems = [
-    { id: 'modules-dashboard', label: 'Moduły', icon: HomeIcon, route: '/', children: null },
-    { id: 'tasks-dashboard', label: 'Pulpit zadań', icon: Squares2X2Icon, route: '/tasks', children: null },
-    { id: 'designer-traffic-new', label: 'Nowy projektant ruchu', icon: PlusIcon, route: '/tasks/designers-traffic/new', children: null },
-    { id: 'designer-traffic-list', label: 'Lista', icon: ListBulletIcon, route: '/tasks/designers-traffic/list', children: null },
-    { id: 'designer-traffic-grid', label: 'Kafelki', icon: Squares2X2Icon, route: '/tasks/designers-traffic/grid', children: null },
-  ];
 
   const selectedFilter = ref<TasksListFilter>('all');
   const selectedDesignerTrafficId = ref<number | null>(null);
@@ -88,9 +80,9 @@
     }
 
     if (globalSearchQuery.value.trim()) {
-      base = designerTrafficStore.searchDesignerTraffic(globalSearchQuery.value.trim()).filter(d =>
-        base.some(bd => bd.id === d.id)
-      );
+      base = designerTrafficStore
+        .searchDesignerTraffic(globalSearchQuery.value.trim())
+        .filter(d => base.some(bd => bd.id === d.id));
     }
 
     return base;
@@ -108,7 +100,10 @@
 
   const handleFilterChange = (filter: TasksListFilter) => {
     selectedFilter.value = filter;
-    if (selectedDesignerTrafficId.value != null && !filteredItems.value.some(d => d.id === selectedDesignerTrafficId.value)) {
+    if (
+      selectedDesignerTrafficId.value != null &&
+      !filteredItems.value.some(d => d.id === selectedDesignerTrafficId.value)
+    ) {
       selectedDesignerTrafficId.value = null;
     }
   };
@@ -257,7 +252,7 @@
 <template>
   <div class="flex h-screen bg-surface-0 dark:bg-surface-950 overflow-hidden">
     <!-- Sidebar -->
-    <SidebarMenu :menu-items="designerTrafficMenuItems" />
+    <SidebarMenu />
 
     <!-- Main content -->
     <div class="flex-1 overflow-hidden p-1 md:p-6">
@@ -346,8 +341,8 @@
         >
           <DataView :value="filteredItems" layout="grid" :data-key="'id'">
             <template #grid="slotProps">
-              <div class="overflow-y-auto" style="max-height: calc(100vh - 320px);">
-                <div class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+              <div class="overflow-y-auto" style="max-height: calc(100vh - 320px)">
+                <div class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))">
                   <button
                     v-for="item in slotProps.items"
                     :key="item.id"
@@ -477,11 +472,7 @@
     />
 
     <!-- Dialog informacji -->
-    <TasksListInfoDialog
-      v-model:visible="showInfoDialog"
-      :entity="selectedItem"
-      entity-type="designerTraffic"
-    />
+    <TasksListInfoDialog v-model:visible="showInfoDialog" :entity="selectedItem" entity-type="designerTraffic" />
 
     <!-- Confirm Popup -->
     <ConfirmPopup />
@@ -489,7 +480,7 @@
 </template>
 
 <style scoped>
-.list-view-button :deep(.p-button-icon) {
-  font-size: 1.5rem;
-}
+  .list-view-button :deep(.p-button-icon) {
+    font-size: 1.5rem;
+  }
 </style>
