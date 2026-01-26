@@ -25,7 +25,7 @@
   const userName = computed(() => authStore.getFirstName() || authStore.user?.name || 'Użytkowniku');
   const userRole = computed(() => authStore.user?.role || 'Użytkownik');
 
-  const appName = computed(() => companySettingsStore.appInfo?.appName || 'GasManager Pro');
+  const appName = computed(() => companySettingsStore.appInfo?.appName || 'GasManager');
   const appVersion = computed(() => companySettingsStore.appInfo?.appVersion || '2.4.0');
 
   const modules = [

@@ -773,8 +773,8 @@ watch(
                     <!-- Panel informacji o wybranym przyłączu -->
                     <div v-if="selectedRow"
                         class="flex-1 bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-4">
-                        <h2 class="text-lg font-semibold text-surface-700 dark:text-surface-300 mb-3">Informacje o
-                            przyłączu</h2>
+                        <!-- <h2 class="text-lg font-semibold text-surface-700 dark:text-surface-300 mb-3">Informacje o
+                            przyłączu</h2> -->
                         <div class="flex gap-6 text-sm">
                             <div class="flex flex-col">
                                 <span

@@ -148,6 +148,20 @@ export interface CustomerTableSettings extends ModuleSettings {
 }
 
 /**
+ * Typ filtru dla list tasks (projektanci, koordynatorzy, geodeci, projektanci ruchu)
+ */
+export type TasksListFilter = 'all' | 'active' | 'inactive' | 'favorites';
+
+/**
+ * Ustawienia tabeli dla list tasks (projektanci, koordynatorzy, geodeci, projektanci ruchu)
+ */
+export interface TasksListTableSettings extends ModuleSettings {
+  moduleName: 'designerTable' | 'coordinatorTable' | 'surveyorTable' | 'designerTrafficTable';
+  defaultFilter?: TasksListFilter;
+  favoriteIds?: number[];
+}
+
+/**
  * Unia typów dla wszystkich modułów (łatwe rozszerzanie)
  */
 export type AppDefaultSettings =
@@ -155,6 +169,7 @@ export type AppDefaultSettings =
   | GasConnectionTableSettings
   | GasConnectionStageSettings
   | CustomerTableSettings
+  | TasksListTableSettings
   | CompanySettings
   | AppInfoSettings; // | OtherModuleSettings | ...
 

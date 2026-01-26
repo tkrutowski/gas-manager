@@ -39,7 +39,7 @@ function createDefaultAppInfoSettings(): AppInfoSettings {
     moduleName: 'appInfo',
     version: '1.0.0',
     updatedAt: new Date().toISOString(),
-    appName: 'GasManager Pro',
+    appName: 'GasManager',
     appVersion: '2.4.0',
   };
 }

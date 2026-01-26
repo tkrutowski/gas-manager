@@ -8,6 +8,8 @@ import type {
   StageCardConfig,
   CustomerTableSettings,
   CustomerTableFilter,
+  TasksListTableSettings,
+  TasksListFilter,
 } from '@/types/Settings';
 import { useCustomersStore } from './customers';
 import { useDesignersStore } from './designers';
@@ -414,6 +416,79 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   }
 
+  // Tasks List Table Settings
+  const tasksListSettingsVersions = ref<Record<string, number>>({});
+  const tasksListFavoritesVersions = ref<Record<string, number>>({});
+
+  /**
+   * Pobiera ustawienia tabeli dla list tasks
+   */
+  function getTasksListTableSettings(moduleName: string): TasksListTableSettings | null {
+    tasksListSettingsVersions.value[moduleName]; // dependency
+    return settingsService.getTasksListTableSettings(moduleName);
+  }
+
+  /**
+   * Pobiera listę ulubionych ID dla danego modułu tasks list
+   */
+  function getTasksListFavoriteIds(moduleName: string): number[] {
+    tasksListFavoritesVersions.value[moduleName]; // dependency
+    const settings = settingsService.getTasksListTableSettings(moduleName);
+    return settings?.favoriteIds ?? [];
+  }
+
+  /**
+   * Dodaje ID do ulubionych dla danego modułu tasks list
+   */
+  function addTasksListFavorite(moduleName: string, id: number): void {
+    const ids = getTasksListFavoriteIds(moduleName);
+    if (ids.includes(id)) return;
+    settingsService.updateTasksListTableSettings(moduleName, { favoriteIds: [...ids, id] });
+    tasksListFavoritesVersions.value[moduleName] = (tasksListFavoritesVersions.value[moduleName] || 0) + 1;
+  }
+
+  /**
+   * Usuwa ID z ulubionych dla danego modułu tasks list
+   */
+  function removeTasksListFavorite(moduleName: string, id: number): void {
+    const ids = getTasksListFavoriteIds(moduleName).filter((x) => x !== id);
+    settingsService.updateTasksListTableSettings(moduleName, { favoriteIds: ids });
+    tasksListFavoritesVersions.value[moduleName] = (tasksListFavoritesVersions.value[moduleName] || 0) + 1;
+  }
+
+  /**
+   * Zapisuje ustawienia tabeli dla list tasks
+   */
+  function saveTasksListTableSettings(moduleName: string, defaultFilter?: TasksListFilter): void {
+    loading.value = true;
+    error.value = null;
+    try {
+      settingsService.updateTasksListTableSettings(moduleName, { defaultFilter });
+      tasksListSettingsVersions.value[moduleName] = (tasksListSettingsVersions.value[moduleName] || 0) + 1;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Błąd podczas zapisywania ustawień tabeli tasks list';
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  /**
+   * Resetuje ustawienia tabeli dla list tasks
+   */
+  function resetTasksListTableSettings(moduleName: string): void {
+    loading.value = true;
+    error.value = null;
+    try {
+      settingsService.removeModuleSettings(moduleName);
+      tasksListSettingsVersions.value[moduleName] = (tasksListSettingsVersions.value[moduleName] || 0) + 1;
+      tasksListFavoritesVersions.value[moduleName] = (tasksListFavoritesVersions.value[moduleName] || 0) + 1;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Błąd podczas resetowania ustawień tabeli tasks list';
+    } finally {
+      loading.value = false;
+    }
+  }
+
   return {
     // State
     loading,
@@ -446,5 +521,12 @@ export const useSettingsStore = defineStore('settings', () => {
     // Methods - Stage Settings
     getStageSettings,
     saveStageSettings,
+    // Methods - Tasks List Table
+    getTasksListTableSettings,
+    getTasksListFavoriteIds,
+    addTasksListFavorite,
+    removeTasksListFavorite,
+    saveTasksListTableSettings,
+    resetTasksListTableSettings,
   };
 });

@@ -5,6 +5,7 @@ import type {
   GasConnectionStageSettings,
   StageCardConfig,
   CustomerTableSettings,
+  TasksListTableSettings,
 } from '@/types/Settings';
 
 const SETTINGS_STORAGE_KEY = 'appDefaultSettings';
@@ -292,6 +293,37 @@ class SettingsService {
       [stageId]: cards,
     };
     this.saveModuleSettings(currentSettings);
+  }
+
+  /**
+   * Pobiera ustawienia tabeli dla list tasks (projektanci, koordynatorzy, geodeci, projektanci ruchu)
+   */
+  getTasksListTableSettings(moduleName: string): TasksListTableSettings | null {
+    return this.getModuleSettings<TasksListTableSettings>(moduleName);
+  }
+
+  /**
+   * Aktualizuje ustawienia tabeli dla list tasks (filtr, ulubieni)
+   */
+  updateTasksListTableSettings(
+    moduleName: string,
+    settings: Partial<Pick<TasksListTableSettings, 'defaultFilter' | 'favoriteIds'>>
+  ): void {
+    const current = this.getTasksListTableSettings(moduleName);
+    if (!current) {
+      const newSettings: TasksListTableSettings = {
+        moduleName: moduleName as TasksListTableSettings['moduleName'],
+        version: '1.0.0',
+        updatedAt: new Date().toISOString(),
+        defaultFilter: settings.defaultFilter,
+        favoriteIds: settings.favoriteIds ?? [],
+      };
+      this.saveModuleSettings(newSettings);
+      return;
+    }
+    if (settings.defaultFilter !== undefined) current.defaultFilter = settings.defaultFilter;
+    if (settings.favoriteIds !== undefined) current.favoriteIds = settings.favoriteIds;
+    this.saveModuleSettings(current);
   }
 }
 
