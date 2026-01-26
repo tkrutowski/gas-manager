@@ -15,6 +15,8 @@ import {
   MoonIcon,
   SunIcon,
   HomeIcon,
+  PlusIcon,
+  ListBulletIcon,
 } from '@heroicons/vue/24/outline';
 import CarIcon from '@/components/icons/CarIcon.vue';
 
@@ -22,6 +24,7 @@ interface SidebarChildItem {
   id: string;
   label: string;
   route: string;
+  icon: any;
 }
 
 interface SidebarItem {
@@ -150,8 +153,8 @@ const menuItems: SidebarItem[] = [
     icon: FolderIcon,
     route: null,
     children: [
-      { id: 'gas-connections-new', label: 'Nowe', route: '/tasks/gas-connections/new' },
-      { id: 'gas-connections-list', label: 'Lista', route: '/tasks/gas-connections' },
+      { id: 'gas-connections-new', label: 'Nowe', route: '/tasks/gas-connections/new', icon: PlusIcon },
+      { id: 'gas-connections-list', label: 'Lista', route: '/tasks/gas-connections', icon: ListBulletIcon },
     ],
   },
   {
@@ -160,9 +163,9 @@ const menuItems: SidebarItem[] = [
     icon: WrenchScrewdriverIcon,
     route: null,
     children: [
-      { id: 'designers-new', label: 'Nowy', route: '/tasks/designers/new' },
-      { id: 'designers-list', label: 'Lista', route: '/tasks/designers/list' },
-      { id: 'designers-grid', label: 'Kafelki', route: '/tasks/designers/grid' },
+      { id: 'designers-new', label: 'Nowy', route: '/tasks/designers/new', icon: PlusIcon },
+      { id: 'designers-list', label: 'Lista', route: '/tasks/designers/list', icon: ListBulletIcon },
+      { id: 'designers-grid', label: 'Kafelki', route: '/tasks/designers/grid', icon: Squares2X2Icon },
     ],
   },
   {
@@ -171,9 +174,9 @@ const menuItems: SidebarItem[] = [
     icon: CarIcon,
     route: null,
     children: [
-      { id: 'designer-traffic-new', label: 'Nowy', route: '/tasks/designers-traffic/new' },
-      { id: 'designer-traffic-list', label: 'Lista', route: '/tasks/designers-traffic/list' },
-      { id: 'designer-traffic-grid', label: 'Kafelki', route: '/tasks/designers-traffic/grid' },
+      { id: 'designer-traffic-new', label: 'Nowy', route: '/tasks/designers-traffic/new', icon: PlusIcon },
+      { id: 'designer-traffic-list', label: 'Lista', route: '/tasks/designers-traffic/list', icon: ListBulletIcon },
+      { id: 'designer-traffic-grid', label: 'Kafelki', route: '/tasks/designers-traffic/grid', icon: Squares2X2Icon },
     ],
   },
   {
@@ -182,9 +185,9 @@ const menuItems: SidebarItem[] = [
     icon: UserGroupIcon,
     route: null,
     children: [
-      { id: 'coordinators-new', label: 'Nowy', route: '/tasks/coordinators/new' },
-      { id: 'coordinators-list', label: 'Lista', route: '/tasks/coordinators/list' },
-      { id: 'coordinators-grid', label: 'Kafelki', route: '/tasks/coordinators/grid' },
+      { id: 'coordinators-new', label: 'Nowy', route: '/tasks/coordinators/new', icon: PlusIcon },
+      { id: 'coordinators-list', label: 'Lista', route: '/tasks/coordinators/list', icon: ListBulletIcon },
+      { id: 'coordinators-grid', label: 'Kafelki', route: '/tasks/coordinators/grid', icon: Squares2X2Icon },
     ],
   },
   {
@@ -193,9 +196,9 @@ const menuItems: SidebarItem[] = [
     icon: MapPinIcon,
     route: null,
     children: [
-      { id: 'surveyors-new', label: 'Nowy', route: '/tasks/surveyors/new' },
-      { id: 'surveyors-list', label: 'Lista', route: '/tasks/surveyors/list' },
-      { id: 'surveyors-grid', label: 'Kafelki', route: '/tasks/surveyors/grid' },
+      { id: 'surveyors-new', label: 'Nowy', route: '/tasks/surveyors/new', icon: PlusIcon },
+      { id: 'surveyors-list', label: 'Lista', route: '/tasks/surveyors/list', icon: ListBulletIcon },
+      { id: 'surveyors-grid', label: 'Kafelki', route: '/tasks/surveyors/grid', icon: Squares2X2Icon },
     ],
   },
 ];
@@ -321,6 +324,7 @@ const toggleCollapse = () => {
               ? 'bg-primary-400/20 text-primary-400 border-l-2 border-primary-400'
               : 'text-surface-600 dark:text-gray-400 hover:bg-surface-200 dark:hover:bg-surface-800 hover:text-surface-700 dark:hover:text-gray-300',
           ]">
+            <component :is="child.icon" class="w-4 h-4 shrink-0" />
             <span class="text-sm">{{ child.label }}</span>
           </button>
         </div>
