@@ -573,7 +573,7 @@
 
           <!-- Komunikat gdy brak działek -->
           <div v-if="plots.length === 0" class="p-8 text-center text-surface-600 dark:text-surface-400">
-            <p>Brak działek. Kliknij "+ dodaj działkę" aby dodać pierwszą działkę.</p>
+            <p>Brak działek. Kliknij "+ Dodaj działkę" aby dodać pierwszą działkę.</p>
           </div>
         </div>
       </template>

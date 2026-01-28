@@ -391,7 +391,7 @@
 
           <!-- Komunikat gdy brak właścicieli -->
           <div v-if="plotOwnerPrivateList.length === 0" class="p-8 text-center text-surface-600 dark:text-surface-400">
-            <p>Brak właścicieli prywatnych. Kliknij ikonę "+" aby dodać pierwszego właściciela prywatnego.</p>
+            <p>Brak właścicieli prywatnych. Kliknij ikonę <i class="pi pi-user-plus"></i> aby dodać pierwszego właściciela prywatnego.</p>
           </div>
         </div>
       </template>

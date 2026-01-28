@@ -35,6 +35,9 @@
   const receiptDate2 = ref<Date | undefined>(undefined);
   const info2 = ref<string>('');
 
+  // Walidacja błędów
+  const errors = ref<Record<string, string>>({});
+
   // Czy data otrzymania jest disabled (dane podstawowe)
   const isReceiptDateDisabled = computed(() => {
     return props.isReadonly || !submissionDate.value;
@@ -52,6 +55,7 @@
 
   // Inicjalizacja formularza
   const initializeForm = () => {
+    errors.value = {};
     if (props.editingPlotOwnerPrivate) {
       // Wypełnij formularz danymi z edytowanego obiektu
       name.value = props.editingPlotOwnerPrivate.name || '';
@@ -123,8 +127,31 @@
     }
   });
 
+  // Walidacja formularza
+  const validate = (): boolean => {
+    errors.value = {};
+
+    if (!name.value?.trim()) {
+      errors.value.name = 'Imię jest wymagane';
+    }
+
+    if (!lastName.value?.trim()) {
+      errors.value.lastName = 'Nazwisko jest wymagane';
+    }
+
+    if (!share.value || share.value <= 0) {
+      errors.value.share = 'Udział musi być większy od 0';
+    }
+
+    return Object.keys(errors.value).length === 0;
+  };
+
   // Zapis formularza
   const handleSave = () => {
+    if (!validate()) {
+      return;
+    }
+
     const plotOwnerPrivateData: Partial<PlotOwnerPrivate> = {
       lastName: lastName.value,
       name: name.value,
@@ -176,20 +203,48 @@
           <div class="grid grid-cols-3 gap-4">
             <!-- Imię -->
             <div>
-              <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2"> Imię </label>
-              <InputText v-model="name" placeholder="" class="w-full" :disabled="isReadonly" />
+              <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                Imię<span class="text-primary-400">*</span>
+              </label>
+              <InputText
+                v-model="name"
+                placeholder=""
+                class="w-full"
+                :class="{ 'border-red-500 dark:border-red-400': errors.name }"
+                :disabled="isReadonly"
+              />
+              <p v-if="errors.name" class="text-red-500 dark:text-red-400 text-sm mt-1">{{ errors.name }}</p>
             </div>
 
             <!-- Nazwisko -->
             <div>
-              <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2"> Nazwisko </label>
-              <InputText v-model="lastName" placeholder="" class="w-full" :disabled="isReadonly" />
+              <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                Nazwisko<span class="text-primary-400">*</span>
+              </label>
+              <InputText
+                v-model="lastName"
+                placeholder=""
+                class="w-full"
+                :class="{ 'border-red-500 dark:border-red-400': errors.lastName }"
+                :disabled="isReadonly"
+              />
+              <p v-if="errors.lastName" class="text-red-500 dark:text-red-400 text-sm mt-1">{{ errors.lastName }}</p>
             </div>
 
             <!-- Udział [%] -->
             <div>
-              <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2"> Udział [%] </label>
-              <InputNumber v-model="share" :min="0" :max="100" :disabled="isReadonly" class="w-full" />
+              <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                Udział [%]<span class="text-primary-400">*</span>
+              </label>
+              <InputNumber
+                v-model="share"
+                :min="0"
+                :max="100"
+                :disabled="isReadonly"
+                class="w-full"
+                :class="{ 'border-red-500 dark:border-red-400': errors.share }"
+              />
+              <p v-if="errors.share" class="text-red-500 dark:text-red-400 text-sm mt-1">{{ errors.share }}</p>
             </div>
           </div>
 
@@ -317,17 +372,22 @@
     </div>
 
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <SecondaryButton type="button" @click="handleCancel" text="Anuluj" size="lg" :disabled="isReadonly" />
-        <PrimaryButton
-          type="button"
-          @click="handleSave"
-          text="Zapisz"
-          size="lg"
-          :disabled="isReadonly"
-          icon="pi pi-check"
-          iconPos="left"
-        />
+      <div class="flex items-center justify-between w-full">
+        <p class="text-sm text-surface-600 dark:text-surface-400">
+          <span class="text-primary-400">*</span> - pola obowiązkowe
+        </p>
+        <div class="flex gap-2">
+          <SecondaryButton type="button" @click="handleCancel" text="Anuluj" size="lg" :disabled="isReadonly" />
+          <PrimaryButton
+            type="button"
+            @click="handleSave"
+            text="Zapisz"
+            size="lg"
+            :disabled="isReadonly"
+            icon="pi pi-check"
+            iconPos="left"
+          />
+        </div>
       </div>
     </template>
   </Dialog>
