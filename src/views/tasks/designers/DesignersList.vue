@@ -5,7 +5,7 @@
   import DesignerFormDialog from '@/components/tasks/designers/DesignerFormDialog.vue';
   import TasksListToolbar from '@/components/tasks/TasksListToolbar.vue';
   import TasksListSettingsDialog from '@/components/tasks/TasksListSettingsDialog.vue';
-  import TasksListInfoDialog from '@/components/tasks/TasksListInfoDialog.vue';
+  import DesignerDetailsDialog from '@/components/tasks/designers/DesignerDetailsDialog.vue';
   import DataTable from 'primevue/datatable';
   import type { DataTableSortEvent } from 'primevue/datatable';
   import Column from 'primevue/column';
@@ -38,8 +38,8 @@
   const globalSearchQuery = ref('');
 
   const COLUMNS = [
-    { field: 'name', header: 'Imię', sortable: true },
-    { field: 'lastName', header: 'Nazwisko', sortable: true },
+    { field: 'name', header: 'Nazwa', sortable: true },
+    { field: 'designerType', header: 'Typ', sortable: true },
     { field: 'phone', header: 'Telefon', sortable: true },
     { field: 'email', header: 'Email', sortable: true },
     { field: 'address', header: 'Adres', sortable: true },
@@ -87,13 +87,16 @@
   function formatCellValue(row: Designer, field: string): string {
     switch (field) {
       case 'name':
-        return row.name ?? '';
-      case 'lastName':
-        return row.lastName ?? '';
+        if (row.designerType === 'company') {
+          return row.companyName ?? row.name ?? '';
+        }
+        return `${row.firstName ?? row.name ?? ''} ${row.lastName ?? ''}`.trim();
+      case 'designerType':
+        return row.designerType === 'company' ? 'Firma' : 'Osoba';
       case 'phone':
-        return row.phone ?? '';
+        return row.phones?.[0] || '';
       case 'email':
-        return row.email ?? '';
+        return row.emails?.[0] || '';
       case 'address':
         return formatAddress(row.address);
       case 'status':
@@ -278,6 +281,7 @@
             @edit="handleEdit"
             @delete="handleDelete"
             @info="handleOpenInfo"
+            @details="handleOpenInfo"
             @toggle-favorite="handleToggleFavorite"
             @clear-filter="clearFilter"
             @open-settings="handleOpenSettings"
@@ -364,11 +368,9 @@
       @designer-updated="onDesignerUpdated"
     />
 
-    <TasksListInfoDialog
-      :visible="showInfoDialog"
-      :entity="selectedRow"
-      entity-type="designer"
-      @update:visible="showInfoDialog = $event"
+    <DesignerDetailsDialog
+      v-if="showInfoDialog && selectedRow"
+      :designer="selectedRow"
       @close="showInfoDialog = false"
     />
   </div>

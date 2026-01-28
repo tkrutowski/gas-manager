@@ -33,7 +33,7 @@
 
   watch(
     () => props.visible,
-    (v) => {
+    v => {
       if (v) {
         selectedFilter.value = props.defaultFilter ?? 'all';
       }
@@ -57,7 +57,7 @@
 <template>
   <Dialog
     :visible="visible"
-    @update:visible="(val) => emit('update:visible', val)"
+    @update:visible="val => emit('update:visible', val)"
     modal
     closable
     :draggable="false"

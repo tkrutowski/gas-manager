@@ -29,9 +29,27 @@
   const coordinatorsMenuItems = [
     { id: 'modules-dashboard', label: 'Moduły', icon: HomeIcon, route: '/', children: null },
     { id: 'tasks-dashboard', label: 'Pulpit zadań', icon: Squares2X2Icon, route: '/tasks', children: null },
-    { id: 'coordinators-new', label: 'Nowy koordynator', icon: PlusIcon, route: '/tasks/coordinators/new', children: null },
-    { id: 'coordinators-list', label: 'Lista', icon: ListBulletIcon, route: '/tasks/coordinators/list', children: null },
-    { id: 'coordinators-grid', label: 'Kafelki', icon: Squares2X2Icon, route: '/tasks/coordinators/grid', children: null },
+    {
+      id: 'coordinators-new',
+      label: 'Nowy koordynator',
+      icon: PlusIcon,
+      route: '/tasks/coordinators/new',
+      children: null,
+    },
+    {
+      id: 'coordinators-list',
+      label: 'Lista',
+      icon: ListBulletIcon,
+      route: '/tasks/coordinators/list',
+      children: null,
+    },
+    {
+      id: 'coordinators-grid',
+      label: 'Kafelki',
+      icon: Squares2X2Icon,
+      route: '/tasks/coordinators/grid',
+      children: null,
+    },
   ];
 
   const coordinators = ref<Coordinator[]>([]);
@@ -98,9 +116,9 @@
       case 'lastName':
         return row.lastName ?? '';
       case 'phone':
-        return row.phone ?? '';
+        return row.phones?.[0] || '';
       case 'email':
-        return row.email ?? '';
+        return row.emails?.[0] || '';
       case 'status':
         return row.status ? 'Aktywny' : 'Nieaktywny';
       default:
@@ -281,6 +299,7 @@
             @edit="handleEdit"
             @delete="handleDelete"
             @info="handleOpenInfo"
+            @details="handleOpenInfo"
             @toggle-favorite="handleToggleFavorite"
             @clear-filter="clearFilter"
             @open-settings="handleOpenSettings"
@@ -312,13 +331,7 @@
               tbody: { class: '[&>tr>td]:text-center [&>tr>td]:align-middle' },
             }"
           >
-            <Column
-              v-for="col in COLUMNS"
-              :key="col.field"
-              :field="col.field"
-              :header="col.header"
-              sortable
-            >
+            <Column v-for="col in COLUMNS" :key="col.field" :field="col.field" :header="col.header" sortable>
               <template #body="{ data }">
                 <template v-if="col.field === 'status'">
                   <span
@@ -372,7 +385,7 @@
 </template>
 
 <style scoped>
-.grid-view-button :deep(.p-button-icon) {
-  font-size: 1.5rem;
-}
+  .grid-view-button :deep(.p-button-icon) {
+    font-size: 1.5rem;
+  }
 </style>

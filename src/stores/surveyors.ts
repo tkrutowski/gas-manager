@@ -165,9 +165,8 @@ function generateMockSurveyors(): Surveyor[] {
   for (let i = 0; i < 25; i++) {
     const name = firstNames[Math.floor(Math.random() * firstNames.length)];
     const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-    const phone = generatePhone();
-    const phone2 = Math.random() > 0.4 ? generatePhone() : undefined; // 60% ma drugi telefon
-    const email = generateEmail(name, lastName);
+    const phones = [generatePhone(), ...(Math.random() > 0.4 ? [generatePhone()] : [])].filter(Boolean);
+    const emails = [generateEmail(name, lastName)];
     const info = infoOptions[Math.floor(Math.random() * infoOptions.length)];
     const address = generateMockAddress(addressId++);
 
@@ -175,9 +174,8 @@ function generateMockSurveyors(): Surveyor[] {
       id: id++,
       name,
       lastName,
-      phone,
-      phone2,
-      email,
+      phones,
+      emails,
       info,
       address,
       status: Math.random() > 0.15, // 85% aktywnych
@@ -353,9 +351,8 @@ export const useSurveyorsStore = defineStore('surveyors', () => {
       return (
         s.name.toLowerCase().includes(lowerQuery) ||
         s.lastName.toLowerCase().includes(lowerQuery) ||
-        s.email.toLowerCase().includes(lowerQuery) ||
-        s.phone.includes(query) ||
-        s.phone2?.includes(query) ||
+        s.emails?.some(e => e.toLowerCase().includes(lowerQuery)) ||
+        s.phones?.some(p => p.includes(query)) ||
         s.address.city.toLowerCase().includes(lowerQuery) ||
         s.address.street.toLowerCase().includes(lowerQuery) ||
         s.address.commune.toLowerCase().includes(lowerQuery)

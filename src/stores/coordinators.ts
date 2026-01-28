@@ -111,18 +111,16 @@ function generateMockCoordinators(): Coordinator[] {
   for (let i = 0; i < 20; i++) {
     const name = firstNames[Math.floor(Math.random() * firstNames.length)];
     const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-    const phone = generatePhone();
-    const phone2 = Math.random() > 0.5 ? generatePhone() : undefined; // 50% ma drugi telefon
-    const email = generateEmail(name, lastName);
+    const phones = [generatePhone(), ...(Math.random() > 0.5 ? [generatePhone()] : [])].filter(Boolean);
+    const emails = [generateEmail(name, lastName)];
     const info = infoOptions[Math.floor(Math.random() * infoOptions.length)];
 
     coordinators.push({
       id: id++,
       name,
       lastName,
-      phone,
-      phone2,
-      email,
+      phones,
+      emails,
       info,
       status: Math.random() > 0.15, // 85% aktywnych
       createdAt: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
@@ -297,9 +295,8 @@ export const useCoordinatorsStore = defineStore('coordinators', () => {
       return (
         c.name.toLowerCase().includes(lowerQuery) ||
         c.lastName.toLowerCase().includes(lowerQuery) ||
-        c.email.toLowerCase().includes(lowerQuery) ||
-        c.phone.includes(query) ||
-        c.phone2?.includes(query)
+        c.emails?.some(e => e.toLowerCase().includes(lowerQuery)) ||
+        c.phones?.some(p => p.includes(query))
       );
     });
   }

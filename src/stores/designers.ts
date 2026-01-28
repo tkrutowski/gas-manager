@@ -51,9 +51,15 @@ function generatePhone(): string {
 }
 
 // Funkcja pomocnicza do generowania losowych emaili
-function generateEmail(firstName: string, lastName: string): string {
+function generateEmailFromPerson(firstName: string, lastName: string): string {
   const name = `${firstName}${lastName}`.toLowerCase().replace(/\s+/g, '');
-  return `${name}@${['gmail.com', 'wp.pl', 'o2.pl', 'interia.pl', 'company.pl', 'design.pl'][Math.floor(Math.random() * 6)]}`;
+  return `${name}@${['gmail.com', 'wp.pl', 'o2.pl', 'interia.pl', 'design.pl'][Math.floor(Math.random() * 5)]}`;
+}
+
+function generateEmailFromCompany(companyName: string): string {
+  const normalized = companyName.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const base = normalized || 'company';
+  return `${base}@${['company.pl', 'biuro.pl', 'firma.pl'][Math.floor(Math.random() * 3)]}`;
 }
 
 // Klucz localStorage dla projektantów
@@ -89,7 +95,7 @@ function saveToLocalStorage(data: Designer[]): void {
   }
 }
 
-// Generowanie 30 mockowanych projektantów
+// Generowanie 30 mockowanych projektantów (osoby i firmy)
 function generateMockDesigners(): Designer[] {
   const designers: Designer[] = [];
   const firstNames = [
@@ -156,6 +162,17 @@ function generateMockDesigners(): Designer[] {
     'Majewski',
     'Olszewski',
   ];
+  const companyNames = [
+    'Projekt-Gaz Sp. z o.o.',
+    'Instal-Projekt S.A.',
+    'GazDesign Studio',
+    'Inż-Projekt Sp. z o.o.',
+    'InfraProjekt Sp. z o.o.',
+    'TechGaz Sp. z o.o.',
+    'Projekt-System S.A.',
+    'GazBud Projekt',
+  ];
+
   const infoOptions = [
     'Projektant z wieloletnim doświadczeniem',
     'Specjalizuje się w projektach gazowych',
@@ -173,22 +190,38 @@ function generateMockDesigners(): Designer[] {
   let addressId = 1;
 
   for (let i = 0; i < 30; i++) {
-    const name = firstNames[Math.floor(Math.random() * firstNames.length)];
+    // Około 2/3 to osoby fizyczne, 1/3 firmy
+    const isPerson = Math.random() > 0.35;
+    const designerType: Designer['designerType'] = isPerson ? 'person' : 'company';
+
+    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
     const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-    const phone = generatePhone();
-    const phone2 = Math.random() > 0.4 ? generatePhone() : undefined; // 60% ma drugi telefon
-    const email = generateEmail(name, lastName);
+    const companyName = companyNames[Math.floor(Math.random() * companyNames.length)];
+    const phones = [generatePhone(), ...(Math.random() > 0.4 ? [generatePhone()] : [])].filter(Boolean);
+    const emails = [isPerson ? generateEmailFromPerson(firstName, lastName) : generateEmailFromCompany(companyName)];
     const info = infoOptions[Math.floor(Math.random() * infoOptions.length)];
     const address = generateMockAddress(addressId++);
     const employee = Math.random() > 0.3; // 70% to pracownicy firmy
 
+    const nip = !isPerson ? `${Math.floor(Math.random() * 9000000000) + 1000000000}` : undefined;
+    const regon = !isPerson && Math.random() > 0.4 ? `${Math.floor(Math.random() * 900000000) + 100000000}` : undefined;
+    const krs = !isPerson && Math.random() > 0.6 ? `${Math.floor(Math.random() * 900000) + 100000}` : undefined;
+
     designers.push({
       id: id++,
-      name,
-      lastName,
-      phone,
-      phone2,
-      email,
+      designerType,
+      // dane osoby
+      firstName: isPerson ? firstName : undefined,
+      lastName: isPerson ? lastName : undefined,
+      // dane firmy
+      companyName: !isPerson ? companyName : undefined,
+      nip,
+      regon,
+      krs,
+      // kompatybilność wsteczna (stare pola name/lastName)
+      name: isPerson ? firstName : companyName,
+      phones,
+      emails,
       info,
       address,
       status: Math.random() > 0.15, // 85% aktywnych
@@ -359,7 +392,7 @@ export const useDesignersStore = defineStore('designers', () => {
   }
 
   /**
-   * Wyszukuje projektantów po frazie (imię, nazwisko, email, telefon, miasto, ulica)
+   * Wyszukuje projektantów po frazie (imię, nazwisko, nazwa firmy, NIP, email, telefon, miasto, ulica)
    */
   function searchDesigners(query: string): Designer[] {
     if (!query.trim()) {
@@ -369,11 +402,12 @@ export const useDesignersStore = defineStore('designers', () => {
     const lowerQuery = query.toLowerCase();
     return designers.value.filter(d => {
       return (
-        d.name.toLowerCase().includes(lowerQuery) ||
-        d.lastName.toLowerCase().includes(lowerQuery) ||
-        d.email.toLowerCase().includes(lowerQuery) ||
-        d.phone.includes(query) ||
-        d.phone2?.includes(query) ||
+        (d.firstName && d.firstName.toLowerCase().includes(lowerQuery)) ||
+        (d.lastName && d.lastName.toLowerCase().includes(lowerQuery)) ||
+        (d.companyName && d.companyName.toLowerCase().includes(lowerQuery)) ||
+        (d.nip && d.nip.toLowerCase().includes(lowerQuery)) ||
+        d.emails?.some(e => e.toLowerCase().includes(lowerQuery)) ||
+        d.phones?.some(p => p.includes(query)) ||
         d.address.city.toLowerCase().includes(lowerQuery) ||
         d.address.street.toLowerCase().includes(lowerQuery) ||
         d.address.commune.toLowerCase().includes(lowerQuery)

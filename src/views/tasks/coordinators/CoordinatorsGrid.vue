@@ -80,9 +80,9 @@
     }
 
     if (globalSearchQuery.value.trim()) {
-      base = coordinatorsStore.searchCoordinators(globalSearchQuery.value.trim()).filter(c =>
-        base.some(bc => bc.id === c.id)
-      );
+      base = coordinatorsStore
+        .searchCoordinators(globalSearchQuery.value.trim())
+        .filter(c => base.some(bc => bc.id === c.id));
     }
 
     return base;
@@ -100,7 +100,10 @@
 
   const handleFilterChange = (filter: TasksListFilter) => {
     selectedFilter.value = filter;
-    if (selectedCoordinatorId.value != null && !filteredCoordinators.value.some(c => c.id === selectedCoordinatorId.value)) {
+    if (
+      selectedCoordinatorId.value != null &&
+      !filteredCoordinators.value.some(c => c.id === selectedCoordinatorId.value)
+    ) {
       selectedCoordinatorId.value = null;
     }
   };
@@ -138,13 +141,15 @@
   });
 
   const handleCall = (coordinator: Coordinator) => {
-    if (!coordinator.phone) return;
-    window.location.href = `tel:${coordinator.phone.replace(/\s+/g, '')}`;
+    const phone = coordinator.phones?.[0];
+    if (!phone) return;
+    window.location.href = `tel:${phone.replace(/\s+/g, '')}`;
   };
 
   const handleEmail = (coordinator: Coordinator) => {
-    if (!coordinator.email) return;
-    window.location.href = `mailto:${coordinator.email}`;
+    const email = coordinator.emails?.[0];
+    if (!email) return;
+    window.location.href = `mailto:${email}`;
   };
 
   const openDialogForNew = () => {
@@ -287,6 +292,7 @@
           @edit="openDialogForEdit()"
           @delete="handleDelete"
           @info="handleInfo"
+          @details="handleInfo"
           @toggle-favorite="handleToggleFavorite"
           @clear-filter="handleClearFilter"
           @open-settings="handleOpenSettings"
@@ -338,8 +344,8 @@
         >
           <DataView :value="filteredCoordinators" layout="grid" :data-key="'id'">
             <template #grid="slotProps">
-              <div class="overflow-y-auto" style="max-height: calc(100vh - 320px);">
-                <div class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+              <div class="overflow-y-auto" style="max-height: calc(100vh - 320px)">
+                <div class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))">
                   <button
                     v-for="coordinator in slotProps.items"
                     :key="coordinator.id"
@@ -373,7 +379,9 @@
                           >
                             {{ coordinator.status ? 'AKTYWNY' : 'NIEAKTYWNY' }}
                           </div>
-                          <div class="mt-1 text-[10px] text-surface-500 dark:text-surface-400">ID: {{ coordinator.id }}</div>
+                          <div class="mt-1 text-[10px] text-surface-500 dark:text-surface-400">
+                            ID: {{ coordinator.id }}
+                          </div>
                         </div>
                       </div>
 
@@ -389,13 +397,13 @@
                         <div class="flex items-center gap-2">
                           <PhoneIcon class="w-4 h-4" />
                           <span class="truncate">
-                            {{ coordinator.phone || 'Brak numeru telefonu' }}
+                            {{ coordinator.phones?.[0] || 'Brak numeru telefonu' }}
                           </span>
                         </div>
                         <div class="flex items-center gap-2">
                           <EnvelopeIcon class="w-4 h-4" />
                           <span class="truncate">
-                            {{ coordinator.email || 'Brak adresu email' }}
+                            {{ coordinator.emails?.[0] || 'Brak adresu email' }}
                           </span>
                         </div>
                       </div>
@@ -417,11 +425,11 @@
                             type="button"
                             class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-xs font-medium transition-colors"
                             :class="[
-                              coordinator.phone
+                              coordinator.phones?.[0]
                                 ? 'bg-green-700 text-white hover:bg-green-600'
                                 : 'bg-surface-200 dark:bg-surface-800 text-surface-400 cursor-not-allowed',
                             ]"
-                            :disabled="!coordinator.phone"
+                            :disabled="!coordinator.phones?.[0]"
                             @click.stop="handleCall(coordinator)"
                           >
                             <PhoneIcon class="w-4 h-4" />
@@ -430,11 +438,11 @@
                             type="button"
                             class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-xs font-medium transition-colors"
                             :class="[
-                              coordinator.email
+                              coordinator.emails?.[0]
                                 ? 'bg-sky-700 text-white hover:bg-sky-600'
                                 : 'bg-surface-200 dark:bg-surface-800 text-surface-400 cursor-not-allowed',
                             ]"
-                            :disabled="!coordinator.email"
+                            :disabled="!coordinator.emails?.[0]"
                             @click.stop="handleEmail(coordinator)"
                           >
                             <EnvelopeIcon class="w-4 h-4" />
@@ -469,11 +477,7 @@
     />
 
     <!-- Dialog informacji -->
-    <TasksListInfoDialog
-      v-model:visible="showInfoDialog"
-      :entity="selectedCoordinator"
-      entity-type="coordinator"
-    />
+    <TasksListInfoDialog v-model:visible="showInfoDialog" :entity="selectedCoordinator" entity-type="coordinator" />
 
     <!-- Confirm Popup -->
     <ConfirmPopup />
@@ -481,7 +485,7 @@
 </template>
 
 <style scoped>
-.list-view-button :deep(.p-button-icon) {
-  font-size: 1.5rem;
-}
+  .list-view-button :deep(.p-button-icon) {
+    font-size: 1.5rem;
+  }
 </style>

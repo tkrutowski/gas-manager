@@ -1,168 +1,168 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue';
-import Dialog from 'primevue/dialog';
-import PickList from 'primevue/picklist';
-import Select from 'primevue/select';
-import SecondaryButton from '@/components/SecondaryButton.vue';
-import PrimaryButton from '@/components/PrimaryButton.vue';
-import { ViewColumnsIcon, ArrowsUpDownIcon, FunnelIcon } from '@heroicons/vue/24/outline';
-import type { GasConnectionTableColumnConfig, GasConnectionTableFilter } from '@/types/Settings';
+  import { ref, watch, computed } from 'vue';
+  import Dialog from 'primevue/dialog';
+  import PickList from 'primevue/picklist';
+  import Select from 'primevue/select';
+  import SecondaryButton from '@/components/SecondaryButton.vue';
+  import PrimaryButton from '@/components/PrimaryButton.vue';
+  import { ViewColumnsIcon, ArrowsUpDownIcon, FunnelIcon } from '@heroicons/vue/24/outline';
+  import type { GasConnectionTableColumnConfig, GasConnectionTableFilter } from '@/types/Settings';
 
-const props = defineProps<{
-  visible: boolean;
-  columns: GasConnectionTableColumnConfig[];
-  defaultSortField?: string;
-  defaultSortOrder?: number;
-  defaultFilter?: GasConnectionTableFilter;
-}>();
+  const props = defineProps<{
+    visible: boolean;
+    columns: GasConnectionTableColumnConfig[];
+    defaultSortField?: string;
+    defaultSortOrder?: number;
+    defaultFilter?: GasConnectionTableFilter;
+  }>();
 
-const emit = defineEmits<{
-  'update:visible': [value: boolean];
-  saved: [
-    columns: GasConnectionTableColumnConfig[],
-    defaultSortField?: string,
-    defaultSortOrder?: number,
-    defaultFilter?: GasConnectionTableFilter,
+  const emit = defineEmits<{
+    'update:visible': [value: boolean];
+    saved: [
+      columns: GasConnectionTableColumnConfig[],
+      defaultSortField?: string,
+      defaultSortOrder?: number,
+      defaultFilter?: GasConnectionTableFilter,
+    ];
+    close: [];
+  }>();
+
+  const pickListColumns = ref<[GasConnectionTableColumnConfig[], GasConnectionTableColumnConfig[]]>([[], []]);
+  const selectedSortField = ref<string | null>(null);
+  const selectedSortOrder = ref<number | null>(null);
+  const selectedFilter = ref<GasConnectionTableFilter>('all');
+
+  // Sortowalne kolumny (tylko te z sortable !== false)
+  const sortableColumns = computed(() => {
+    return props.columns.filter(col => col.sortable !== false);
+  });
+
+  // Opcje kierunku sortowania
+  const sortOrderOptions = [
+    { label: 'Brak', value: null },
+    { label: 'Rosnąco', value: 1 },
+    { label: 'Malejąco', value: -1 },
   ];
-  close: [];
-}>();
 
-const pickListColumns = ref<[GasConnectionTableColumnConfig[], GasConnectionTableColumnConfig[]]>([[], []]);
-const selectedSortField = ref<string | null>(null);
-const selectedSortOrder = ref<number | null>(null);
-const selectedFilter = ref<GasConnectionTableFilter>('all');
+  // Opcje filtru
+  const filterOptions = [
+    { label: 'Wszystkie', value: 'all' as GasConnectionTableFilter },
+    { label: 'Zrealizowane', value: 'finished' as GasConnectionTableFilter },
+    { label: 'Niezrealizowane', value: 'unfinished' as GasConnectionTableFilter },
+    { label: 'Niezrealizowane - odbiór techniczny', value: 'unfinished-technical' as GasConnectionTableFilter },
+    { label: 'Niezrealizowane - odbiór końcowy', value: 'unfinished-final' as GasConnectionTableFilter },
+    { label: 'Przeterminowane', value: 'overdue' as GasConnectionTableFilter },
+    { label: 'Ulubione', value: 'favorites' as GasConnectionTableFilter },
+  ];
 
-// Sortowalne kolumny (tylko te z sortable !== false)
-const sortableColumns = computed(() => {
-  return props.columns.filter(col => col.sortable !== false);
-});
+  // Inicjalizacja danych dla PickList
+  const initializePickListColumns = () => {
+    // Sortujemy wszystkie kolumny według order
+    const sorted = [...props.columns].sort((a, b) => a.order - b.order);
 
-// Opcje kierunku sortowania
-const sortOrderOptions = [
-  { label: 'Brak', value: null },
-  { label: 'Rosnąco', value: 1 },
-  { label: 'Malejąco', value: -1 },
-];
+    // Dzielimy na widoczne i niewidoczne
+    const visible: GasConnectionTableColumnConfig[] = [];
+    const hidden: GasConnectionTableColumnConfig[] = [];
 
-// Opcje filtru
-const filterOptions = [
-  { label: 'Wszystkie', value: 'all' as GasConnectionTableFilter },
-  { label: 'Zrealizowane', value: 'finished' as GasConnectionTableFilter },
-  { label: 'Niezrealizowane', value: 'unfinished' as GasConnectionTableFilter },
-  { label: 'Niezrealizowane - odbiór techniczny', value: 'unfinished-technical' as GasConnectionTableFilter },
-  { label: 'Niezrealizowane - odbiór końcowy', value: 'unfinished-final' as GasConnectionTableFilter },
-  { label: 'Przeterminowane', value: 'overdue' as GasConnectionTableFilter },
-  { label: 'Ulubione', value: 'favorites' as GasConnectionTableFilter },
-];
+    sorted.forEach(col => {
+      if (col.visible) {
+        visible.push({ ...col });
+      } else {
+        hidden.push({ ...col });
+      }
+    });
 
-// Inicjalizacja danych dla PickList
-const initializePickListColumns = () => {
-  // Sortujemy wszystkie kolumny według order
-  const sorted = [...props.columns].sort((a, b) => a.order - b.order);
+    pickListColumns.value = [hidden, visible];
+  };
 
-  // Dzielimy na widoczne i niewidoczne
-  const visible: GasConnectionTableColumnConfig[] = [];
-  const hidden: GasConnectionTableColumnConfig[] = [];
+  // Watch na visible, żeby inicjalizować przy otwarciu
+  watch(
+    () => props.visible,
+    newValue => {
+      if (newValue) {
+        initializePickListColumns();
+        // Inicjalizuj sortowanie
+        selectedSortField.value = props.defaultSortField || null;
+        selectedSortOrder.value = props.defaultSortOrder ?? null;
+        // Inicjalizuj filtr
+        selectedFilter.value = props.defaultFilter || 'all';
+      }
+    },
+    { immediate: true }
+  );
 
-  sorted.forEach(col => {
-    if (col.visible) {
-      visible.push({ ...col });
-    } else {
-      hidden.push({ ...col });
+  // Watch na props sortowania i filtru
+  watch(
+    [() => props.defaultSortField, () => props.defaultSortOrder, () => props.defaultFilter],
+    ([field, order, filter]) => {
+      if (props.visible) {
+        selectedSortField.value = field || null;
+        selectedSortOrder.value = order ?? null;
+        selectedFilter.value = filter || 'all';
+      }
+    }
+  );
+
+  // Watch na selectedSortField - resetuj kierunek gdy kolumna zostanie odznaczona
+  watch(selectedSortField, newValue => {
+    if (!newValue) {
+      selectedSortOrder.value = null;
     }
   });
 
-  pickListColumns.value = [hidden, visible];
-};
+  // Watch na columns, żeby zaktualizować gdy się zmienią (gdy dialog jest otwarty)
+  watch(
+    () => props.columns,
+    () => {
+      if (props.visible) {
+        initializePickListColumns();
+      }
+    },
+    { deep: true }
+  );
 
-// Watch na visible, żeby inicjalizować przy otwarciu
-watch(
-  () => props.visible,
-  newValue => {
-    if (newValue) {
-      initializePickListColumns();
-      // Inicjalizuj sortowanie
-      selectedSortField.value = props.defaultSortField || null;
-      selectedSortOrder.value = props.defaultSortOrder ?? null;
-      // Inicjalizuj filtr
-      selectedFilter.value = props.defaultFilter || 'all';
-    }
-  },
-  { immediate: true }
-);
+  // Zapis ustawień z PickList
+  const handleSave = () => {
+    const [hidden, visible] = pickListColumns.value;
 
-// Watch na props sortowania i filtru
-watch(
-  [() => props.defaultSortField, () => props.defaultSortOrder, () => props.defaultFilter],
-  ([field, order, filter]) => {
-    if (props.visible) {
-      selectedSortField.value = field || null;
-      selectedSortOrder.value = order ?? null;
-      selectedFilter.value = filter || 'all';
-    }
-  }
-);
+    // Tworzymy kopie wszystkich kolumn
+    const updatedColumns = props.columns.map(col => ({ ...col }));
 
-// Watch na selectedSortField - resetuj kierunek gdy kolumna zostanie odznaczona
-watch(selectedSortField, newValue => {
-  if (!newValue) {
-    selectedSortOrder.value = null;
-  }
-});
+    // Tworzymy mapę dla szybkiego dostępu
+    const columnMap = new Map<string, GasConnectionTableColumnConfig>();
+    updatedColumns.forEach(col => {
+      columnMap.set(col.field, col);
+    });
 
-// Watch na columns, żeby zaktualizować gdy się zmienią (gdy dialog jest otwarty)
-watch(
-  () => props.columns,
-  () => {
-    if (props.visible) {
-      initializePickListColumns();
-    }
-  },
-  { deep: true }
-);
+    // Aktualizujemy widoczność i kolejność
+    hidden.forEach(col => {
+      const existing = columnMap.get(col.field);
+      if (existing) {
+        existing.visible = false;
+      }
+    });
 
-// Zapis ustawień z PickList
-const handleSave = () => {
-  const [hidden, visible] = pickListColumns.value;
+    visible.forEach((col, index) => {
+      const existing = columnMap.get(col.field);
+      if (existing) {
+        existing.visible = true;
+        existing.order = index;
+      }
+    });
 
-  // Tworzymy kopie wszystkich kolumn
-  const updatedColumns = props.columns.map(col => ({ ...col }));
+    // Emitujemy zaktualizowane kolumny, sortowanie i filtr
+    const sortField = selectedSortField.value || undefined;
+    const sortOrder = selectedSortOrder.value ?? undefined;
+    const filter = selectedFilter.value;
+    emit('saved', updatedColumns, sortField, sortOrder, filter);
+    emit('update:visible', false);
+  };
 
-  // Tworzymy mapę dla szybkiego dostępu
-  const columnMap = new Map<string, GasConnectionTableColumnConfig>();
-  updatedColumns.forEach(col => {
-    columnMap.set(col.field, col);
-  });
-
-  // Aktualizujemy widoczność i kolejność
-  hidden.forEach(col => {
-    const existing = columnMap.get(col.field);
-    if (existing) {
-      existing.visible = false;
-    }
-  });
-
-  visible.forEach((col, index) => {
-    const existing = columnMap.get(col.field);
-    if (existing) {
-      existing.visible = true;
-      existing.order = index;
-    }
-  });
-
-  // Emitujemy zaktualizowane kolumny, sortowanie i filtr
-  const sortField = selectedSortField.value || undefined;
-  const sortOrder = selectedSortOrder.value ?? undefined;
-  const filter = selectedFilter.value;
-  emit('saved', updatedColumns, sortField, sortOrder, filter);
-  emit('update:visible', false);
-};
-
-// Anulowanie zmian w dialogu
-const handleCancel = () => {
-  emit('update:visible', false);
-  emit('close');
-};
+  // Anulowanie zmian w dialogu
+  const handleCancel = () => {
+    emit('update:visible', false);
+    emit('close');
+  };
 </script>
 
 <template>
@@ -201,8 +201,12 @@ const handleCancel = () => {
           listStyle="height: 20rem"
           :pt="{
             root: { class: 'bg-surface-0 dark:bg-surface-900' },
-            sourceList: { class: 'bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700' },
-            targetList: { class: 'bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700' },
+            sourceList: {
+              class: 'bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700',
+            },
+            targetList: {
+              class: 'bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700',
+            },
           }"
         >
           <template #option="{ option }">

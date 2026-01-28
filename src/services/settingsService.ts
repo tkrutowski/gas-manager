@@ -218,11 +218,7 @@ class SettingsService {
     settings: Partial<
       Pick<
         CustomerTableSettings,
-        | 'defaultSortField'
-        | 'defaultSortOrder'
-        | 'defaultFilter'
-        | 'favoriteCustomerIds'
-        | 'autoSaveSettings'
+        'defaultSortField' | 'defaultSortOrder' | 'defaultFilter' | 'favoriteCustomerIds' | 'autoSaveSettings'
       >
     >
   ): void {

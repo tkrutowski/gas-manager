@@ -4,9 +4,8 @@ export interface Surveyor {
   id: number;
   name: string;
   lastName: string;
-  phone: string;
-  phone2?: string; // opcjonalny drugi telefon
-  email: string; // zmienione z "mail" na "email" dla spójności
+  phones?: string[];
+  emails?: string[];
   info?: string; // opcjonalne informacje dodatkowe
   address: Address;
   status: boolean; // oznacza czy geodeta jest aktywny

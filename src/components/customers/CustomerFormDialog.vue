@@ -2,7 +2,14 @@
   import { ref, watch } from 'vue';
   import { useCustomersStore } from '@/stores/customers.ts';
   import type { Customer } from '@/types/Customer.ts';
-  import { UserIcon, PhoneIcon, MapPinIcon, DocumentTextIcon, EnvelopeIcon, TrashIcon } from '@heroicons/vue/24/outline';
+  import {
+    UserIcon,
+    PhoneIcon,
+    MapPinIcon,
+    DocumentTextIcon,
+    EnvelopeIcon,
+    TrashIcon,
+  } from '@heroicons/vue/24/outline';
   import SecondaryButton from '@/components/SecondaryButton.vue';
   import PrimaryButton from '@/components/PrimaryButton.vue';
 
@@ -45,13 +52,13 @@
 
   watch(
     () => props.customer,
-    (c) => {
+    c => {
       if (c) {
         // Obsługa kompatybilności wstecznej - jeśli są stare dane z phone/email jako string
         const oldCustomer = c as any;
         const phones = c.phones || (oldCustomer.phone ? [oldCustomer.phone] : []);
         const emails = c.emails || (oldCustomer.email ? [oldCustomer.email] : []);
-        
+
         formData.value = {
           ...defaultFormData(),
           ...c,
@@ -97,7 +104,7 @@
     // Walidacja wszystkich emaili - każdy email musi mieć poprawny format
     if (formData.value.emails && formData.value.emails.length > 0) {
       const invalidEmails = formData.value.emails.filter(
-        (email) => email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+        email => email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
       );
       if (invalidEmails.length > 0) {
         errors.value.emails = 'Niektóre adresy email mają nieprawidłowy format';
@@ -159,9 +166,7 @@
           emit('close');
         }
       } else {
-        const newCustomer = customersStore.addCustomer(
-          cleanedData as Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>
-        );
+        const newCustomer = customersStore.addCustomer(cleanedData as Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>);
         emit('customerAdded', newCustomer);
         visible.value = false;
         emit('close');
@@ -326,7 +331,7 @@
           <div>
             <h3 class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">Telefony</h3>
             <div class="space-y-2">
-              <div v-for="(_phone, index) in (formData.phones || [])" :key="index" class="flex items-center gap-2">
+              <div v-for="(_phone, index) in formData.phones || []" :key="index" class="flex items-center gap-2">
                 <PhoneIcon class="w-4 h-4 text-primary-400" />
                 <InputText
                   v-model="formData.phones![index]"
@@ -341,14 +346,13 @@
                   <TrashIcon class="w-4 h-4" />
                 </button>
               </div>
-              <p v-if="!formData.phones || !formData.phones.length" class="text-sm text-surface-500 dark:text-surface-400">
+              <p
+                v-if="!formData.phones || !formData.phones.length"
+                class="text-sm text-surface-500 dark:text-surface-400"
+              >
                 Brak zdefiniowanych numerów telefonów.
               </p>
-              <button
-                type="button"
-                class="text-xs text-primary-500 hover:text-primary-400"
-                @click="handleAddPhone"
-              >
+              <button type="button" class="text-xs text-primary-500 hover:text-primary-400" @click="handleAddPhone">
                 + Dodaj numer telefonu
               </button>
             </div>
@@ -356,7 +360,7 @@
           <div>
             <h3 class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">Adresy e-mail</h3>
             <div class="space-y-2">
-              <div v-for="(_email, index) in (formData.emails || [])" :key="index" class="flex items-center gap-2">
+              <div v-for="(_email, index) in formData.emails || []" :key="index" class="flex items-center gap-2">
                 <EnvelopeIcon class="w-4 h-4 text-primary-400" />
                 <InputText
                   v-model="formData.emails![index]"
@@ -373,14 +377,13 @@
                   <TrashIcon class="w-4 h-4" />
                 </button>
               </div>
-              <p v-if="!formData.emails || !formData.emails.length" class="text-sm text-surface-500 dark:text-surface-400">
+              <p
+                v-if="!formData.emails || !formData.emails.length"
+                class="text-sm text-surface-500 dark:text-surface-400"
+              >
                 Brak zdefiniowanych adresów e-mail.
               </p>
-              <button
-                type="button"
-                class="text-xs text-primary-500 hover:text-primary-400"
-                @click="handleAddEmail"
-              >
+              <button type="button" class="text-xs text-primary-500 hover:text-primary-400" @click="handleAddEmail">
                 + Dodaj adres e-mail
               </button>
               <p v-if="errors.emails" class="text-red-500 text-sm mt-1">{{ errors.emails }}</p>

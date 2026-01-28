@@ -23,9 +23,7 @@
 
   const customerGasConnections = computed(() => {
     if (!props.customer) return [];
-    return gasConnectionsStore.getAllGasConnections().filter(
-      gc => gc.customer?.id === props.customer!.id
-    );
+    return gasConnectionsStore.getAllGasConnections().filter(gc => gc.customer?.id === props.customer!.id);
   });
 
   const customerName = computed(() => {
@@ -41,7 +39,7 @@
   function handleConnectionClick(id: number) {
     router.push({
       name: 'gas-connection-details',
-      query: { id: id.toString(), readonly: 'true' }
+      query: { id: id.toString(), readonly: 'true' },
     });
     handleClose();
   }
@@ -50,7 +48,7 @@
 <template>
   <Dialog
     :visible="visible"
-    @update:visible="(val) => emit('update:visible', val)"
+    @update:visible="val => emit('update:visible', val)"
     modal
     closable
     :draggable="false"
@@ -113,10 +111,10 @@
           <DocumentTextIcon class="w-5 h-5 text-primary-400" />
           Faktury
         </h2>
-        <div class="bg-surface-0 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg p-8 text-center">
-          <p class="text-sm text-surface-600 dark:text-surface-400">
-            W przyszłości będą tutaj wyświetlane faktury
-          </p>
+        <div
+          class="bg-surface-0 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg p-8 text-center"
+        >
+          <p class="text-sm text-surface-600 dark:text-surface-400">W przyszłości będą tutaj wyświetlane faktury</p>
         </div>
       </div>
 
@@ -126,10 +124,10 @@
           <ClipboardDocumentIcon class="w-5 h-5 text-primary-400" />
           Oferty
         </h2>
-        <div class="bg-surface-0 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg p-8 text-center">
-          <p class="text-sm text-surface-600 dark:text-surface-400">
-            W przyszłości będą tutaj wyświetlane oferty
-          </p>
+        <div
+          class="bg-surface-0 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg p-8 text-center"
+        >
+          <p class="text-sm text-surface-600 dark:text-surface-400">W przyszłości będą tutaj wyświetlane oferty</p>
         </div>
       </div>
     </div>

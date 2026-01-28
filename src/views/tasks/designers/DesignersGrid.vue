@@ -5,7 +5,7 @@
   import DesignerFormDialog from '@/components/tasks/designers/DesignerFormDialog.vue';
   import TasksListToolbar from '@/components/tasks/TasksListToolbar.vue';
   import TasksListSettingsDialog from '@/components/tasks/TasksListSettingsDialog.vue';
-  import TasksListInfoDialog from '@/components/tasks/TasksListInfoDialog.vue';
+  import DesignerDetailsDialog from '@/components/tasks/designers/DesignerDetailsDialog.vue';
   import DataView from 'primevue/dataview';
   import Button from 'primevue/button';
   import ConfirmPopup from 'primevue/confirmpopup';
@@ -80,9 +80,9 @@
     }
 
     if (globalSearchQuery.value.trim()) {
-      base = designersStore.searchDesigners(globalSearchQuery.value.trim()).filter(d =>
-        base.some(bd => bd.id === d.id)
-      );
+      base = designersStore
+        .searchDesigners(globalSearchQuery.value.trim())
+        .filter(d => base.some(bd => bd.id === d.id));
     }
 
     return base;
@@ -114,9 +114,13 @@
   };
 
   const getInitials = (designer: Designer) => {
-    const first = designer.name?.[0] ?? '';
-    const last = designer.lastName?.[0] ?? '';
-    return `${first}${last}`.toUpperCase();
+    if (designer.designerType === 'company') {
+      const name = designer.companyName || designer.name || '';
+      return name.slice(0, 2).toUpperCase();
+    }
+    const first = designer.firstName ?? designer.name ?? '';
+    const last = designer.lastName ?? '';
+    return `${first[0] ?? ''}${last[0] ?? ''}`.toUpperCase();
   };
 
   const getDesignerStats = (designerId: number) => {
@@ -136,13 +140,15 @@
   });
 
   const handleCall = (designer: Designer) => {
-    if (!designer.phone) return;
-    window.location.href = `tel:${designer.phone.replace(/\s+/g, '')}`;
+    const phone = designer.phones?.[0];
+    if (!phone) return;
+    window.location.href = `tel:${phone.replace(/\s+/g, '')}`;
   };
 
   const handleEmail = (designer: Designer) => {
-    if (!designer.email) return;
-    window.location.href = `mailto:${designer.email}`;
+    const email = designer.emails?.[0];
+    if (!email) return;
+    window.location.href = `mailto:${email}`;
   };
 
   const openDialogForNew = () => {
@@ -187,7 +193,7 @@
 
     confirm.require({
       target: event.currentTarget as HTMLElement,
-      message: `Czy na pewno chcesz usunąć projektanta "${selectedDesigner.value.name} ${selectedDesigner.value.lastName}"?`,
+      message: `Czy na pewno chcesz usunąć projektanta "${selectedDesigner.value.firstName ?? selectedDesigner.value.name ?? ''} ${selectedDesigner.value.lastName ?? ''}"?`,
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Tak',
       rejectLabel: 'Nie',
@@ -285,6 +291,7 @@
           @edit="openDialogForEdit()"
           @delete="handleDelete"
           @info="handleInfo"
+          @details="handleInfo"
           @toggle-favorite="handleToggleFavorite"
           @clear-filter="handleClearFilter"
           @open-settings="handleOpenSettings"
@@ -368,8 +375,8 @@
         >
           <DataView :value="filteredDesigners" layout="grid" :data-key="'id'">
             <template #grid="slotProps">
-              <div class="overflow-y-auto" style="max-height: calc(100vh - 320px);">
-                <div class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+              <div class="overflow-y-auto" style="max-height: calc(100vh - 320px)">
+                <div class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))">
                   <button
                     v-for="designer in slotProps.items"
                     :key="designer.id"
@@ -403,14 +410,31 @@
                           >
                             {{ designer.status ? 'AKTYWNY' : 'NIEAKTYWNY' }}
                           </div>
-                          <div class="mt-1 text-[10px] text-surface-500 dark:text-surface-400">ID: {{ designer.id }}</div>
+                          <div class="mt-1 text-[10px] text-surface-500 dark:text-surface-400">
+                            ID: {{ designer.id }}
+                          </div>
                         </div>
                       </div>
 
                       <!-- Name & address -->
                       <div class="mb-3">
-                        <div class="text-sm font-semibold text-surface-900 dark:text-surface-50 mb-1">
-                          {{ designer.name }} {{ designer.lastName }}
+                        <div class="flex items-center justify-between gap-2 mb-1">
+                          <div class="text-sm font-semibold text-surface-900 dark:text-surface-50">
+                            <span v-if="designer.designerType === 'company'">
+                              {{ designer.companyName || designer.name }}
+                            </span>
+                            <span v-else> {{ designer.firstName || designer.name }} {{ designer.lastName }} </span>
+                          </div>
+                          <span
+                            class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium"
+                            :class="
+                              designer.designerType === 'company'
+                                ? 'bg-violet-100 dark:bg-violet-900/40 text-violet-800 dark:text-violet-200'
+                                : 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200'
+                            "
+                          >
+                            {{ designer.designerType === 'company' ? 'Firma' : 'Osoba' }}
+                          </span>
                         </div>
                         <div class="flex items-center gap-1 text-xs text-surface-500 dark:text-surface-400">
                           <MapPinIcon class="w-3.5 h-3.5" />
@@ -426,13 +450,13 @@
                         <div class="flex items-center gap-2">
                           <PhoneIcon class="w-4 h-4" />
                           <span class="truncate">
-                            {{ designer.phone || 'Brak numeru telefonu' }}
+                            {{ designer.phones?.[0] || 'Brak numeru telefonu' }}
                           </span>
                         </div>
                         <div class="flex items-center gap-2">
                           <EnvelopeIcon class="w-4 h-4" />
                           <span class="truncate">
-                            {{ designer.email || 'Brak adresu email' }}
+                            {{ designer.emails?.[0] || 'Brak adresu email' }}
                           </span>
                         </div>
                       </div>
@@ -454,11 +478,11 @@
                             type="button"
                             class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-xs font-medium transition-colors"
                             :class="[
-                              designer.phone
+                              designer.phones?.[0]
                                 ? 'bg-green-700 text-white hover:bg-green-600'
                                 : 'bg-surface-200 dark:bg-surface-800 text-surface-400 cursor-not-allowed',
                             ]"
-                            :disabled="!designer.phone"
+                            :disabled="!designer.phones?.[0]"
                             @click.stop="handleCall(designer)"
                           >
                             <PhoneIcon class="w-4 h-4" />
@@ -467,11 +491,11 @@
                             type="button"
                             class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-xs font-medium transition-colors"
                             :class="[
-                              designer.email
+                              designer.emails?.[0]
                                 ? 'bg-sky-700 text-white hover:bg-sky-600'
                                 : 'bg-surface-200 dark:bg-surface-800 text-surface-400 cursor-not-allowed',
                             ]"
-                            :disabled="!designer.email"
+                            :disabled="!designer.emails?.[0]"
                             @click.stop="handleEmail(designer)"
                           >
                             <EnvelopeIcon class="w-4 h-4" />
@@ -505,11 +529,11 @@
       @saved="handleSettingsSaved"
     />
 
-    <!-- Dialog informacji -->
-    <TasksListInfoDialog
-      v-model:visible="showInfoDialog"
-      :entity="selectedDesigner"
-      entity-type="designer"
+    <!-- Dialog szczegółów projektanta -->
+    <DesignerDetailsDialog
+      v-if="showInfoDialog && selectedDesigner"
+      :designer="selectedDesigner"
+      @close="showInfoDialog = false"
     />
 
     <!-- Confirm Popup -->
@@ -518,7 +542,7 @@
 </template>
 
 <style scoped>
-.list-view-button :deep(.p-button-icon) {
-  font-size: 1.5rem;
-}
+  .list-view-button :deep(.p-button-icon) {
+    font-size: 1.5rem;
+  }
 </style>

@@ -141,13 +141,15 @@
   });
 
   const handleCall = (item: DesignerTraffic) => {
-    if (!item.phone) return;
-    window.location.href = `tel:${item.phone.replace(/\s+/g, '')}`;
+    const phone = item.phones?.[0];
+    if (!phone) return;
+    window.location.href = `tel:${phone.replace(/\s+/g, '')}`;
   };
 
   const handleEmail = (item: DesignerTraffic) => {
-    if (!item.email) return;
-    window.location.href = `mailto:${item.email}`;
+    const email = item.emails?.[0];
+    if (!email) return;
+    window.location.href = `mailto:${email}`;
   };
 
   const openDialogForNew = () => {
@@ -290,6 +292,7 @@
           @edit="openDialogForEdit()"
           @delete="handleDelete"
           @info="handleInfo"
+          @details="handleInfo"
           @toggle-favorite="handleToggleFavorite"
           @clear-filter="handleClearFilter"
           @open-settings="handleOpenSettings"
@@ -392,13 +395,13 @@
                         <div class="flex items-center gap-2">
                           <PhoneIcon class="w-4 h-4" />
                           <span class="truncate">
-                            {{ item.phone || 'Brak numeru telefonu' }}
+                            {{ item.phones?.[0] || 'Brak numeru telefonu' }}
                           </span>
                         </div>
                         <div class="flex items-center gap-2">
                           <EnvelopeIcon class="w-4 h-4" />
                           <span class="truncate">
-                            {{ item.email || 'Brak adresu email' }}
+                            {{ item.emails?.[0] || 'Brak adresu email' }}
                           </span>
                         </div>
                       </div>
@@ -420,11 +423,11 @@
                             type="button"
                             class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-xs font-medium transition-colors"
                             :class="[
-                              item.phone
+                              item.phones?.[0]
                                 ? 'bg-green-700 text-white hover:bg-green-600'
                                 : 'bg-surface-200 dark:bg-surface-800 text-surface-400 cursor-not-allowed',
                             ]"
-                            :disabled="!item.phone"
+                            :disabled="!item.phones?.[0]"
                             @click.stop="handleCall(item)"
                           >
                             <PhoneIcon class="w-4 h-4" />
@@ -433,11 +436,11 @@
                             type="button"
                             class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-xs font-medium transition-colors"
                             :class="[
-                              item.email
+                              item.emails?.[0]
                                 ? 'bg-sky-700 text-white hover:bg-sky-600'
                                 : 'bg-surface-200 dark:bg-surface-800 text-surface-400 cursor-not-allowed',
                             ]"
-                            :disabled="!item.email"
+                            :disabled="!item.emails?.[0]"
                             @click.stop="handleEmail(item)"
                           >
                             <EnvelopeIcon class="w-4 h-4" />

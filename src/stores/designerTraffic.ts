@@ -134,18 +134,16 @@ function generateMockDesignerTraffic(): DesignerTraffic[] {
   for (let i = 0; i < 25; i++) {
     const name = firstNames[Math.floor(Math.random() * firstNames.length)];
     const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-    const phone = generatePhone();
-    const phone2 = Math.random() > 0.4 ? generatePhone() : undefined;
-    const email = generateEmail(name, lastName);
+    const phones = [generatePhone(), ...(Math.random() > 0.4 ? [generatePhone()] : [])].filter(Boolean);
+    const emails = [generateEmail(name, lastName)];
     const info = infoOptions[Math.floor(Math.random() * infoOptions.length)];
 
     result.push({
       id: id++,
       name,
       lastName,
-      phone,
-      phone2,
-      email,
+      phones,
+      emails,
       info,
       status: Math.random() > 0.15, // 85% aktywnych
       createdAt: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
@@ -320,9 +318,8 @@ export const useDesignerTrafficStore = defineStore('designerTraffic', () => {
       return (
         d.name.toLowerCase().includes(lowerQuery) ||
         d.lastName.toLowerCase().includes(lowerQuery) ||
-        d.email.toLowerCase().includes(lowerQuery) ||
-        d.phone.includes(query) ||
-        d.phone2?.includes(query)
+        d.emails?.some(e => e.toLowerCase().includes(lowerQuery)) ||
+        d.phones?.some(p => p.includes(query))
       );
     });
   }

@@ -68,7 +68,7 @@
 
   watch(
     () => props.visible,
-    (v) => {
+    v => {
       if (v) {
         selectedSortField.value = props.defaultSortField ?? null;
         selectedSortOrder.value = props.defaultSortOrder ?? null;
@@ -79,7 +79,7 @@
     { immediate: true }
   );
 
-  watch(selectedSortField, (v) => {
+  watch(selectedSortField, v => {
     if (!v) selectedSortOrder.value = null;
   });
 
@@ -110,7 +110,7 @@
 <template>
   <Dialog
     :visible="visible"
-    @update:visible="(val) => emit('update:visible', val)"
+    @update:visible="val => emit('update:visible', val)"
     modal
     closable
     :draggable="false"
@@ -134,13 +134,12 @@
         </button>
         <Popover ref="infoPopover">
           <div class="p-3" style="max-width: 320px">
-            <p class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
-              Jak działa konfiguracja?
-            </p>
+            <p class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">Jak działa konfiguracja?</p>
             <p class="text-xs text-surface-600 dark:text-surface-400 leading-relaxed">
               Te ustawienia określają wartości domyślne, które będą przywracane przy każdym otwarciu widoku klientów.
-              Gdy „Zapisz ustawienia automatycznie” jest odznaczone – zmiany można zapisać tylko przez przycisk Zapisz w tym oknie.
-              Gdy zaznaczone – zapis następuje także przy zmianie filtra w toolbarze oraz przy sortowaniu kolumn w tabeli.
+              Gdy „Zapisz ustawienia automatycznie” jest odznaczone – zmiany można zapisać tylko przez przycisk Zapisz w
+              tym oknie. Gdy zaznaczone – zapis następuje także przy zmianie filtra w toolbarze oraz przy sortowaniu
+              kolumn w tabeli.
             </p>
           </div>
         </Popover>
@@ -200,7 +199,10 @@
 
       <div class="flex flex-wrap items-center gap-2">
         <Checkbox v-model="autoSaveChecked" :binary="true" input-id="auto-save-settings" />
-        <label for="auto-save-settings" class="text-sm font-medium text-surface-700 dark:text-surface-300 cursor-pointer">
+        <label
+          for="auto-save-settings"
+          class="text-sm font-medium text-surface-700 dark:text-surface-300 cursor-pointer"
+        >
           Zapisz ustawienia automatycznie
         </label>
         <button
@@ -219,8 +221,9 @@
               Zapisz ustawienia automatycznie
             </p>
             <p class="text-xs text-surface-600 dark:text-surface-400 leading-relaxed">
-              Gdy zaznaczone – zmiana filtra w toolbarze oraz sortowanie kolumn w tabeli zapisują się od razu.
-              Gdy odznaczone – zmiany są tylko widoczne w interfejsie; zapis następuje wyłącznie po kliknięciu „Zapisz” w tym oknie.
+              Gdy zaznaczone – zmiana filtra w toolbarze oraz sortowanie kolumn w tabeli zapisują się od razu. Gdy
+              odznaczone – zmiany są tylko widoczne w interfejsie; zapis następuje wyłącznie po kliknięciu „Zapisz” w
+              tym oknie.
             </p>
           </div>
         </Popover>

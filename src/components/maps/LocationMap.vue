@@ -43,7 +43,6 @@
     { immediate: true }
   );
 
-
   onMounted(() => {
     if (props.latitude && props.longitude) {
       const latNum = parseFloat(props.latitude);

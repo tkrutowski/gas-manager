@@ -43,6 +43,7 @@ declare module 'vue' {
     DataView: typeof import('primevue/dataview')['default']
     DatePicker: typeof import('primevue/datepicker')['default']
     DefaultSettingsDialog: typeof import('./src/components/tasks/DefaultSettingsDialog.vue')['default']
+    DesignerDetailsDialog: typeof import('./src/components/tasks/designers/DesignerDetailsDialog.vue')['default']
     DesignerFormDialog: typeof import('./src/components/tasks/designers/DesignerFormDialog.vue')['default']
     DesignerTrafficFormDialog: typeof import('./src/components/tasks/DesignerTrafficFormDialog.vue')['default']
     DeviceDetails: typeof import('./src/components/device/DeviceDetails.vue')['default']

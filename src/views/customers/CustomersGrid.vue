@@ -69,23 +69,21 @@
     let list = [...customers.value];
     switch (selectedFilter.value) {
       case 'active':
-        list = list.filter((c) => c.status);
+        list = list.filter(c => c.status);
         break;
       case 'inactive':
-        list = list.filter((c) => !c.status);
+        list = list.filter(c => !c.status);
         break;
       case 'favorites':
-        list = list.filter((c) => settingsStore.favoriteCustomerIds.includes(c.id));
+        list = list.filter(c => settingsStore.favoriteCustomerIds.includes(c.id));
         break;
       default:
         break;
     }
     const q = globalSearchQuery.value.trim().toLowerCase();
     if (q) {
-      list = list.filter((c) => {
-        return COLUMNS.some((col) =>
-          formatCellValue(c, col.field).toLowerCase().includes(q)
-        );
+      list = list.filter(c => {
+        return COLUMNS.some(col => formatCellValue(c, col.field).toLowerCase().includes(q));
       });
     }
     return list;
@@ -131,17 +129,14 @@
     if (autoSaveSettings.value) {
       settingsStore.saveCustomerTableSettings(defaultSortField.value, defaultSortOrder.value, filter);
     }
-    if (
-      selectedCustomerId.value != null &&
-      !filteredCustomers.value.some((c) => c.id === selectedCustomerId.value)
-    ) {
+    if (selectedCustomerId.value != null && !filteredCustomers.value.some(c => c.id === selectedCustomerId.value)) {
       selectedCustomerId.value = null;
     }
   }
 
   const selectedRow = computed(() => {
     if (selectedCustomerId.value == null) return null;
-    return customers.value.find((c) => c.id === selectedCustomerId.value) || null;
+    return customers.value.find(c => c.id === selectedCustomerId.value) || null;
   });
 
   const isSelectedFavorite = computed(() => {
@@ -232,8 +227,7 @@
   function handleResetConfig(event: Event) {
     confirm.require({
       target: event.currentTarget as HTMLElement,
-      message:
-        'Czy na pewno chcesz zresetować konfigurację (sortowanie, filtr, ulubieni)?',
+      message: 'Czy na pewno chcesz zresetować konfigurację (sortowanie, filtr, ulubieni)?',
       icon: 'pi pi-exclamation-triangle',
       rejectProps: { label: 'Anuluj', severity: 'secondary', outlined: true },
       acceptProps: { label: 'Resetuj', severity: 'warning' },
@@ -304,9 +298,7 @@
         <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
             <h1 class="text-3xl font-bold text-surface-700 dark:text-surface-300">Klienci</h1>
-            <p class="text-sm text-surface-600 dark:text-surface-400">
-              Wybierz klienta z listy. Lista i kafelki.
-            </p>
+            <p class="text-sm text-surface-600 dark:text-surface-400">Wybierz klienta z listy. Lista i kafelki.</p>
           </div>
           <div class="hidden md:flex items-center gap-2">
             <router-link to="/customers/list">
@@ -345,109 +337,109 @@
 
           <DataView :value="filteredCustomers" layout="grid" :data-key="'id'">
             <template #grid="slotProps">
-              <div class="overflow-y-auto" style="max-height: calc(100vh - 320px);">
-                <div class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
-                <button
-                  v-for="c in slotProps.items"
-                  :key="c.id"
-                  type="button"
-                  class="text-left rounded-2xl border transition-all duration-200 focus:outline-none"
-                  :class="[
-                    selectedCustomerId === c.id
-                      ? 'border-primary-400 ring-2 ring-primary-400/40 bg-surface-200 dark:bg-surface-700'
-                      : 'border-surface-200 dark:border-surface-700 bg-surface-100 dark:bg-surface-800 hover:border-primary-400/60 hover:bg-surface-100 dark:hover:bg-surface-800',
-                  ]"
-                  @click="toggleCustomerSelection(c.id)"
-                >
-                  <div class="p-4 flex flex-col h-full">
-                    <div class="flex items-start justify-between mb-4">
-                      <div
-                        class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold text-white"
-                        :class="c.status ? 'bg-green-600' : 'bg-red-600'"
-                      >
-                        {{ getInitials(c) }}
-                      </div>
-                      <div class="text-right">
+              <div class="overflow-y-auto" style="max-height: calc(100vh - 320px)">
+                <div class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))">
+                  <button
+                    v-for="c in slotProps.items"
+                    :key="c.id"
+                    type="button"
+                    class="text-left rounded-2xl border transition-all duration-200 focus:outline-none"
+                    :class="[
+                      selectedCustomerId === c.id
+                        ? 'border-primary-400 ring-2 ring-primary-400/40 bg-surface-200 dark:bg-surface-700'
+                        : 'border-surface-200 dark:border-surface-700 bg-surface-100 dark:bg-surface-800 hover:border-primary-400/60 hover:bg-surface-100 dark:hover:bg-surface-800',
+                    ]"
+                    @click="toggleCustomerSelection(c.id)"
+                  >
+                    <div class="p-4 flex flex-col h-full">
+                      <div class="flex items-start justify-between mb-4">
                         <div
-                          class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-wide"
-                          :class="
-                            c.status
-                              ? 'bg-green-900/60 text-green-400 border border-green-700/60'
-                              : 'bg-red-800/20 text-red-400 border border-red-700/60'
-                          "
+                          class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold text-white"
+                          :class="c.status ? 'bg-green-600' : 'bg-red-600'"
                         >
-                          {{ c.status ? 'AKTYWNY' : 'NIEAKTYWNY' }}
+                          {{ getInitials(c) }}
                         </div>
-                        <div class="mt-1 text-[10px] text-surface-500 dark:text-surface-400">
-                          {{ c.customerType === 'person' ? 'Osoba' : 'Firma' }}
+                        <div class="text-right">
+                          <div
+                            class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-wide"
+                            :class="
+                              c.status
+                                ? 'bg-green-900/60 text-green-400 border border-green-700/60'
+                                : 'bg-red-800/20 text-red-400 border border-red-700/60'
+                            "
+                          >
+                            {{ c.status ? 'AKTYWNY' : 'NIEAKTYWNY' }}
+                          </div>
+                          <div class="mt-1 text-[10px] text-surface-500 dark:text-surface-400">
+                            {{ c.customerType === 'person' ? 'Osoba' : 'Firma' }}
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div class="mb-3">
-                      <div class="text-sm font-semibold text-surface-900 dark:text-surface-50 mb-1">
-                        {{ getCustomerName(c) }}
+                      <div class="mb-3">
+                        <div class="text-sm font-semibold text-surface-900 dark:text-surface-50 mb-1">
+                          {{ getCustomerName(c) }}
+                        </div>
+                        <div class="flex items-center gap-1 text-xs text-surface-500 dark:text-surface-400">
+                          <MapPinIcon class="w-3.5 h-3.5" />
+                          <span>{{ formatAddress(c.address) || '—' }}</span>
+                        </div>
                       </div>
-                      <div class="flex items-center gap-1 text-xs text-surface-500 dark:text-surface-400">
-                        <MapPinIcon class="w-3.5 h-3.5" />
-                        <span>{{ formatAddress(c.address) || '—' }}</span>
-                      </div>
-                    </div>
 
-                    <div class="space-y-1.5 text-xs text-surface-500 dark:text-surface-400 mb-4">
-                      <div class="flex items-center gap-2">
-                        <PhoneIcon class="w-4 h-4" />
-                        <span class="truncate">{{ c.phones?.[0] || 'Brak telefonu' }}</span>
-                      </div>
-                      <div class="flex items-center gap-2">
-                        <EnvelopeIcon class="w-4 h-4" />
-                        <span class="truncate">{{ c.emails?.[0] || 'Brak email' }}</span>
-                      </div>
-                    </div>
-
-                    <div
-                      class="mt-auto pt-3 border-t border-surface-200 dark:border-surface-700 flex items-center justify-between gap-1.5"
-                    >
-                      <button
-                        type="button"
-                        class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-xs font-medium transition-colors bg-primary-500 text-surface-900 hover:bg-primary-600 cursor-pointer"
-                        title="Zobacz szczegóły"
-                        @click.stop="handleOpenDetails(c)"
-                      >
-                        <EyeIcon class="w-4 h-4" />
-                      </button>
-                      <div class="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-xs font-medium transition-colors"
-                          :class="[
-                            c.phones?.length
-                              ? 'bg-green-700 text-white hover:bg-green-600 cursor-pointer'
-                              : 'bg-surface-200 dark:bg-surface-800 text-surface-400 cursor-not-allowed',
-                          ]"
-                          :disabled="!c.phones?.length"
-                          @click.stop="handleCall(c)"
-                        >
+                      <div class="space-y-1.5 text-xs text-surface-500 dark:text-surface-400 mb-4">
+                        <div class="flex items-center gap-2">
                           <PhoneIcon class="w-4 h-4" />
-                        </button>
+                          <span class="truncate">{{ c.phones?.[0] || 'Brak telefonu' }}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <EnvelopeIcon class="w-4 h-4" />
+                          <span class="truncate">{{ c.emails?.[0] || 'Brak email' }}</span>
+                        </div>
+                      </div>
+
+                      <div
+                        class="mt-auto pt-3 border-t border-surface-200 dark:border-surface-700 flex items-center justify-between gap-1.5"
+                      >
                         <button
                           type="button"
-                          class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-xs font-medium transition-colors"
-                          :class="[
-                            c.emails?.length
-                              ? 'bg-sky-700 text-white hover:bg-sky-600 cursor-pointer'
-                              : 'bg-surface-200 dark:bg-surface-800 text-surface-400 cursor-not-allowed',
-                          ]"
-                          :disabled="!c.emails?.length"
-                          @click.stop="handleEmail(c)"
+                          class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-xs font-medium transition-colors bg-primary-500 text-surface-900 hover:bg-primary-600 cursor-pointer"
+                          title="Zobacz szczegóły"
+                          @click.stop="handleOpenDetails(c)"
                         >
-                          <EnvelopeIcon class="w-4 h-4" />
+                          <EyeIcon class="w-4 h-4" />
                         </button>
+                        <div class="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-xs font-medium transition-colors"
+                            :class="[
+                              c.phones?.length
+                                ? 'bg-green-700 text-white hover:bg-green-600 cursor-pointer'
+                                : 'bg-surface-200 dark:bg-surface-800 text-surface-400 cursor-not-allowed',
+                            ]"
+                            :disabled="!c.phones?.length"
+                            @click.stop="handleCall(c)"
+                          >
+                            <PhoneIcon class="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-xs font-medium transition-colors"
+                            :class="[
+                              c.emails?.length
+                                ? 'bg-sky-700 text-white hover:bg-sky-600 cursor-pointer'
+                                : 'bg-surface-200 dark:bg-surface-800 text-surface-400 cursor-not-allowed',
+                            ]"
+                            :disabled="!c.emails?.length"
+                            @click.stop="handleEmail(c)"
+                          >
+                            <EnvelopeIcon class="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </button>
-              </div>
+                  </button>
+                </div>
               </div>
             </template>
           </DataView>
@@ -490,7 +482,7 @@
 </template>
 
 <style scoped>
-.list-view-button :deep(.p-button-icon) {
-  font-size: 1.5rem;
-}
+  .list-view-button :deep(.p-button-icon) {
+    font-size: 1.5rem;
+  }
 </style>

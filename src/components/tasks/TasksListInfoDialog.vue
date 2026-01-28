@@ -2,7 +2,14 @@
   import { computed } from 'vue';
   import Dialog from 'primevue/dialog';
   import SecondaryButton from '@/components/SecondaryButton.vue';
-  import { UserIcon, PhoneIcon, MapPinIcon, DocumentTextIcon } from '@heroicons/vue/24/outline';
+  import {
+    UserIcon,
+    PhoneIcon,
+    MapPinIcon,
+    DocumentTextIcon,
+    EnvelopeIcon,
+    CalendarIcon,
+  } from '@heroicons/vue/24/outline';
   import type { Designer, DesignerTraffic } from '@/types/Designer';
   import type { Coordinator } from '@/types/Coordinator';
   import type { Surveyor } from '@/types/Surveyor';
@@ -19,13 +26,63 @@
   }>();
 
   const entityName = computed(() => {
-    if (!props.entity) return '';
-    return `${props.entity.name} ${props.entity.lastName}`;
+    const e = props.entity;
+    if (!e) return '';
+    return `${e.name} ${'lastName' in e ? (e.lastName ?? '') : ''}`.trim();
   });
 
   const hasAddress = computed(() => {
     return props.entity && 'address' in props.entity && props.entity.address;
   });
+
+  const entityTypeLabel = computed(() => {
+    switch (props.entityType) {
+      case 'designer':
+        return 'PROJEKTANT GAZU';
+      case 'designerTraffic':
+        return 'PROJEKTANT RUCHU';
+      case 'coordinator':
+        return 'KOORDYNATOR';
+      case 'surveyor':
+        return 'GEODETA';
+      default:
+        return 'OSOBA';
+    }
+  });
+
+  const getInitials = computed(() => {
+    const e = props.entity;
+    if (!e) return '?';
+    const first = e.name?.charAt(0).toUpperCase() || '';
+    const last = 'lastName' in e && e.lastName ? e.lastName.charAt(0).toUpperCase() : '';
+    return first + last || '?';
+  });
+
+  const formatDate = (date?: Date | string): string => {
+    if (!date) return '-';
+    try {
+      const d = typeof date === 'string' ? new Date(date) : date;
+      return d.toLocaleDateString('pl-PL', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      return '-';
+    }
+  };
+
+  const handleCall = (phone: string) => {
+    if (!phone) return;
+    window.location.href = `tel:${phone.replace(/\s+/g, '')}`;
+  };
+
+  const handleEmail = (email: string) => {
+    if (!email) return;
+    window.location.href = `mailto:${email}`;
+  };
 
   function handleClose() {
     emit('update:visible', false);
@@ -47,128 +104,180 @@
     @hide="handleClose"
   >
     <template #header>
-      <div class="flex items-center gap-2">
-        <UserIcon class="w-6 h-6 text-yellow-400" />
-        <span class="text-surface-700 dark:text-surface-300">{{ entityName }}</span>
+      <div class="w-full">
+        <h2 class="text-2xl font-bold text-surface-900 dark:text-surface-300">Szczegóły – {{ entityTypeLabel }}</h2>
       </div>
     </template>
 
-    <div v-if="entity" class="space-y-6">
-      <!-- Informacje podstawowe -->
-      <div class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-6">
-        <h2 class="text-lg font-semibold text-surface-700 dark:text-surface-300 mb-4 flex items-center gap-2">
-          <UserIcon class="w-5 h-5 text-primary-400" />
-          Informacje podstawowe
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Imię</label>
-            <p class="text-sm font-semibold text-surface-700 dark:text-surface-300">{{ entity.name || '-' }}</p>
-          </div>
-          <div>
-            <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Nazwisko</label>
-            <p class="text-sm font-semibold text-surface-700 dark:text-surface-300">{{ entity.lastName || '-' }}</p>
-          </div>
-          <div>
-            <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Status</label>
-            <p class="text-sm font-semibold text-surface-700 dark:text-surface-300">
-              <span
-                class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium"
-                :class="
-                  entity.status
-                    ? 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200'
-                    : 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200'
-                "
-              >
-                {{ entity.status ? 'Aktywny' : 'Nieaktywny' }}
-              </span>
-            </p>
-          </div>
-          <div v-if="'employee' in entity">
-            <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Pracownik</label>
-            <p class="text-sm font-semibold text-surface-700 dark:text-surface-300">
-              {{ entity.employee ? 'Tak' : 'Nie' }}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Kontakt -->
-      <div class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-6">
-        <h2 class="text-lg font-semibold text-surface-700 dark:text-surface-300 mb-4 flex items-center gap-2">
-          <PhoneIcon class="w-5 h-5 text-primary-400" />
-          Kontakt
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Telefon</label>
-            <p class="text-sm font-semibold text-surface-700 dark:text-surface-300">
-              {{ entity.phone || '-' }}
-            </p>
-          </div>
-          <div v-if="entity.phone2">
-            <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Telefon 2</label>
-            <p class="text-sm font-semibold text-surface-700 dark:text-surface-300">
-              {{ entity.phone2 }}
-            </p>
-          </div>
-          <div class="md:col-span-2">
-            <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Email</label>
-            <p class="text-sm font-semibold text-surface-700 dark:text-surface-300">
-              {{ entity.email || '-' }}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Adres (jeśli dostępny) -->
+    <div v-if="entity" class="space-y-4">
+      <!-- Overview Card -->
       <div
-        v-if="hasAddress"
-        class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-6"
+        class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg p-4 flex items-center gap-4"
       >
-        <h2 class="text-lg font-semibold text-surface-700 dark:text-surface-300 mb-4 flex items-center gap-2">
-          <MapPinIcon class="w-5 h-5 text-primary-400" />
-          Adres
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Ulica</label>
-            <p class="text-sm font-semibold text-surface-700 dark:text-surface-300">
-              {{ 'address' in entity && entity.address ? entity.address.street || '-' : '-' }}
-            </p>
+        <div class="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center shrink-0">
+          <span class="text-lg font-semibold text-black">{{ getInitials }}</span>
+        </div>
+        <div class="flex-1">
+          <p class="text-xs text-surface-600 dark:text-surface-400 mb-1">
+            {{ entityTypeLabel }}
+          </p>
+          <p class="text-xl font-bold text-surface-900 dark:text-surface-300">
+            {{ entityName || '-' }}
+          </p>
+        </div>
+        <div
+          :class="[
+            'flex items-center gap-2 px-3 py-1.5 rounded-full',
+            entity.status ? 'bg-green-100 dark:bg-green-900/30' : 'bg-gray-100 dark:bg-gray-700/50',
+          ]"
+        >
+          <span :class="['w-2 h-2 rounded-full', entity.status ? 'bg-green-500' : 'bg-gray-500']"></span>
+          <span
+            :class="[
+              'text-sm font-medium',
+              entity.status ? 'text-green-700 dark:text-green-400' : 'text-gray-700 dark:text-gray-400',
+            ]"
+          >
+            {{ entity.status ? 'Aktywny' : 'Nieaktywny' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Kontakt + Adres -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Kontakt -->
+        <div class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg p-4">
+          <div class="flex items-center gap-2 mb-4">
+            <UserIcon class="w-5 h-5 text-yellow-400" />
+            <h3 class="text-xs font-medium text-surface-600 dark:text-surface-400 uppercase">Dane kontaktowe</h3>
           </div>
-          <div>
-            <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Miasto</label>
-            <p class="text-sm font-semibold text-surface-700 dark:text-surface-300">
-              {{ 'address' in entity && entity.address ? entity.address.city || '-' : '-' }}
-            </p>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs text-surface-600 dark:text-surface-400 mb-2">Telefony</label>
+              <div v-if="entity.phones && entity.phones.length > 0" class="space-y-1.5">
+                <div
+                  v-for="(phone, index) in entity.phones"
+                  :key="index"
+                  class="flex items-center gap-2 text-sm font-semibold text-surface-900 dark:text-surface-300"
+                >
+                  <button
+                    type="button"
+                    @click="handleCall(phone)"
+                    class="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+                    title="Zadzwoń"
+                  >
+                    <PhoneIcon class="w-4 h-4 text-green-500" />
+                    <span>{{ phone }}</span>
+                  </button>
+                </div>
+              </div>
+              <p v-else class="text-sm text-surface-500 dark:text-surface-400">-</p>
+            </div>
+            <div>
+              <label class="block text-xs text-surface-600 dark:text-surface-400 mb-2">Emaile</label>
+              <div v-if="entity.emails && entity.emails.length > 0" class="space-y-1.5">
+                <div
+                  v-for="(email, index) in entity.emails"
+                  :key="index"
+                  class="flex items-center gap-2 text-sm font-semibold text-surface-900 dark:text-surface-300"
+                >
+                  <button
+                    type="button"
+                    @click="handleEmail(email)"
+                    class="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+                    title="Wyślij email"
+                  >
+                    <EnvelopeIcon class="w-4 h-4 text-blue-500" />
+                    <span>{{ email }}</span>
+                  </button>
+                </div>
+              </div>
+              <p v-else class="text-sm text-surface-500 dark:text-surface-400">-</p>
+            </div>
           </div>
-          <div>
-            <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Gmina</label>
-            <p class="text-sm font-semibold text-surface-700 dark:text-surface-300">
-              {{ 'address' in entity && entity.address ? entity.address.commune || '-' : '-' }}
-            </p>
+        </div>
+
+        <!-- Adres -->
+        <div
+          class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg p-4"
+          v-if="hasAddress"
+        >
+          <div class="flex items-center gap-2 mb-4">
+            <MapPinIcon class="w-5 h-5 text-yellow-400" />
+            <h3 class="text-xs font-medium text-surface-600 dark:text-surface-400 uppercase">Adres</h3>
           </div>
-          <div>
-            <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Kod pocztowy</label>
-            <p class="text-sm font-semibold text-surface-700 dark:text-surface-300">
-              {{ 'address' in entity && entity.address ? entity.address.zip || '-' : '-' }}
-            </p>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Ulica i numer</label>
+              <p class="text-sm font-semibold text-surface-900 dark:text-surface-300">
+                {{ 'address' in entity && entity.address ? entity.address.street || '-' : '-' }}
+              </p>
+            </div>
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex-1">
+                <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Miasto / Gmina</label>
+                <p class="text-sm font-semibold text-surface-900 dark:text-surface-300">
+                  {{
+                    'address' in entity && entity.address
+                      ? `${entity.address.city || '-'}${entity.address.commune ? ', ' + entity.address.commune : ''}`
+                      : '-'
+                  }}
+                </p>
+              </div>
+              <div>
+                <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Kod pocztowy</label>
+                <p class="text-sm font-semibold text-surface-900 dark:text-surface-300">
+                  {{ 'address' in entity && entity.address ? entity.address.zip || '-' : '-' }}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Informacje dodatkowe -->
-      <div
-        v-if="entity.info"
-        class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-6"
-      >
-        <h2 class="text-lg font-semibold text-surface-700 dark:text-surface-300 mb-4 flex items-center gap-2">
-          <DocumentTextIcon class="w-5 h-5 text-primary-400" />
-          Informacje dodatkowe
-        </h2>
-        <div class="bg-surface-0 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg p-4">
-          <p class="text-sm text-surface-700 dark:text-surface-300 whitespace-pre-wrap">{{ entity.info }}</p>
+      <!-- Informacje dodatkowe + daty (jeśli dostępne) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg p-4">
+          <div class="flex items-center gap-2 mb-4">
+            <DocumentTextIcon class="w-5 h-5 text-yellow-400" />
+            <h3 class="text-xs font-medium text-surface-600 dark:text-surface-400 uppercase">Informacje dodatkowe</h3>
+          </div>
+          <div class="space-y-3">
+            <div v-if="entity.info">
+              <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Uwagi</label>
+              <p class="text-sm font-semibold text-surface-900 dark:text-surface-300 whitespace-pre-wrap">
+                {{ entity.info }}
+              </p>
+            </div>
+            <p v-else class="text-sm text-surface-500 dark:text-surface-400">Brak dodatkowych informacji</p>
+          </div>
+        </div>
+
+        <div class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg p-4">
+          <div class="flex items-center gap-2 mb-4">
+            <CalendarIcon class="w-5 h-5 text-yellow-400" />
+            <h3 class="text-xs font-medium text-surface-600 dark:text-surface-400 uppercase">Daty</h3>
+          </div>
+          <div class="space-y-3">
+            <div class="flex items-center gap-2">
+              <CalendarIcon class="w-4 h-4 text-surface-500 dark:text-surface-400" />
+              <div class="flex-1">
+                <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Utworzono</label>
+                <p class="text-sm font-semibold text-surface-900 dark:text-surface-300">
+                  {{ 'createdAt' in entity ? formatDate(entity.createdAt as any) : '-' }}
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <CalendarIcon class="w-4 h-4 text-surface-500 dark:text-surface-400" />
+              <div class="flex-1">
+                <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Ostatnia aktualizacja</label>
+                <p class="text-sm font-semibold text-surface-900 dark:text-surface-300">
+                  {{ 'updatedAt' in entity ? formatDate(entity.updatedAt as any) : '-' }}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

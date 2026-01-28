@@ -80,9 +80,9 @@
     }
 
     if (globalSearchQuery.value.trim()) {
-      base = surveyorsStore.searchSurveyors(globalSearchQuery.value.trim()).filter(s =>
-        base.some(bs => bs.id === s.id)
-      );
+      base = surveyorsStore
+        .searchSurveyors(globalSearchQuery.value.trim())
+        .filter(s => base.some(bs => bs.id === s.id));
     }
 
     return base;
@@ -142,13 +142,15 @@
   });
 
   const handleCall = (surveyor: Surveyor) => {
-    if (!surveyor.phone) return;
-    window.location.href = `tel:${surveyor.phone.replace(/\s+/g, '')}`;
+    const phone = surveyor.phones?.[0];
+    if (!phone) return;
+    window.location.href = `tel:${phone.replace(/\s+/g, '')}`;
   };
 
   const handleEmail = (surveyor: Surveyor) => {
-    if (!surveyor.email) return;
-    window.location.href = `mailto:${surveyor.email}`;
+    const email = surveyor.emails?.[0];
+    if (!email) return;
+    window.location.href = `mailto:${email}`;
   };
 
   const openDialogForNew = () => {
@@ -291,6 +293,7 @@
           @edit="openDialogForEdit()"
           @delete="handleDelete"
           @info="handleInfo"
+          @details="handleInfo"
           @toggle-favorite="handleToggleFavorite"
           @clear-filter="handleClearFilter"
           @open-settings="handleOpenSettings"
@@ -342,8 +345,8 @@
         >
           <DataView :value="filteredSurveyors" layout="grid" :data-key="'id'">
             <template #grid="slotProps">
-              <div class="overflow-y-auto" style="max-height: calc(100vh - 320px);">
-                <div class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+              <div class="overflow-y-auto" style="max-height: calc(100vh - 320px)">
+                <div class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))">
                   <button
                     v-for="surveyor in slotProps.items"
                     :key="surveyor.id"
@@ -377,7 +380,9 @@
                           >
                             {{ surveyor.status ? 'AKTYWNY' : 'NIEAKTYWNY' }}
                           </div>
-                          <div class="mt-1 text-[10px] text-surface-500 dark:text-surface-400">ID: {{ surveyor.id }}</div>
+                          <div class="mt-1 text-[10px] text-surface-500 dark:text-surface-400">
+                            ID: {{ surveyor.id }}
+                          </div>
                         </div>
                       </div>
 
@@ -400,13 +405,13 @@
                         <div class="flex items-center gap-2">
                           <PhoneIcon class="w-4 h-4" />
                           <span class="truncate">
-                            {{ surveyor.phone || 'Brak numeru telefonu' }}
+                            {{ surveyor.phones?.[0] || 'Brak numeru telefonu' }}
                           </span>
                         </div>
                         <div class="flex items-center gap-2">
                           <EnvelopeIcon class="w-4 h-4" />
                           <span class="truncate">
-                            {{ surveyor.email || 'Brak adresu email' }}
+                            {{ surveyor.emails?.[0] || 'Brak adresu email' }}
                           </span>
                         </div>
                       </div>
@@ -428,11 +433,11 @@
                             type="button"
                             class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-xs font-medium transition-colors"
                             :class="[
-                              surveyor.phone
+                              surveyor.phones?.[0]
                                 ? 'bg-green-700 text-white hover:bg-green-600'
                                 : 'bg-surface-200 dark:bg-surface-800 text-surface-400 cursor-not-allowed',
                             ]"
-                            :disabled="!surveyor.phone"
+                            :disabled="!surveyor.phones?.[0]"
                             @click.stop="handleCall(surveyor)"
                           >
                             <PhoneIcon class="w-4 h-4" />
@@ -441,11 +446,11 @@
                             type="button"
                             class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-xs font-medium transition-colors"
                             :class="[
-                              surveyor.email
+                              surveyor.emails?.[0]
                                 ? 'bg-sky-700 text-white hover:bg-sky-600'
                                 : 'bg-surface-200 dark:bg-surface-800 text-surface-400 cursor-not-allowed',
                             ]"
-                            :disabled="!surveyor.email"
+                            :disabled="!surveyor.emails?.[0]"
                             @click.stop="handleEmail(surveyor)"
                           >
                             <EnvelopeIcon class="w-4 h-4" />
@@ -480,11 +485,7 @@
     />
 
     <!-- Dialog informacji -->
-    <TasksListInfoDialog
-      v-model:visible="showInfoDialog"
-      :entity="selectedSurveyor"
-      entity-type="surveyor"
-    />
+    <TasksListInfoDialog v-model:visible="showInfoDialog" :entity="selectedSurveyor" entity-type="surveyor" />
 
     <!-- Confirm Popup -->
     <ConfirmPopup />
@@ -492,7 +493,7 @@
 </template>
 
 <style scoped>
-.list-view-button :deep(.p-button-icon) {
-  font-size: 1.5rem;
-}
+  .list-view-button :deep(.p-button-icon) {
+    font-size: 1.5rem;
+  }
 </style>

@@ -30,10 +30,10 @@
 
   const emit = defineEmits<{
     'filter-click': [filter: CustomerTableFilter];
-    'new': [];
-    'edit': [];
-    'delete': [event: Event];
-    'info': [];
+    new: [];
+    edit: [];
+    delete: [event: Event];
+    info: [];
     'toggle-favorite': [];
     'clear-filter': [];
     'open-settings': [];
@@ -77,7 +77,7 @@
       {
         label: 'Usuń',
         icon: 'pi pi-trash',
-        command: (e) => emit('delete', e.originalEvent as Event),
+        command: e => emit('delete', e.originalEvent as Event),
         disabled: !props.selectedRow,
         class: 'bg-red-50 dark:bg-red-900 text-red-600 dark:text-red-400',
       },
@@ -256,7 +256,7 @@
           </InputIcon>
           <InputText
             :model-value="globalSearchQuery"
-            @update:model-value="(val) => emit('update:globalSearchQuery', val as string)"
+            @update:model-value="val => emit('update:globalSearchQuery', val as string)"
             placeholder="Wpisz tutaj szukaną frazę..."
             class="w-64 text-sm"
           />
@@ -274,13 +274,7 @@
       </div>
       <div v-if="showSearch || showSettings" class="h-8 w-px bg-surface-300 dark:bg-surface-600 mx-1" />
       <div v-if="showSettings" class="flex items-center gap-2">
-        <Button
-          icon="pi pi-cog"
-          text
-          severity="secondary"
-          title="Konfiguracja"
-          @click="emit('open-settings')"
-        />
+        <Button icon="pi pi-cog" text severity="secondary" title="Konfiguracja" @click="emit('open-settings')" />
         <Button
           icon="pi pi-refresh"
           text
@@ -322,21 +316,20 @@
           </button>
         </template>
       </SpeedDial>
-       <!-- Search field -->
-    <div v-if="showSearch" class="flex items-center gap-2">
-      <IconField class="flex-1">
-        <InputIcon>
-          <i class="pi pi-search" />
-        </InputIcon>
-        <InputText
-          :model-value="globalSearchQuery"
-          @update:model-value="(val) => emit('update:globalSearchQuery', val as string)"
-          placeholder="Wpisz..."
-          class="w-full text-sm"
-        />
-      </IconField>
-    
-    </div>
+      <!-- Search field -->
+      <div v-if="showSearch" class="flex items-center gap-2">
+        <IconField class="flex-1">
+          <InputIcon>
+            <i class="pi pi-search" />
+          </InputIcon>
+          <InputText
+            :model-value="globalSearchQuery"
+            @update:model-value="val => emit('update:globalSearchQuery', val as string)"
+            placeholder="Wpisz..."
+            class="w-full text-sm"
+          />
+        </IconField>
+      </div>
 
       <SpeedDial
         :model="filterSpeedDialItems"
@@ -362,7 +355,5 @@
         </template>
       </SpeedDial>
     </div>
-
-   
   </div>
 </template>

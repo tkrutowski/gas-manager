@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, computed } from 'vue';
-  import type { Customer } from '@/types/Customer.ts';
+  import type { Designer } from '@/types/Designer';
   import {
     UserIcon,
     MapPinIcon,
@@ -13,7 +13,7 @@
   import PrimaryButton from '@/components/PrimaryButton.vue';
 
   const props = defineProps<{
-    customer: Customer;
+    designer: Designer;
   }>();
 
   const emit = defineEmits<{
@@ -27,25 +27,26 @@
     emit('close');
   };
 
-  // Funkcja do generowania inicjałów
+  // Inicjały projektanta (osoba/firma)
   const getInitials = computed(() => {
-    if (props.customer.customerType === 'person') {
-      const first = props.customer.firstName?.charAt(0).toUpperCase() || '';
-      const last = props.customer.lastName?.charAt(0).toUpperCase() || '';
+    const d = props.designer;
+    if (d.designerType === 'person') {
+      const first = (d.firstName ?? d.name ?? '').charAt(0).toUpperCase() || '';
+      const last = d.lastName?.charAt(0).toUpperCase() || '';
       return first + last || '?';
     } else {
-      const company = props.customer.companyName || '';
+      const company = d.companyName || d.name || '';
       return company.substring(0, 2).toUpperCase() || '??';
     }
   });
 
-  // Nazwa klienta do wyświetlenia
-  const customerName = computed(() => {
-    if (props.customer.customerType === 'person') {
-      return `${props.customer.firstName || ''} ${props.customer.lastName || ''}`.trim() || '-';
-    } else {
-      return props.customer.companyName || '-';
+  // Nazwa projektanta do wyświetlenia
+  const designerName = computed(() => {
+    const d = props.designer;
+    if (d.designerType === 'person') {
+      return `${d.firstName ?? d.name ?? ''} ${d.lastName ?? ''}`.trim() || '-';
     }
+    return d.companyName || d.name || '-';
   });
 
   // Formatowanie daty
@@ -65,13 +66,11 @@
     }
   };
 
-  // Funkcja do dzwonienia
   const handleCall = (phone: string) => {
     if (!phone) return;
     window.location.href = `tel:${phone.replace(/\s+/g, '')}`;
   };
 
-  // Funkcja do wysyłania maila
   const handleEmail = (email: string) => {
     if (!email) return;
     window.location.href = `mailto:${email}`;
@@ -93,12 +92,12 @@
   >
     <template #header>
       <div class="w-full">
-        <h2 class="text-2xl font-bold text-surface-900 dark:text-surface-300">Szczegóły Klienta</h2>
+        <h2 class="text-2xl font-bold text-surface-900 dark:text-surface-300">Szczegóły Projektanta</h2>
       </div>
     </template>
 
     <div class="space-y-4">
-      <!-- Customer Overview Card -->
+      <!-- Designer Overview Card -->
       <div
         class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg p-4 flex items-center gap-4"
       >
@@ -107,32 +106,32 @@
         </div>
         <div class="flex-1">
           <p class="text-xs text-surface-600 dark:text-surface-400 mb-1">
-            {{ props.customer.customerType === 'person' ? 'OSOBA FIZYCZNA' : 'FIRMA' }}
+            {{ props.designer.designerType === 'person' ? 'OSOBA FIZYCZNA' : 'FIRMA' }}
           </p>
           <p class="text-xl font-bold text-surface-900 dark:text-surface-300">
-            {{ customerName }}
+            {{ designerName }}
           </p>
           <p
-            v-if="props.customer.customerType === 'company' && props.customer.nip"
+            v-if="props.designer.designerType === 'company' && props.designer.nip"
             class="text-sm text-surface-600 dark:text-surface-400 mt-1"
           >
-            NIP: {{ props.customer.nip }}
+            NIP: {{ props.designer.nip }}
           </p>
         </div>
         <div
           :class="[
             'flex items-center gap-2 px-3 py-1.5 rounded-full',
-            props.customer.status ? 'bg-green-100 dark:bg-green-900/30' : 'bg-gray-100 dark:bg-gray-700/50',
+            props.designer.status ? 'bg-green-100 dark:bg-green-900/30' : 'bg-gray-100 dark:bg-gray-700/50',
           ]"
         >
-          <span :class="['w-2 h-2 rounded-full', props.customer.status ? 'bg-green-500' : 'bg-gray-500']"></span>
+          <span :class="['w-2 h-2 rounded-full', props.designer.status ? 'bg-green-500' : 'bg-gray-500']"></span>
           <span
             :class="[
               'text-sm font-medium',
-              props.customer.status ? 'text-green-700 dark:text-green-400' : 'text-gray-700 dark:text-gray-400',
+              props.designer.status ? 'text-green-700 dark:text-green-400' : 'text-gray-700 dark:text-gray-400',
             ]"
           >
-            {{ props.customer.status ? 'Aktywny' : 'Nieaktywny' }}
+            {{ props.designer.status ? 'Aktywny' : 'Nieaktywny' }}
           </span>
         </div>
       </div>
@@ -148,9 +147,9 @@
           <div class="space-y-3">
             <div>
               <label class="block text-xs text-surface-600 dark:text-surface-400 mb-2">Telefony</label>
-              <div v-if="props.customer.phones && props.customer.phones.length > 0" class="space-y-1.5">
+              <div v-if="props.designer.phones && props.designer.phones.length > 0" class="space-y-1.5">
                 <div
-                  v-for="(phone, index) in props.customer.phones"
+                  v-for="(phone, index) in props.designer.phones"
                   :key="index"
                   class="flex items-center gap-2 text-sm font-semibold text-surface-900 dark:text-surface-300"
                 >
@@ -169,9 +168,9 @@
             </div>
             <div>
               <label class="block text-xs text-surface-600 dark:text-surface-400 mb-2">Emaile</label>
-              <div v-if="props.customer.emails && props.customer.emails.length > 0" class="space-y-1.5">
+              <div v-if="props.designer.emails && props.designer.emails.length > 0" class="space-y-1.5">
                 <div
-                  v-for="(email, index) in props.customer.emails"
+                  v-for="(email, index) in props.designer.emails"
                   :key="index"
                   class="flex items-center gap-2 text-sm font-semibold text-surface-900 dark:text-surface-300"
                 >
@@ -191,31 +190,31 @@
           </div>
         </div>
 
-        <!-- Installation Address Card -->
+        <!-- Address Card -->
         <div
           class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg p-4"
-          v-if="props.customer.address"
+          v-if="props.designer.address"
         >
           <div class="flex items-center gap-2 mb-4">
             <MapPinIcon class="w-5 h-5 text-yellow-400" />
-            <h3 class="text-xs font-medium text-surface-600 dark:text-surface-400 uppercase">Adres instalacji</h3>
+            <h3 class="text-xs font-medium text-surface-600 dark:text-surface-400 uppercase">Adres</h3>
           </div>
           <div class="space-y-3">
             <div>
               <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Ulica i numer</label>
               <p class="text-sm font-semibold text-surface-900 dark:text-surface-300">
-                {{ props.customer.address.street || '-' }}
+                {{ props.designer.address.street || '-' }}
               </p>
             </div>
             <div class="flex items-start justify-between gap-4">
               <div class="flex-1">
                 <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Miasto / Dzielnica</label>
                 <p class="text-sm font-semibold text-surface-900 dark:text-surface-300">
-                  {{ props.customer.address.city
+                  {{ props.designer.address.city
                   }}{{
-                    props.customer.address.commune
+                    props.designer.address.commune
                       ? `,
-                                    ${props.customer.address.commune}`
+                  ${props.designer.address.commune}`
                       : ''
                   }}
                 </p>
@@ -223,7 +222,7 @@
               <div>
                 <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Kod pocztowy</label>
                 <p class="text-sm font-semibold text-surface-900 dark:text-surface-300">
-                  {{ props.customer.address.zip || '-' }}
+                  {{ props.designer.address.zip || '-' }}
                 </p>
               </div>
             </div>
@@ -236,24 +235,24 @@
         <!-- Person/Company Details Card -->
         <div class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg p-4">
           <div class="flex items-center gap-2 mb-4">
-            <BuildingOffice2Icon v-if="props.customer.customerType === 'company'" class="w-5 h-5 text-yellow-400" />
+            <BuildingOffice2Icon v-if="props.designer.designerType === 'company'" class="w-5 h-5 text-yellow-400" />
             <UserIcon v-else class="w-5 h-5 text-yellow-400" />
             <h3 class="text-xs font-medium text-surface-600 dark:text-surface-400 uppercase">
-              {{ props.customer.customerType === 'company' ? 'Dane firmy' : 'Dane osobowe' }}
+              {{ props.designer.designerType === 'company' ? 'Dane firmy' : 'Dane osobowe' }}
             </h3>
           </div>
           <div class="space-y-3">
-            <template v-if="props.customer.customerType === 'person'">
+            <template v-if="props.designer.designerType === 'person'">
               <div>
                 <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Imię</label>
                 <p class="text-sm font-semibold text-surface-900 dark:text-surface-300">
-                  {{ props.customer.firstName || '-' }}
+                  {{ props.designer.firstName ?? props.designer.name ?? '-' }}
                 </p>
               </div>
               <div>
                 <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Nazwisko</label>
                 <p class="text-sm font-semibold text-surface-900 dark:text-surface-300">
-                  {{ props.customer.lastName || '-' }}
+                  {{ props.designer.lastName || '-' }}
                 </p>
               </div>
             </template>
@@ -261,25 +260,25 @@
               <div>
                 <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Nazwa firmy</label>
                 <p class="text-sm font-semibold text-surface-900 dark:text-surface-300">
-                  {{ props.customer.companyName || '-' }}
+                  {{ props.designer.companyName ?? props.designer.name ?? '-' }}
                 </p>
               </div>
               <div>
                 <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">NIP</label>
                 <p class="text-sm font-semibold text-surface-900 dark:text-surface-300">
-                  {{ props.customer.nip || '-' }}
+                  {{ props.designer.nip || '-' }}
                 </p>
               </div>
-              <div v-if="props.customer.regon">
+              <div v-if="props.designer.regon">
                 <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">REGON</label>
                 <p class="text-sm font-semibold text-surface-900 dark:text-surface-300">
-                  {{ props.customer.regon }}
+                  {{ props.designer.regon }}
                 </p>
               </div>
-              <div v-if="props.customer.krs">
+              <div v-if="props.designer.krs">
                 <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">KRS</label>
                 <p class="text-sm font-semibold text-surface-900 dark:text-surface-300">
-                  {{ props.customer.krs }}
+                  {{ props.designer.krs }}
                 </p>
               </div>
             </template>
@@ -293,10 +292,10 @@
             <h3 class="text-xs font-medium text-surface-600 dark:text-surface-400 uppercase">Informacje dodatkowe</h3>
           </div>
           <div class="space-y-3">
-            <div v-if="props.customer.info">
+            <div v-if="props.designer.info">
               <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Uwagi</label>
               <p class="text-sm font-semibold text-surface-900 dark:text-surface-300 whitespace-pre-wrap">
-                {{ props.customer.info }}
+                {{ props.designer.info }}
               </p>
             </div>
             <div class="flex items-center gap-2 pt-2 border-t border-surface-200 dark:border-surface-700">
@@ -304,7 +303,7 @@
               <div class="flex-1">
                 <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Utworzono</label>
                 <p class="text-sm font-semibold text-surface-900 dark:text-surface-300">
-                  {{ formatDate(props.customer.createdAt) }}
+                  {{ formatDate(props.designer.createdAt) }}
                 </p>
               </div>
             </div>
@@ -313,7 +312,7 @@
               <div class="flex-1">
                 <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Ostatnia aktualizacja</label>
                 <p class="text-sm font-semibold text-surface-900 dark:text-surface-300">
-                  {{ formatDate(props.customer.updatedAt) }}
+                  {{ formatDate(props.designer.updatedAt) }}
                 </p>
               </div>
             </div>

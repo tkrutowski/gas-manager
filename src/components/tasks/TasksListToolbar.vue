@@ -30,10 +30,11 @@
 
   const emit = defineEmits<{
     'filter-click': [filter: TasksListFilter];
-    'new': [];
-    'edit': [];
-    'delete': [event: Event];
-    'info': [];
+    new: [];
+    edit: [];
+    delete: [event: Event];
+    info: [];
+    details: [];
     'toggle-favorite': [];
     'clear-filter': [];
     'open-settings': [];
@@ -76,9 +77,16 @@
       {
         label: 'Usuń',
         icon: 'pi pi-trash',
-        command: (e) => emit('delete', e.originalEvent as Event),
+        command: e => emit('delete', e.originalEvent as Event),
         disabled: !props.selectedRow,
         class: 'bg-red-50 dark:bg-red-900 text-red-600 dark:text-red-400',
+      },
+      {
+        label: 'Szczegóły',
+        icon: 'pi pi-eye',
+        command: () => emit('details'),
+        disabled: !props.selectedRow,
+        class: 'bg-primary-50 dark:bg-primary-900 text-primary dark:text-primary',
       },
       {
         label: 'Informacje',
@@ -180,6 +188,15 @@
         />
         <div class="h-8 w-px bg-surface-300 dark:bg-surface-600 mx-1" />
         <Button
+          icon="pi pi-eye"
+          :disabled="!selectedRow"
+          text
+          rounded
+          class="text-xs!"
+          title="Pokaż szczegóły"
+          @click="emit('details')"
+        />
+        <Button
           icon="pi pi-clipboard"
           :disabled="!selectedRow"
           text
@@ -255,7 +272,7 @@
           </InputIcon>
           <InputText
             :model-value="globalSearchQuery"
-            @update:model-value="(val) => emit('update:globalSearchQuery', val as string)"
+            @update:model-value="val => emit('update:globalSearchQuery', val as string)"
             placeholder="Wpisz tutaj szukaną frazę..."
             class="w-64 text-sm"
           />
@@ -273,13 +290,7 @@
       </div>
       <div v-if="showSearch || showSettings" class="h-8 w-px bg-surface-300 dark:bg-surface-600 mx-1" />
       <div v-if="showSettings" class="flex items-center gap-2">
-        <Button
-          icon="pi pi-cog"
-          text
-          severity="secondary"
-          title="Konfiguracja"
-          @click="emit('open-settings')"
-        />
+        <Button icon="pi pi-cog" text severity="secondary" title="Konfiguracja" @click="emit('open-settings')" />
         <Button
           icon="pi pi-refresh"
           text
@@ -329,7 +340,7 @@
           </InputIcon>
           <InputText
             :model-value="globalSearchQuery"
-            @update:model-value="(val) => emit('update:globalSearchQuery', val as string)"
+            @update:model-value="val => emit('update:globalSearchQuery', val as string)"
             placeholder="Wpisz..."
             class="w-full text-sm"
           />

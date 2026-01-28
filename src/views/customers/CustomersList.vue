@@ -59,23 +59,21 @@
     let list = [...customers.value];
     switch (selectedFilter.value) {
       case 'active':
-        list = list.filter((c) => c.status);
+        list = list.filter(c => c.status);
         break;
       case 'inactive':
-        list = list.filter((c) => !c.status);
+        list = list.filter(c => !c.status);
         break;
       case 'favorites':
-        list = list.filter((c) => settingsStore.favoriteCustomerIds.includes(c.id));
+        list = list.filter(c => settingsStore.favoriteCustomerIds.includes(c.id));
         break;
       default:
         break;
     }
     const q = globalSearchQuery.value.trim().toLowerCase();
     if (q) {
-      list = list.filter((c) => {
-        return COLUMNS.some((col) =>
-          formatCellValue(c, col.field).toLowerCase().includes(q)
-        );
+      list = list.filter(c => {
+        return COLUMNS.some(col => formatCellValue(c, col.field).toLowerCase().includes(q));
       });
     }
     const field = defaultSortField.value;
@@ -200,8 +198,7 @@
   function handleResetConfig(event: Event) {
     confirm.require({
       target: event.currentTarget as HTMLElement,
-      message:
-        'Czy na pewno chcesz zresetować konfigurację (sortowanie, filtr, ulubieni)?',
+      message: 'Czy na pewno chcesz zresetować konfigurację (sortowanie, filtr, ulubieni)?',
       icon: 'pi pi-exclamation-triangle',
       rejectProps: { label: 'Anuluj', severity: 'secondary', outlined: true },
       acceptProps: { label: 'Resetuj', severity: 'warning' },
@@ -334,13 +331,7 @@
               tbody: { class: '[&>tr>td]:text-center [&>tr>td]:align-middle' },
             }"
           >
-            <Column
-              v-for="col in COLUMNS"
-              :key="col.field"
-              :field="col.field"
-              :header="col.header"
-              sortable
-            >
+            <Column v-for="col in COLUMNS" :key="col.field" :field="col.field" :header="col.header" sortable>
               <template #body="{ data }">
                 <template v-if="col.field === 'customerType'">
                   <span
@@ -405,7 +396,7 @@
 </template>
 
 <style scoped>
-.grid-view-button :deep(.p-button-icon) {
-  font-size: 1.5rem;
-}
+  .grid-view-button :deep(.p-button-icon) {
+    font-size: 1.5rem;
+  }
 </style>

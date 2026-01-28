@@ -41,9 +41,7 @@
   });
 
   const noContactCount = computed(() => {
-    return customersStore.customers.filter(
-      c => !(c.phones?.length) && !(c.emails?.length)
-    ).length;
+    return customersStore.customers.filter(c => !c.phones?.length && !c.emails?.length).length;
   });
 
   const goToList = () => router.push('/customers/list');

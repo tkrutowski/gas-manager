@@ -177,7 +177,14 @@ function generateMockGasConnections(): GasConnection[] {
   const designerTrafficList = designerTrafficStore.getAllDesignerTraffic({ status: true });
 
   const gasConnections: GasConnection[] = [];
-  const phases: Phase[] = [Phase.PREPARATION, Phase.PROJECT, Phase.WORK, Phase.FINANSE, Phase.COMPLETED, Phase.CANCELED];
+  const phases: Phase[] = [
+    Phase.PREPARATION,
+    Phase.PROJECT,
+    Phase.WORK,
+    Phase.FINANSE,
+    Phase.COMPLETED,
+    Phase.CANCELED,
+  ];
 
   let id = 1;
   let plotId = 1;
@@ -434,7 +441,8 @@ function generateMockGasConnections(): GasConnection[] {
         taskNo: taskNo,
         contractNo: contractNo,
         contractDate: phase !== Phase.PREPARATION ? randomPastDate(250) : undefined,
-        conditionNo: phase !== Phase.PREPARATION ? `WAR/${new Date().getFullYear()}/${String(id - 1).padStart(3, '0')}` : '',
+        conditionNo:
+          phase !== Phase.PREPARATION ? `WAR/${new Date().getFullYear()}/${String(id - 1).padStart(3, '0')}` : '',
         conditionDate: phase !== Phase.PREPARATION ? randomPastDate(240) : undefined,
         gasDistribution:
           gasDistributions.length > 0

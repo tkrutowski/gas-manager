@@ -3,13 +3,7 @@
   import { useRouter } from 'vue-router';
   import SidebarMenu from '@/components/SidebarMenu.vue';
   import CustomerFormDialog from '@/components/customers/CustomerFormDialog.vue';
-  import {
-    HomeIcon,
-    UserGroupIcon,
-    ListBulletIcon,
-    Squares2X2Icon,
-    PlusIcon,
-  } from '@heroicons/vue/24/outline';
+  import { HomeIcon, UserGroupIcon, ListBulletIcon, Squares2X2Icon, PlusIcon } from '@heroicons/vue/24/outline';
 
   const router = useRouter();
   const showFormDialog = ref(false);
@@ -50,10 +44,6 @@
       </div>
     </div>
 
-    <CustomerFormDialog
-      v-if="showFormDialog"
-      @close="onFormClose"
-      @customer-added="onCustomerAdded"
-    />
+    <CustomerFormDialog v-if="showFormDialog" @close="onFormClose" @customer-added="onCustomerAdded" />
   </div>
 </template>

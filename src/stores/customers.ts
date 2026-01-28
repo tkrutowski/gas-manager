@@ -429,7 +429,7 @@ export const useCustomersStore = defineStore('customers', () => {
     return customers.value.filter(c => {
       const phones = c.phones || [];
       const emails = c.emails || [];
-      
+
       if (c.customerType === 'person') {
         return (
           c.firstName?.toLowerCase().includes(lowerQuery) ||

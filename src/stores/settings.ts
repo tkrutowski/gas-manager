@@ -278,7 +278,7 @@ export const useSettingsStore = defineStore('settings', () => {
    * Usuwa przyłącze z ulubionych
    */
   function removeFavoriteConnection(id: number): void {
-    const ids = favoriteConnectionIds.value.filter((x) => x !== id);
+    const ids = favoriteConnectionIds.value.filter(x => x !== id);
     settingsService.updateTableSettings('gasConnectionTable', {
       favoriteConnectionIds: ids,
     });
@@ -351,7 +351,7 @@ export const useSettingsStore = defineStore('settings', () => {
   }
 
   function removeFavoriteCustomer(id: number): void {
-    const ids = favoriteCustomerIds.value.filter((x) => x !== id);
+    const ids = favoriteCustomerIds.value.filter(x => x !== id);
     settingsService.updateCustomerTableSettings({ favoriteCustomerIds: ids });
     favoritesVersionCustomers.value += 1;
   }
@@ -451,7 +451,7 @@ export const useSettingsStore = defineStore('settings', () => {
    * Usuwa ID z ulubionych dla danego modułu tasks list
    */
   function removeTasksListFavorite(moduleName: string, id: number): void {
-    const ids = getTasksListFavoriteIds(moduleName).filter((x) => x !== id);
+    const ids = getTasksListFavoriteIds(moduleName).filter(x => x !== id);
     settingsService.updateTasksListTableSettings(moduleName, { favoriteIds: ids });
     tasksListFavoritesVersions.value[moduleName] = (tasksListFavoritesVersions.value[moduleName] || 0) + 1;
   }
