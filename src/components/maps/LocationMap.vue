@@ -13,22 +13,46 @@
   });
 
   const props = defineProps<{
-    latitude?: string;
-    longitude?: string;
+    latitude?: string | number;
+    longitude?: string | number;
     readonly?: boolean;
+    draggable?: boolean;
+  }>();
+
+  const emit = defineEmits<{
+    (e: 'update:position', payload: { lat: number; lng: number }): void;
   }>();
 
   const zoom = ref(15);
   const center = ref<[number, number]>([52.2297, 21.0122]); // Domyślnie Warszawa
   const markerPosition = ref<[number, number] | null>(null);
 
+  const onMapClick = (e: any) => {
+    if (props.readonly) return;
+    const lat = e.latlng.lat;
+    const lng = e.latlng.lng;
+    center.value = [lat, lng];
+    markerPosition.value = [lat, lng];
+    emit('update:position', { lat, lng });
+  };
+
+  // Emituj aktualizacje pozycji markera, np. po jego przeciągnięciu
+  watch(
+    () => markerPosition.value,
+    val => {
+      if (val && Array.isArray(val) && val.length === 2) {
+        emit('update:position', { lat: val[0], lng: val[1] });
+      }
+    }
+  );
+
   // Aktualizuj centrum mapy i marker gdy zmienią się współrzędne
   watch(
     () => [props.latitude, props.longitude],
     ([lat, lng]) => {
-      if (lat && lng) {
-        const latNum = parseFloat(lat);
-        const lngNum = parseFloat(lng);
+      if (lat !== undefined && lat !== null && lng !== undefined && lng !== null) {
+        const latNum = typeof lat === 'string' ? parseFloat(lat) : Number(lat);
+        const lngNum = typeof lng === 'string' ? parseFloat(lng) : Number(lng);
         if (!isNaN(latNum) && !isNaN(lngNum)) {
           center.value = [latNum, lngNum];
           markerPosition.value = [latNum, lngNum];
@@ -45,8 +69,8 @@
 
   onMounted(() => {
     if (props.latitude && props.longitude) {
-      const latNum = parseFloat(props.latitude);
-      const lngNum = parseFloat(props.longitude);
+      const latNum = typeof props.latitude === 'string' ? parseFloat(props.latitude) : Number(props.latitude);
+      const lngNum = typeof props.longitude === 'string' ? parseFloat(props.longitude) : Number(props.longitude);
       if (!isNaN(latNum) && !isNaN(lngNum)) {
         center.value = [latNum, lngNum];
         markerPosition.value = [latNum, lngNum];
@@ -67,6 +91,7 @@
           v-model:center="center"
           :use-global-leaflet="false"
           style="height: 100%; width: 100%"
+          @click="onMapClick"
         >
           <l-tile-layer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -74,7 +99,11 @@
             layer-type="base"
             name="OpenStreetMap"
           />
-          <l-marker v-if="markerPosition" :lat-lng="markerPosition" />
+          <l-marker
+            v-if="markerPosition"
+            v-model:lat-lng="markerPosition"
+            :draggable="!props.readonly && props.draggable !== false"
+          />
         </l-map>
       </div>
     </div>

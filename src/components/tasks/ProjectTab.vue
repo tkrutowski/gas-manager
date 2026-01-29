@@ -120,6 +120,7 @@
   // Lokalne refs dla współrzędnych, aby umożliwić edycję
   const latitude = ref<string>('');
   const longitude = ref<string>('');
+  const mapEditable = ref(false);
 
   // Synchronizuj lokalne refs z gasConnection
   watch(
@@ -495,8 +496,19 @@
               </template>
               <template #content>
                 <!-- Mapa -->
+                <div class="mb-2 flex items-center gap-3">
+                  <Checkbox v-model="mapEditable" :binary="true" inputId="map-editable" :disabled="isReadonly" />
+                  <label for="map-editable" class="text-sm text-surface-700 dark:text-surface-300"
+                    >Włącz edycję mapy</label
+                  >
+                </div>
                 <div v-if="latitude && longitude" class="mb-4">
-                  <LocationMap :latitude="latitude" :longitude="longitude" :readonly="isReadonly" />
+                  <LocationMap
+                    :latitude="latitude"
+                    :longitude="longitude"
+                    :readonly="isReadonly || !mapEditable"
+                    :draggable="true"
+                  />
                 </div>
 
                 <!-- Pola współrzędnych -->

@@ -17,6 +17,7 @@
     HomeIcon,
     PlusIcon,
     ListBulletIcon,
+    CalendarIcon,
   } from '@heroicons/vue/24/outline';
   import CarIcon from '@/components/icons/CarIcon.vue';
 
@@ -149,6 +150,13 @@
       label: 'Pulpit zadań',
       icon: Squares2X2Icon,
       route: '/tasks',
+      children: null,
+    },
+    {
+      id: 'schedule',
+      label: 'Terminarz',
+      icon: CalendarIcon,
+      route: '/tasks/schedule',
       children: null,
     },
     {

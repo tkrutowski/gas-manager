@@ -29,6 +29,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/tasks/schedule',
+      name: 'schedule-calendar',
+      component: () => import('../views/tasks/ScheduleCalendar.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/tasks/gas-connections/new',
       name: 'new-gas-connection',
       component: () => import('../views/tasks/NewGasConnection.vue'),

@@ -3,6 +3,7 @@
   import { useRouter } from 'vue-router';
   import SidebarMenu from '@/components/SidebarMenu.vue';
   import ColumnSettingsDialog from '@/components/tasks/ColumnSettingsDialog.vue';
+  import ScheduleTaskFormDialog from '@/components/tasks/ScheduleTaskFormDialog.vue';
   import DataTable from 'primevue/datatable';
   import Column from 'primevue/column';
   import MultiSelect from 'primevue/multiselect';
@@ -596,6 +597,14 @@
     }
   };
 
+  // Dialog terminarza
+  const showScheduleTaskDialog = ref(false);
+
+  const handleAddToSchedule = () => {
+    if (!selectedRow.value) return;
+    showScheduleTaskDialog.value = true;
+  };
+
   // Reset konfiguracji do domyślnej
   const resetColumnConfig = (event: Event) => {
     confirm.require({
@@ -926,6 +935,14 @@
                     :title="isSelectedFavorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'"
                     @click="handleToggleFavorite"
                   />
+                  <Button
+                    icon="pi pi-calendar"
+                    text
+                    severity="secondary"
+                    :disabled="!selectedRow"
+                    title="Dodaj do terminarza"
+                    @click="handleAddToSchedule"
+                  />
                 </div>
               </template>
 
@@ -1208,6 +1225,14 @@
       :defaultFilter="defaultFilter"
       @update:visible="showColumnSettingsDialog = $event"
       @saved="handleColumnSettingsSaved"
+    />
+
+    <!-- Dialog terminarza -->
+    <ScheduleTaskFormDialog
+      v-model:visible="showScheduleTaskDialog"
+      :initial-reference-id="selectedRow?.id"
+      @update:visible="showScheduleTaskDialog = $event"
+      @close="showScheduleTaskDialog = false"
     />
   </div>
 </template>
