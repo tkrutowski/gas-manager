@@ -2,10 +2,18 @@
   import { ref, computed, onMounted, onUnmounted } from 'vue';
   import Toolbar from 'primevue/toolbar';
   import Button from 'primevue/button';
+  import Panel from 'primevue/panel';
   import SpeedDial from 'primevue/speeddial';
+  import ConfirmPopup from 'primevue/confirmpopup';
+  import { useConfirm } from 'primevue/useconfirm';
   import type { MenuItem } from 'primevue/menuitem';
   import moment from 'moment';
   import SidebarMenu from '@/components/SidebarMenu.vue';
+  import ScheduleTaskCard from '@/components/tasks/ScheduleTaskCard.vue';
+  import ScheduleTaskFormDialog from '@/components/tasks/ScheduleTaskFormDialog.vue';
+  import { useBrigadesStore } from '@/stores/brigades';
+  import { useScheduleTasksStore } from '@/stores/scheduleTasks';
+  import type { ScheduleTask } from '@/types/ScheduleTask';
   import { CalendarIcon } from '@heroicons/vue/24/outline';
 
   const dateFormatMain = new Intl.DateTimeFormat('pl-PL', {
@@ -18,9 +26,15 @@
 
   type ViewMode = 'day' | 'week' | 'month';
 
+  const brigadesStore = useBrigadesStore();
+  const scheduleTasksStore = useScheduleTasksStore();
+  const confirm = useConfirm();
+
   const currentDate = ref<Date>(new Date());
   const viewMode = ref<ViewMode>('day');
   const isMobile = ref(false);
+  const dialogVisible = ref(false);
+  const editingTask = ref<ScheduleTask | null>(null);
 
   const checkMobile = () => {
     isMobile.value = window.innerWidth < 768;
@@ -43,6 +57,27 @@
     return `${dayName} - Tydzień ${weekNum}`;
   });
 
+  const activeBrigades = computed(() => brigadesStore.getAllBrigades({ isActive: true }));
+
+  const tasksByBrigadeMap = computed(() => {
+    const groups = scheduleTasksStore.getTasksForDayGroupedByBrigade(currentDate.value);
+    const map = new Map<number, ScheduleTask[]>();
+    for (const { brigadeId, tasks } of groups) {
+      map.set(brigadeId, tasks);
+    }
+    return map;
+  });
+
+  function getTasksForBrigade(brigadeId: number): ScheduleTask[] {
+    return tasksByBrigadeMap.value.get(brigadeId) ?? [];
+  }
+
+  function taskCountLabel(count: number): string {
+    if (count === 1) return '1 Zadanie';
+    if (count >= 2 && count <= 4) return `${count} Zadania`;
+    return `${count} Zadań`;
+  }
+
   const prevDay = () => {
     const d = new Date(currentDate.value);
     d.setDate(d.getDate() - 1);
@@ -64,11 +99,34 @@
   };
 
   const onAdd = () => {
-    // placeholder
+    editingTask.value = null;
+    dialogVisible.value = true;
+  };
+
+  const onEditTask = (task: ScheduleTask) => {
+    editingTask.value = task;
+    dialogVisible.value = true;
+  };
+
+  const onDeleteTask = (task: ScheduleTask, event: Event) => {
+    confirm.require({
+      target: event.currentTarget as HTMLElement,
+      message: `Czy na pewno chcesz usunąć zadanie "${task.title}"?`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Tak',
+      rejectLabel: 'Nie',
+      accept: () => {
+        scheduleTasksStore.deleteTask(task.id);
+      },
+    });
+  };
+
+  const onDialogClose = () => {
+    editingTask.value = null;
   };
 
   const onEdit = () => {
-    // placeholder
+    // placeholder – brak wybranego zadania w widoku dzień
   };
 
   const onDelete = (_event: Event) => {
@@ -286,17 +344,62 @@
           </SpeedDial>
         </div>
 
-        <!-- Placeholder dla przyszłego komponentu kalendarza -->
+        <!-- Widok dzień: panele brygad z zadaniami -->
+        <template v-if="viewMode === 'day'">
+          <div class="space-y-4">
+            <Panel
+              v-for="brigade in activeBrigades"
+              :key="brigade.id"
+              toggleable
+              :collapsed="getTasksForBrigade(brigade.id).length === 0"
+              class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700"
+            >
+              <template #header>
+                <div class="flex items-center w-full gap-3">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-1.5 h-10 shrink-0 rounded-full bg-amber-400 dark:bg-amber-500" aria-hidden="true" />
+                    <span class="font-semibold text-surface-700 dark:text-surface-300 truncate">
+                      {{ brigade.name }}
+                    </span>
+                  </div>
+                  <span
+                    class="shrink-0 rounded-full bg-surface-200 dark:bg-surface-700 px-2.5 py-1 text-xs font-medium text-surface-700 dark:text-surface-300"
+                  >
+                    {{ taskCountLabel(getTasksForBrigade(brigade.id).length) }}
+                  </span>
+                </div>
+              </template>
+              <div class="flex flex-wrap gap-4 p-4">
+                <ScheduleTaskCard
+                  v-for="task in getTasksForBrigade(brigade.id)"
+                  :key="task.id"
+                  :task="task"
+                  @edit="onEditTask(task)"
+                  @delete="e => onDeleteTask(task, e)"
+                />
+              </div>
+            </Panel>
+          </div>
+        </template>
+
+        <!-- Placeholder dla widoków tydzień / miesiąc -->
         <div
+          v-else
           class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-12 text-center"
         >
           <CalendarIcon class="w-16 h-16 text-surface-400 dark:text-surface-600 mx-auto mb-4" />
-          <h2 class="text-xl font-semibold text-surface-700 dark:text-surface-300 mb-2">Kalendarz zadań brygad</h2>
-          <p class="text-surface-600 dark:text-surface-400">
-            Komponent kalendarza zostanie tutaj dodany w przyszłości.
-          </p>
+          <h2 class="text-xl font-semibold text-surface-700 dark:text-surface-300 mb-2">Widok tydzień / miesiąc</h2>
+          <p class="text-surface-600 dark:text-surface-400">Widok tydzień i miesiąc zostaną dodane w przyszłości.</p>
         </div>
       </div>
+
+      <ConfirmPopup />
+      <ScheduleTaskFormDialog
+        v-model:visible="dialogVisible"
+        :schedule-task="editingTask ?? undefined"
+        :initial-date="currentDate"
+        @close="onDialogClose"
+      />
     </div>
   </div>
 </template>

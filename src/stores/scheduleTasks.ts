@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
-import type { ScheduleTask } from '../types/ScheduleTask';
+import type { ScheduleTask, ScheduleTaskStatus } from '../types/ScheduleTask';
 import type { TaskType } from '../types/TaskType';
 
 // Klucz localStorage dla zadań terminarza
@@ -21,6 +21,7 @@ function loadFromLocalStorage(): ScheduleTask[] | null {
     if (Array.isArray(parsed)) {
       return parsed.map(task => ({
         ...task,
+        status: task.status ?? 'scheduled',
         startDate: new Date(task.startDate),
         endDate: new Date(task.endDate),
       }));
@@ -51,10 +52,6 @@ function saveToLocalStorage(data: ScheduleTask[]): void {
 }
 
 // Funkcja pomocnicza do generowania losowej daty w zakresie
-function randomDateInRange(start: Date, end: Date): Date {
-  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-}
-
 // Funkcja pomocnicza do generowania losowego TaskType
 function generateTaskType(): TaskType {
   const types: TaskType[] = [
@@ -65,7 +62,11 @@ function generateTaskType(): TaskType {
   return types[Math.floor(Math.random() * types.length)];
 }
 
-// Generowanie mockowanych zadań na styczeń i luty 2026
+function generateRandomStatus(): ScheduleTaskStatus {
+  return Math.random() < 0.5 ? 'scheduled' : 'active';
+}
+
+// Generowanie mockowanych zadań: styczeń i luty 2026, po 2–3 zadania na brygadę NA KAŻDY DZIEŃ
 function generateMockScheduleTasks(): ScheduleTask[] {
   const tasks: ScheduleTask[] = [];
   const taskTitles = [
@@ -81,52 +82,52 @@ function generateMockScheduleTasks(): ScheduleTask[] {
 
   const brigades = [1, 2, 3];
   const months = [
-    { month: 0, year: 2026, name: 'Styczeń' }, // styczeń 2026
-    { month: 1, year: 2026, name: 'Luty' }, // luty 2026
+    { month: 0, year: 2026, name: 'Styczeń' },
+    { month: 1, year: 2026, name: 'Luty' },
   ];
 
   let taskId = 1;
+  const now = new Date().toISOString();
 
   months.forEach(({ month, year }) => {
-    brigades.forEach(brigadeId => {
-      // Max 2 zadania na każdą brygadę w każdym miesiącu
-      const tasksCount = Math.floor(Math.random() * 2) + 1; // 1-2 zadania
+    const lastDay = new Date(year, month + 1, 0).getDate();
+    const monthName = months.find(m => m.month === month)?.name ?? '';
 
-      for (let i = 0; i < tasksCount; i++) {
-        // Losowa data w miesiącu
-        const startDate = randomDateInRange(
-          new Date(year, month, 1),
-          new Date(year, month + 1, 0) // ostatni dzień miesiąca
-        );
+    // Dla każdego dnia miesiąca
+    for (let day = 1; day <= lastDay; day++) {
+      brigades.forEach(brigadeId => {
+        // 2–3 zadania na brygadę na ten dzień
+        const tasksCount = Math.floor(Math.random() * 2) + 2;
 
-        // Losowa długość zadania: od kilku godzin do kilku dni
-        const durationHours = Math.floor(Math.random() * 72) + 2; // 2-74 godziny
-        const endDate = new Date(startDate.getTime() + durationHours * 60 * 60 * 1000);
+        for (let i = 0; i < tasksCount; i++) {
+          const hour = 8 + Math.floor(Math.random() * 8);
+          const startDate = new Date(year, month, day, hour, 0, 0, 0);
+          const durationHours = Math.floor(Math.random() * 7) + 2;
+          const endDate = new Date(startDate.getTime() + durationHours * 60 * 60 * 1000);
 
-        // Losowe współrzędne (Warszawa i okolice)
-        const latitude = 52.2 + Math.random() * 0.3;
-        const longitude = 21.0 + Math.random() * 0.3;
+          const latitude = 52.2 + Math.random() * 0.3;
+          const longitude = 21.0 + Math.random() * 0.3;
 
-        const now = new Date().toISOString();
-
-        tasks.push({
-          id: taskId++,
-          referenceId: Math.floor(Math.random() * 100) + 1, // Losowe ID przyłącza
-          referenceType: generateTaskType(),
-          brigadeId: brigadeId,
-          title: taskTitles[Math.floor(Math.random() * taskTitles.length)],
-          startDate: startDate,
-          endDate: endDate,
-          notes: `Notatki do zadania ${taskId - 1}. Zadanie wykonywane przez brygadę ${brigadeId} w ${months.find(m => m.month === month)?.name} ${year}.`,
-          latitude: parseFloat(latitude.toFixed(6)),
-          longitude: parseFloat(longitude.toFixed(6)),
-          createdAt: now,
-          updatedAt: now,
-          createdBy: 'System',
-          updatedBy: 'System',
-        });
-      }
-    });
+          tasks.push({
+            id: taskId++,
+            referenceId: Math.floor(Math.random() * 100) + 1,
+            referenceType: generateTaskType(),
+            brigadeId: brigadeId,
+            title: taskTitles[Math.floor(Math.random() * taskTitles.length)],
+            status: generateRandomStatus(),
+            startDate: startDate,
+            endDate: endDate,
+            notes: `Notatki do zadania ${taskId - 1}. Brygada ${brigadeId}, ${monthName} ${year}, dzień ${day}.`,
+            latitude: parseFloat(latitude.toFixed(6)),
+            longitude: parseFloat(longitude.toFixed(6)),
+            createdAt: now,
+            updatedAt: now,
+            createdBy: 'System',
+            updatedBy: 'System',
+          });
+        }
+      });
+    }
   });
 
   return tasks;
@@ -221,9 +222,29 @@ export const useScheduleTasksStore = defineStore('scheduleTasks', () => {
   }
 
   /**
+   * Pobiera zadania dla danego dnia pogrupowane po brygadzie
+   */
+  function getTasksForDayGroupedByBrigade(date: Date): { brigadeId: number; tasks: ScheduleTask[] }[] {
+    const dayStart = new Date(date);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(date);
+    dayEnd.setHours(23, 59, 59, 999);
+    const tasks = getTasksByDateRange(dayStart, dayEnd);
+    const byBrigadeId = new Map<number, ScheduleTask[]>();
+    for (const task of tasks) {
+      const list = byBrigadeId.get(task.brigadeId) ?? [];
+      list.push(task);
+      byBrigadeId.set(task.brigadeId, list);
+    }
+    return Array.from(byBrigadeId.entries()).map(([brigadeId, tasks]) => ({ brigadeId, tasks }));
+  }
+
+  /**
    * Dodaje nowe zadanie
    */
-  function addTask(task: Omit<ScheduleTask, 'id' | 'createdAt' | 'updatedAt'>): ScheduleTask {
+  function addTask(
+    task: Omit<ScheduleTask, 'id' | 'createdAt' | 'updatedAt'> & { status?: ScheduleTaskStatus }
+  ): ScheduleTask {
     loading.value = true;
     error.value = null;
 
@@ -232,6 +253,7 @@ export const useScheduleTasksStore = defineStore('scheduleTasks', () => {
       const now = new Date().toISOString();
       const newTask: ScheduleTask = {
         ...task,
+        status: task.status ?? 'scheduled',
         id: newId,
         createdAt: now,
         updatedAt: now,
@@ -315,6 +337,7 @@ export const useScheduleTasksStore = defineStore('scheduleTasks', () => {
     getTask,
     getTasksByBrigade,
     getTasksByDateRange,
+    getTasksForDayGroupedByBrigade,
     addTask,
     updateTask,
     deleteTask,

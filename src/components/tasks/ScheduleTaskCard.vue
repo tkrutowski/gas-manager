@@ -1,0 +1,136 @@
+<script setup lang="ts">
+  import { computed } from 'vue';
+  import { useRouter } from 'vue-router';
+  import Button from 'primevue/button';
+  import { useGasConnectionsStore } from '@/stores/gasConnections';
+  import type { ScheduleTask, ScheduleTaskStatus } from '@/types/ScheduleTask';
+  import { SCHEDULE_TASK_STATUS_LABELS } from '@/types/ScheduleTask';
+  import { MapPinIcon } from '@heroicons/vue/24/outline';
+
+  const props = defineProps<{
+    task: ScheduleTask;
+  }>();
+
+  const emit = defineEmits<{
+    edit: [];
+    delete: [event: Event];
+  }>();
+
+  const router = useRouter();
+  const gasConnectionsStore = useGasConnectionsStore();
+
+  const timeRange = computed(() => {
+    const start = props.task.startDate instanceof Date ? props.task.startDate : new Date(props.task.startDate);
+    const end = props.task.endDate instanceof Date ? props.task.endDate : new Date(props.task.endDate);
+    const fmt = (d: Date) => d.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+    return `${fmt(start)} - ${fmt(end)}`;
+  });
+
+  const locationText = computed(() => {
+    if (props.task.referenceType?.name !== 'GAS_CONNECTION') return '—';
+    const gc = gasConnectionsStore.getGasConnection(props.task.referenceId);
+    if (!gc?.address) return '—';
+    const a = gc.address;
+    const parts = [a.street, a.city].filter(Boolean);
+    return parts.length ? parts.join(', ') : '—';
+  });
+
+  const statusBadgeClass = computed(() => {
+    const m: Record<ScheduleTaskStatus, string> = {
+      scheduled: 'bg-surface-200 dark:bg-surface-700 text-surface-700 dark:text-surface-300',
+      active: 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200',
+      done: 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200',
+      cancelled: 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200',
+      postponed: 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200',
+    };
+    return m[props.task.status] ?? m.scheduled;
+  });
+
+  const canShowConnectionDetails = computed(
+    () => props.task.referenceType?.name === 'GAS_CONNECTION' && props.task.referenceId
+  );
+
+  function goToConnectionDetails() {
+    if (!canShowConnectionDetails.value) return;
+    router.push({
+      name: 'gas-connection-details',
+      query: { id: String(props.task.referenceId), readonly: 'true' },
+    });
+  }
+
+  function onEdit() {
+    emit('edit');
+  }
+
+  function onDelete(event: Event) {
+    emit('delete', event);
+  }
+</script>
+
+<template>
+  <div
+    class="flex flex-col rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900 p-4 min-w-[280px] max-w-[360px] shrink-0"
+  >
+    <div class="flex items-center justify-between gap-2 mb-3">
+      <span class="text-sm font-medium text-surface-600 dark:text-surface-400">{{ timeRange }}</span>
+      <span :class="['rounded-full px-2 py-1.5 text-xs font-medium', statusBadgeClass]">
+        {{ SCHEDULE_TASK_STATUS_LABELS[task.status] }}
+      </span>
+    </div>
+    <h3 class="text-base font-bold text-surface-700 dark:text-surface-300 mb-1">
+      {{ task.title }}
+    </h3>
+    <div class="flex items-center gap-1.5 text-sm text-surface-600 dark:text-surface-400 mb-4 min-w-0">
+      <MapPinIcon class="w-4 h-4 shrink-0" />
+      <span class="min-w-0 truncate">{{ locationText }}</span>
+    </div>
+
+    <div
+      v-if="task.notes"
+      class="text-sm text-surface-600 dark:text-surface-400 mb-4 min-w-0 wrap-break-word line-clamp-2"
+    >
+      <span class="font-medium text-surface-700 dark:text-surface-300">Notatki:</span>
+      {{ task.notes }}
+    </div>
+
+    <div
+      class="mt-auto flex items-center justify-between gap-2 pt-3 border-t border-surface-200 dark:border-surface-700"
+    >
+      <div class="flex items-center gap-1">
+        <Button
+          icon="pi pi-pencil"
+          text
+          rounded
+          severity="primary"
+          size="small"
+          title="Edytuj"
+          class="p-1.5!"
+          @click="onEdit"
+        />
+        <Button
+          icon="pi pi-trash"
+          text
+          rounded
+          severity="danger"
+          size="small"
+          title="Usuń"
+          class="p-1.5! text-red-600 dark:text-red-400"
+          @click="onDelete"
+        />
+      </div>
+      <div class="flex items-center gap-1">
+        <Button
+          v-if="canShowConnectionDetails"
+          icon="pi pi-eye"
+          text
+          rounded
+          severity="primary"
+          size="small"
+          title="Szczegóły przyłącza (tylko odczyt)"
+          class="p-1.5!"
+          @click="goToConnectionDetails"
+        />
+      </div>
+    </div>
+  </div>
+</template>

@@ -10,7 +10,8 @@
   import { useScheduleTasksStore } from '@/stores/scheduleTasks';
   import { useBrigadesStore } from '@/stores/brigades';
   import { useGasConnectionsStore } from '@/stores/gasConnections';
-  import type { ScheduleTask } from '@/types/ScheduleTask';
+  import type { ScheduleTask, ScheduleTaskStatus } from '@/types/ScheduleTask';
+  import { SCHEDULE_TASK_STATUS_LABELS } from '@/types/ScheduleTask';
   import type { TaskType } from '@/types/TaskType';
   import { MapPinIcon, DocumentTextIcon, ClockIcon } from '@heroicons/vue/24/outline';
   import LocationMap from '@/components/maps/LocationMap.vue';
@@ -22,6 +23,7 @@
     scheduleTask?: ScheduleTask | null;
     initialReferenceId?: number; // ID przyłącza do wstępnego wypełnienia
     initialReferenceType?: TaskType; // Typ zadania do wstępnego wypełnienia
+    initialDate?: Date; // Domyślna data przy dodawaniu z kalendarza
   }>();
 
   const emit = defineEmits<{
@@ -48,12 +50,20 @@
     referenceType: props.initialReferenceType,
     brigadeId: 0,
     title: '',
+    status: 'scheduled',
     startDate: new Date(),
     endDate: new Date(),
     notes: '',
     latitude: undefined,
     longitude: undefined,
   });
+
+  const statusOptions = computed(() =>
+    (['scheduled', 'active', 'done', 'cancelled', 'postponed'] as ScheduleTaskStatus[]).map(value => ({
+      label: SCHEDULE_TASK_STATUS_LABELS[value],
+      value,
+    }))
+  );
 
   const formData = ref<Partial<ScheduleTask>>(defaultFormData());
   const mapEditable = ref(false);
@@ -80,9 +90,15 @@
                 : new Date(props.scheduleTask.endDate),
           };
         } else {
+          const startDate = props.initialDate ? new Date(props.initialDate) : new Date();
+          const endDate = props.initialDate
+            ? new Date(props.initialDate.getTime() + 60 * 60 * 1000)
+            : new Date(startDate.getTime() + 60 * 60 * 1000);
           formData.value = {
             ...defaultFormData(),
             referenceId: props.initialReferenceId || 0,
+            startDate,
+            endDate,
           };
 
           // Jeśli podano initialReferenceId, spróbuj pobrać współrzędne z powiązanego GasConnection
@@ -167,6 +183,7 @@
         referenceType: formData.value.referenceType || undefined,
         brigadeId: formData.value.brigadeId || 0,
         title: formData.value.title || '',
+        status: formData.value.status ?? 'scheduled',
         startDate: formData.value.startDate!,
         endDate: formData.value.endDate!,
         notes: formData.value.notes || '',
@@ -251,6 +268,17 @@
               class="w-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300"
             />
             <p v-if="errors.brigadeId" class="text-red-500 text-sm mt-1">{{ errors.brigadeId }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2"> Status </label>
+            <Select
+              v-model="formData.status"
+              :options="statusOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Wybierz status"
+              class="w-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300"
+            />
           </div>
         </div>
       </div>
