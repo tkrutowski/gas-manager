@@ -7,9 +7,14 @@
   import { SCHEDULE_TASK_STATUS_LABELS } from '@/types/ScheduleTask';
   import { MapPinIcon } from '@heroicons/vue/24/outline';
 
-  const props = defineProps<{
-    task: ScheduleTask;
-  }>();
+  const props = withDefaults(
+    defineProps<{
+      task: ScheduleTask;
+      /** Gdy true, notatki nie są wyświetlane w treści; pokazywane w title przy najechaniu. */
+      compact?: boolean;
+    }>(),
+    { compact: false }
+  );
 
   const emit = defineEmits<{
     edit: [];
@@ -46,6 +51,17 @@
     return m[props.task.status] ?? m.scheduled;
   });
 
+  const statusBorderClass = computed(() => {
+    const m: Record<ScheduleTaskStatus, string> = {
+      scheduled: 'border-l-surface-400 dark:border-l-surface-600',
+      active: 'border-l-amber-400 dark:border-l-amber-500',
+      done: 'border-l-green-500 dark:border-l-green-400',
+      cancelled: 'border-l-red-500 dark:border-l-red-400',
+      postponed: 'border-l-blue-500 dark:border-l-blue-400',
+    };
+    return m[props.task.status] ?? m.scheduled;
+  });
+
   const canShowConnectionDetails = computed(
     () => props.task.referenceType?.name === 'GAS_CONNECTION' && props.task.referenceId
   );
@@ -69,7 +85,11 @@
 
 <template>
   <div
-    class="flex flex-col rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900 p-4 min-w-[280px] max-w-[360px] shrink-0"
+    :class="[
+      'flex flex-col rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900 p-3 pb-0.5 max-w-[360px] shrink-0 border-l-8',
+      statusBorderClass,
+    ]"
+    :title="compact && task.notes ? task.notes : undefined"
   >
     <div class="flex items-center justify-between gap-2 mb-3">
       <span class="text-sm font-medium text-surface-600 dark:text-surface-400">{{ timeRange }}</span>
@@ -86,7 +106,7 @@
     </div>
 
     <div
-      v-if="task.notes"
+      v-if="!compact && task.notes"
       class="text-sm text-surface-600 dark:text-surface-400 mb-4 min-w-0 wrap-break-word line-clamp-2"
     >
       <span class="font-medium text-surface-700 dark:text-surface-300">Notatki:</span>
@@ -94,7 +114,7 @@
     </div>
 
     <div
-      class="mt-auto flex items-center justify-between gap-2 pt-3 border-t border-surface-200 dark:border-surface-700"
+      class="mt-auto flex items-center justify-between gap-2 border-t border-surface-200 dark:border-surface-700"
     >
       <div class="flex items-center gap-1">
         <Button

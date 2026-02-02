@@ -23,6 +23,8 @@
   });
 
   const dateFormatWeekday = new Intl.DateTimeFormat('pl-PL', { weekday: 'long' });
+  const dateFormatWeekdayShort = new Intl.DateTimeFormat('pl-PL', { weekday: 'short' });
+  const weekdayShortLabel = (d: Date) => dateFormatWeekdayShort.format(d).replace('.', '').toUpperCase();
 
   type ViewMode = 'day' | 'week' | 'month';
 
@@ -59,6 +61,27 @@
 
   const activeBrigades = computed(() => brigadesStore.getAllBrigades({ isActive: true }));
 
+  const weekStart = computed(() => moment(currentDate.value).startOf('isoWeek').toDate());
+  const weekDays = computed(() =>
+    [0, 1, 2, 3, 4, 5].map(i => {
+      const d = new Date(weekStart.value);
+      d.setDate(d.getDate() + i);
+      return d;
+    })
+  );
+  const weekLabel = computed(() => {
+    const start = weekStart.value;
+    const end = new Date(start);
+    end.setDate(end.getDate() + 5);
+    return `${dateFormatMain.format(start)} – ${dateFormatMain.format(end)}`;
+  });
+
+  function getTasksForBrigadeAndDay(brigadeId: number, day: Date): ScheduleTask[] {
+    const groups = scheduleTasksStore.getTasksForDayGroupedByBrigade(day);
+    const found = groups.find(g => g.brigadeId === brigadeId);
+    return found?.tasks ?? [];
+  }
+
   const tasksByBrigadeMap = computed(() => {
     const groups = scheduleTasksStore.getTasksForDayGroupedByBrigade(currentDate.value);
     const map = new Map<number, ScheduleTask[]>();
@@ -92,6 +115,23 @@
 
   const goToToday = () => {
     currentDate.value = new Date();
+  };
+
+  const goToDay = (day: Date) => {
+    currentDate.value = new Date(day);
+    viewMode.value = 'day';
+  };
+
+  const prevWeek = () => {
+    const d = new Date(currentDate.value);
+    d.setDate(d.getDate() - 7);
+    currentDate.value = d;
+  };
+
+  const nextWeek = () => {
+    const d = new Date(currentDate.value);
+    d.setDate(d.getDate() + 7);
+    currentDate.value = d;
   };
 
   const setViewMode = (mode: ViewMode) => {
@@ -161,13 +201,11 @@
     <SidebarMenu />
 
     <!-- Main Content -->
-    <div class="flex-1 overflow-y-auto p-6 w-full">
+    <div class="flex-1 overflow-y-auto p-1 md:p-6 w-full">
       <div class="w-full">
-        <div class="flex items-center gap-3 mb-6">
-          <div class="w-12 h-12 bg-primary-400/20 rounded-lg flex items-center justify-center">
-            <CalendarIcon class="w-6 h-6 text-primary-400" />
-          </div>
-          <h1 class="text-3xl font-bold text-surface-700 dark:text-surface-300">Terminarz</h1>
+        <div class="flex items-center gap-3 mb-1 md:mb-6">
+          <CalendarIcon class="md:w-6 md:h-6 w-4 h-4 text-primary-400" />
+          <h1 class="text-md md:text-3xl font-bold text-surface-700 dark:text-surface-300">Terminarz</h1>
         </div>
 
         <!-- Desktop Toolbar -->
@@ -193,16 +231,28 @@
 
           <template #center>
             <div class="flex items-center gap-3">
-              <Button icon="pi pi-chevron-left" text rounded title="Poprzedni dzień" @click="prevDay" />
-              <div class="text-center min-w-[220px]">
-                <div class="text-lg font-bold text-surface-700 dark:text-surface-300">
-                  {{ formattedDateMain }}
+              <template v-if="viewMode === 'week'">
+                <Button icon="pi pi-chevron-left" text rounded title="Poprzedni tydzień" @click="prevWeek" />
+                <div class="text-center min-w-[280px]">
+                  <div class="text-lg font-bold text-surface-700 dark:text-surface-300">
+                    {{ weekLabel }}
+                  </div>
+                  <div class="text-sm text-surface-600 dark:text-surface-400">Tydzień</div>
                 </div>
-                <div class="text-sm text-surface-600 dark:text-surface-400">
-                  {{ formattedDateSub }}
+                <Button icon="pi pi-chevron-right" text rounded title="Następny tydzień" @click="nextWeek" />
+              </template>
+              <template v-else>
+                <Button icon="pi pi-chevron-left" text rounded title="Poprzedni dzień" @click="prevDay" />
+                <div class="text-center min-w-[220px]">
+                  <div class="text-lg font-bold text-surface-700 dark:text-surface-300">
+                    {{ formattedDateMain }}
+                  </div>
+                  <div class="text-sm text-surface-600 dark:text-surface-400">
+                    {{ formattedDateSub }}
+                  </div>
                 </div>
-              </div>
-              <Button icon="pi pi-chevron-right" text rounded title="Następny dzień" @click="nextDay" />
+                <Button icon="pi pi-chevron-right" text rounded title="Następny dzień" @click="nextDay" />
+              </template>
               <Button
                 label="Dziś"
                 outlined
@@ -260,16 +310,28 @@
         >
           <div class="flex flex-col gap-3">
             <div class="flex items-center gap-2">
-              <Button icon="pi pi-chevron-left" text rounded title="Poprzedni dzień" @click="prevDay" />
-              <div class="flex-1 text-center min-w-0">
-                <div class="text-base font-bold text-surface-700 dark:text-surface-300 truncate">
-                  {{ formattedDateMain }}
+              <template v-if="viewMode === 'week'">
+                <Button icon="pi pi-chevron-left" text rounded title="Poprzedni tydzień" @click="prevWeek" />
+                <div class="flex-1 text-center min-w-0">
+                  <div class="text-base font-bold text-surface-700 dark:text-surface-300 truncate">
+                    {{ weekLabel }}
+                  </div>
+                  <div class="text-xs text-surface-600 dark:text-surface-400">Tydzień</div>
                 </div>
-                <div class="text-xs text-surface-600 dark:text-surface-400">
-                  {{ formattedDateSub }}
+                <Button icon="pi pi-chevron-right" text rounded title="Następny tydzień" @click="nextWeek" />
+              </template>
+              <template v-else>
+                <Button icon="pi pi-chevron-left" text rounded title="Poprzedni dzień" @click="prevDay" />
+                <div class="flex-1 text-center min-w-0">
+                  <div class="text-base font-bold text-surface-700 dark:text-surface-300 truncate">
+                    {{ formattedDateMain }}
+                  </div>
+                  <div class="text-xs text-surface-600 dark:text-surface-400">
+                    {{ formattedDateSub }}
+                  </div>
                 </div>
-              </div>
-              <Button icon="pi pi-chevron-right" text rounded title="Następny dzień" @click="nextDay" />
+                <Button icon="pi pi-chevron-right" text rounded title="Następny dzień" @click="nextDay" />
+              </template>
               <Button
                 label="Dziś"
                 outlined
@@ -369,7 +431,7 @@
                   </span>
                 </div>
               </template>
-              <div class="flex flex-wrap gap-4 p-4">
+              <div class="flex flex-wrap gap-4 p-1 md:p-4">
                 <ScheduleTaskCard
                   v-for="task in getTasksForBrigade(brigade.id)"
                   :key="task.id"
@@ -382,14 +444,71 @@
           </div>
         </template>
 
-        <!-- Placeholder dla widoków tydzień / miesiąc -->
+        <!-- Widok tydzień: siatka brygady × dni robocze -->
+        <div
+          v-else-if="viewMode === 'week'"
+          class="overflow-x-auto rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900"
+        >
+          <div
+            class="grid min-w-[800px]"
+            :style="{ gridTemplateColumns: `minmax(56px, 0.5fr) repeat(6, minmax(140px, 1fr))` }"
+          >
+            <!-- Pusta komórka nad kolumną brygad -->
+            <div
+              class="border-b border-r border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900"
+            />
+            <!-- Nagłówki dni (klikalne) -->
+            <button
+              v-for="day in weekDays"
+              :key="day.toISOString()"
+              type="button"
+              class="border-b border-r border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900 px-2 py-3 text-center text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer last:border-r-0"
+              @click="goToDay(day)"
+            >
+              <div class="text-sm font-semibold">{{ weekdayShortLabel(day) }}</div>
+              <div class="text-lg font-bold">{{ day.getDate() }}</div>
+            </button>
+            <!-- Wiersze: brygada + komórki dni -->
+            <template v-for="brigade in activeBrigades" :key="brigade.id">
+              <div
+                class="border-b border-r border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900 py-2 flex items-center justify-center "
+              >
+                <span
+                  class="text-xs font-semibold uppercase tracking-wide text-surface-700 dark:text-surface-300 whitespace-nowrap"
+                  style="writing-mode: vertical-rl; text-orientation: mixed"
+                >
+                  {{ brigade.name }}
+                </span>
+              </div>
+              <div
+                v-for="day in weekDays"
+                :key="`${brigade.id}-${day.toISOString()}`"
+                class="border-b border-r border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900 p-2 min-h-[120px] last:border-r-0"
+              >
+                <div class="flex flex-col gap-2">
+                  <ScheduleTaskCard
+                    v-for="task in getTasksForBrigadeAndDay(brigade.id, day)"
+                    :key="task.id"
+                    :task="task"
+                    compact
+                    class="shrink-0"
+                    @edit="onEditTask(task)"
+                    @delete="e => onDeleteTask(task, e)"
+                  />
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- Placeholder dla widoku miesiąc -->
         <div
           v-else
           class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-12 text-center"
         >
           <CalendarIcon class="w-16 h-16 text-surface-400 dark:text-surface-600 mx-auto mb-4" />
-          <h2 class="text-xl font-semibold text-surface-700 dark:text-surface-300 mb-2">Widok tydzień / miesiąc</h2>
-          <p class="text-surface-600 dark:text-surface-400">Widok tydzień i miesiąc zostaną dodane w przyszłości.</p>
+          <h2 class="text-xl font-semibold text-surface-700 dark:text-surface-300 mb-2">Widok miesiąc</h2>
+          <p class="text-surface-600 dark:text-surface-400">Widok miesiąc zostanie dodany w przyszłości.</p>
         </div>
       </div>
 
