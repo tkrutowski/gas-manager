@@ -76,6 +76,12 @@
     return `${dateFormatMain.format(start)} – ${dateFormatMain.format(end)}`;
   });
 
+  function isToday(day: Date): boolean {
+    const d = new Date(day);
+    const t = new Date();
+    return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth() && d.getDate() === t.getDate();
+  }
+
   function getTasksForBrigadeAndDay(brigadeId: number, day: Date): ScheduleTask[] {
     const groups = scheduleTasksStore.getTasksForDayGroupedByBrigade(day);
     const found = groups.find(g => g.brigadeId === brigadeId);
@@ -462,7 +468,10 @@
               v-for="day in weekDays"
               :key="day.toISOString()"
               type="button"
-              class="border-b border-r border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900 px-2 py-3 text-center text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer last:border-r-0"
+              :class="[
+                'border-b border-r border-surface-200 dark:border-surface-700 px-2 py-3 text-center text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer last:border-r-0',
+                isToday(day) ? 'bg-surface-200 dark:bg-surface-800' : 'bg-surface-50 dark:bg-surface-900',
+              ]"
               @click="goToDay(day)"
             >
               <div class="text-sm font-semibold">{{ weekdayShortLabel(day) }}</div>
@@ -483,7 +492,10 @@
               <div
                 v-for="day in weekDays"
                 :key="`${brigade.id}-${day.toISOString()}`"
-                class="border-b border-r border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900 p-2 min-h-[120px] last:border-r-0"
+                :class="[
+                  'border-b border-r border-surface-200 dark:border-surface-700 p-2 min-h-[120px] last:border-r-0',
+                  isToday(day) ? 'bg-surface-200 dark:bg-surface-800' : 'bg-surface-50 dark:bg-surface-900',
+                ]"
               >
                 <div class="flex flex-col gap-2">
                   <ScheduleTaskCard
