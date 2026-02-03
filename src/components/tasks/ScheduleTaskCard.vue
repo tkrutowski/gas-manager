@@ -53,11 +53,11 @@
 
   const statusBorderClass = computed(() => {
     const m: Record<ScheduleTaskStatus, string> = {
-      scheduled: 'border-l-surface-400 dark:border-l-surface-600',
-      active: 'border-l-amber-400 dark:border-l-amber-500',
-      done: 'border-l-green-500 dark:border-l-green-400',
-      cancelled: 'border-l-red-500 dark:border-l-red-400',
-      postponed: 'border-l-blue-500 dark:border-l-blue-400',
+      scheduled: 'border border-surface-400 dark:border-surface-600 border-l-8',
+      active: 'border border-amber-400 dark:border-amber-500 border-l-8',
+      done: 'border border-green-500 dark:border-green-400 border-l-8',
+      cancelled: 'border border-red-500 dark:border-red-400 border-l-8',
+      postponed: 'border border-blue-500 dark:border-blue-400 border-l-8',
     };
     return m[props.task.status] ?? m.scheduled;
   });
@@ -86,7 +86,7 @@
 <template>
   <div
     :class="[
-      'flex flex-col rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900 p-3 pb-0.5 max-w-[360px] shrink-0 border-l-8',
+      'flex flex-col rounded-xl border bg-surface-50 dark:bg-surface-900 p-3 pb-0.5 max-w-[360px] shrink-0',
       statusBorderClass,
     ]"
     :title="compact && task.notes ? task.notes : undefined"
@@ -113,9 +113,7 @@
       {{ task.notes }}
     </div>
 
-    <div
-      class="mt-auto flex items-center justify-between gap-2 border-t border-surface-200 dark:border-surface-700"
-    >
+    <div class="mt-auto flex items-center justify-between gap-2 border-t border-surface-200 dark:border-surface-700">
       <div class="flex items-center gap-1">
         <Button
           icon="pi pi-pencil"

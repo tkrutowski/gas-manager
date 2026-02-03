@@ -451,7 +451,7 @@
         >
           <div
             class="grid min-w-[800px]"
-            :style="{ gridTemplateColumns: `minmax(56px, 0.5fr) repeat(6, minmax(140px, 1fr))` }"
+            :style="{ gridTemplateColumns: `minmax(28px, 0.25fr) repeat(6, minmax(140px, 1fr))` }"
           >
             <!-- Pusta komórka nad kolumną brygad -->
             <div
@@ -471,11 +471,11 @@
             <!-- Wiersze: brygada + komórki dni -->
             <template v-for="brigade in activeBrigades" :key="brigade.id">
               <div
-                class="border-b border-r border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900 py-2 flex items-center justify-center "
+                class="border-b border-r border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900 py-2 flex items-center justify-center"
               >
                 <span
-                  class="text-xs font-semibold uppercase tracking-wide text-surface-700 dark:text-surface-300 whitespace-nowrap"
-                  style="writing-mode: vertical-rl; text-orientation: mixed"
+                  class="text-xs font-semibold uppercase tracking-wide text-surface-700 dark:text-surface-300 whitespace-nowrap inline-block origin-center"
+                  style="writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg)"
                 >
                   {{ brigade.name }}
                 </span>
