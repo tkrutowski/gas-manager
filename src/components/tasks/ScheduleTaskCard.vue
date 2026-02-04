@@ -86,7 +86,7 @@
 <template>
   <div
     :class="[
-      'flex flex-col rounded-xl border bg-surface-50 dark:bg-surface-900 p-3 pb-0.5 max-w-[360px] shrink-0',
+      'flex flex-col rounded-xl border bg-surface-100 dark:bg-surface-800 p-3 pb-0.5 max-w-[360px] shrink-0',
       statusBorderClass,
     ]"
     :title="compact && task.notes ? task.notes : undefined"

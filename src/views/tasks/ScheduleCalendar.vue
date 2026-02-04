@@ -470,7 +470,7 @@
               type="button"
               :class="[
                 'border-b border-r border-surface-200 dark:border-surface-700 px-2 py-3 text-center text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer last:border-r-0',
-                isToday(day) ? 'bg-surface-200 dark:bg-surface-800' : 'bg-surface-50 dark:bg-surface-900',
+                isToday(day) ? 'bg-primary-400/20 dark:bg-primary-400/10' : 'bg-surface-50 dark:bg-surface-900',
               ]"
               @click="goToDay(day)"
             >
@@ -494,7 +494,7 @@
                 :key="`${brigade.id}-${day.toISOString()}`"
                 :class="[
                   'border-b border-r border-surface-200 dark:border-surface-700 p-2 min-h-[120px] last:border-r-0',
-                  isToday(day) ? 'bg-surface-200 dark:bg-surface-800' : 'bg-surface-50 dark:bg-surface-900',
+                  isToday(day) ? 'bg-primary-400/20 dark:bg-primary-400/10' : 'bg-surface-50 dark:bg-surface-900',
                 ]"
               >
                 <div class="flex flex-col gap-2">

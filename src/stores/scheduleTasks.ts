@@ -222,7 +222,7 @@ export const useScheduleTasksStore = defineStore('scheduleTasks', () => {
   }
 
   /**
-   * Pobiera zadania dla danego dnia pogrupowane po brygadzie
+   * Pobiera zadania dla danego dnia pogrupowane po brygadzie, posortowane wg godziny rozpoczęcia
    */
   function getTasksForDayGroupedByBrigade(date: Date): { brigadeId: number; tasks: ScheduleTask[] }[] {
     const dayStart = new Date(date);
@@ -236,7 +236,11 @@ export const useScheduleTasksStore = defineStore('scheduleTasks', () => {
       list.push(task);
       byBrigadeId.set(task.brigadeId, list);
     }
-    return Array.from(byBrigadeId.entries()).map(([brigadeId, tasks]) => ({ brigadeId, tasks }));
+    const toTime = (t: ScheduleTask) => (t.startDate instanceof Date ? t.startDate : new Date(t.startDate)).getTime();
+    return Array.from(byBrigadeId.entries()).map(([brigadeId, tasks]) => ({
+      brigadeId,
+      tasks: [...tasks].sort((a, b) => toTime(a) - toTime(b)),
+    }));
   }
 
   /**
