@@ -6,6 +6,7 @@ import type {
   StageCardConfig,
   CustomerTableSettings,
   TasksListTableSettings,
+  ScheduleCalendarSettings,
 } from '@/types/Settings';
 
 const SETTINGS_STORAGE_KEY = 'appDefaultSettings';
@@ -319,6 +320,38 @@ class SettingsService {
     }
     if (settings.defaultFilter !== undefined) current.defaultFilter = settings.defaultFilter;
     if (settings.favoriteIds !== undefined) current.favoriteIds = settings.favoriteIds;
+    this.saveModuleSettings(current);
+  }
+
+  /**
+   * Pobiera ustawienia kalendarza terminarza
+   */
+  getScheduleCalendarSettings(): ScheduleCalendarSettings | null {
+    return this.getModuleSettings<ScheduleCalendarSettings>('scheduleCalendar');
+  }
+
+  /**
+   * Aktualizuje ustawienia kalendarza terminarza
+   */
+  updateScheduleCalendarSettings(
+    settings: Partial<Pick<ScheduleCalendarSettings, 'visibleBrigadeIds' | 'defaultView' | 'autoSaveSettings'>>
+  ): void {
+    const current = this.getScheduleCalendarSettings();
+    if (!current) {
+      const newSettings: ScheduleCalendarSettings = {
+        moduleName: 'scheduleCalendar',
+        version: '1.0.0',
+        updatedAt: new Date().toISOString(),
+        visibleBrigadeIds: settings.visibleBrigadeIds ?? [],
+        defaultView: settings.defaultView,
+        autoSaveSettings: settings.autoSaveSettings,
+      };
+      this.saveModuleSettings(newSettings);
+      return;
+    }
+    if (settings.visibleBrigadeIds !== undefined) current.visibleBrigadeIds = settings.visibleBrigadeIds;
+    if (settings.defaultView !== undefined) current.defaultView = settings.defaultView;
+    if (settings.autoSaveSettings !== undefined) current.autoSaveSettings = settings.autoSaveSettings;
     this.saveModuleSettings(current);
   }
 }

@@ -162,6 +162,21 @@ export interface TasksListTableSettings extends ModuleSettings {
 }
 
 /**
+ * Domyślny widok kalendarza terminarza
+ */
+export type ScheduleCalendarDefaultView = 'day' | 'week' | 'month';
+
+/**
+ * Ustawienia kalendarza terminarza
+ */
+export interface ScheduleCalendarSettings extends ModuleSettings {
+  moduleName: 'scheduleCalendar';
+  visibleBrigadeIds: number[];
+  defaultView?: ScheduleCalendarDefaultView;
+  autoSaveSettings?: boolean;
+}
+
+/**
  * Unia typów dla wszystkich modułów (łatwe rozszerzanie)
  */
 export type AppDefaultSettings =
@@ -170,6 +185,7 @@ export type AppDefaultSettings =
   | GasConnectionStageSettings
   | CustomerTableSettings
   | TasksListTableSettings
+  | ScheduleCalendarSettings
   | CompanySettings
   | AppInfoSettings; // | OtherModuleSettings | ...
 

@@ -10,6 +10,7 @@ import type {
   CustomerTableFilter,
   TasksListTableSettings,
   TasksListFilter,
+  ScheduleCalendarSettings,
 } from '@/types/Settings';
 import { useCustomersStore } from './customers';
 import { useDesignersStore } from './designers';
@@ -489,6 +490,57 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   }
 
+  // Schedule Calendar Settings
+  const scheduleCalendarSettingsVersion = ref(0);
+
+  /**
+   * Pobiera ustawienia kalendarza terminarza
+   */
+  function getScheduleCalendarSettings(): ScheduleCalendarSettings | null {
+    scheduleCalendarSettingsVersion.value; // dependency
+    return settingsService.getScheduleCalendarSettings();
+  }
+
+  /**
+   * Zapisuje ustawienia kalendarza terminarza
+   */
+  function saveScheduleCalendarSettings(
+    visibleBrigadeIds: number[],
+    defaultView?: import('@/types/Settings').ScheduleCalendarDefaultView,
+    autoSaveSettings?: boolean
+  ): void {
+    loading.value = true;
+    error.value = null;
+    try {
+      settingsService.updateScheduleCalendarSettings({
+        visibleBrigadeIds,
+        defaultView,
+        autoSaveSettings,
+      });
+      scheduleCalendarSettingsVersion.value += 1;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Błąd podczas zapisywania ustawień kalendarza';
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  /**
+   * Resetuje ustawienia kalendarza terminarza
+   */
+  function resetScheduleCalendarSettings(): void {
+    loading.value = true;
+    error.value = null;
+    try {
+      settingsService.removeModuleSettings('scheduleCalendar');
+      scheduleCalendarSettingsVersion.value += 1;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Błąd podczas resetowania ustawień kalendarza';
+    } finally {
+      loading.value = false;
+    }
+  }
+
   return {
     // State
     loading,
@@ -528,5 +580,9 @@ export const useSettingsStore = defineStore('settings', () => {
     removeTasksListFavorite,
     saveTasksListTableSettings,
     resetTasksListTableSettings,
+    // Schedule Calendar
+    getScheduleCalendarSettings,
+    saveScheduleCalendarSettings,
+    resetScheduleCalendarSettings,
   };
 });

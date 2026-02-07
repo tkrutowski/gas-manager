@@ -1,19 +1,21 @@
 <script setup lang="ts">
-  import { ref, computed, onMounted, onUnmounted } from 'vue';
+  import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
   import Toolbar from 'primevue/toolbar';
   import Button from 'primevue/button';
   import Panel from 'primevue/panel';
-  import SpeedDial from 'primevue/speeddial';
   import ConfirmPopup from 'primevue/confirmpopup';
   import { useConfirm } from 'primevue/useconfirm';
-  import type { MenuItem } from 'primevue/menuitem';
   import moment from 'moment';
   import SidebarMenu from '@/components/SidebarMenu.vue';
   import ScheduleTaskCard from '@/components/tasks/ScheduleTaskCard.vue';
   import ScheduleTaskFormDialog from '@/components/tasks/ScheduleTaskFormDialog.vue';
+  import ScheduleDayDetailPanel from '@/components/tasks/ScheduleDayDetailPanel.vue';
+  import ScheduleCalendarSettingsDialog from '@/components/tasks/ScheduleCalendarSettingsDialog.vue';
   import { useBrigadesStore } from '@/stores/brigades';
   import { useScheduleTasksStore } from '@/stores/scheduleTasks';
+  import { useSettingsStore } from '@/stores/settings';
   import type { ScheduleTask } from '@/types/ScheduleTask';
+  import type { ScheduleCalendarDefaultView } from '@/types/Settings';
   import { CalendarIcon } from '@heroicons/vue/24/outline';
 
   const dateFormatMain = new Intl.DateTimeFormat('pl-PL', {
@@ -26,14 +28,19 @@
   const dateFormatWeekdayShort = new Intl.DateTimeFormat('pl-PL', { weekday: 'short' });
   const weekdayShortLabel = (d: Date) => dateFormatWeekdayShort.format(d).replace('.', '').toUpperCase();
 
-  type ViewMode = 'day' | 'week' | 'month';
+  type ViewMode = ScheduleCalendarDefaultView;
 
   const brigadesStore = useBrigadesStore();
   const scheduleTasksStore = useScheduleTasksStore();
+  const settingsStore = useSettingsStore();
   const confirm = useConfirm();
 
   const currentDate = ref<Date>(new Date());
   const viewMode = ref<ViewMode>('day');
+  const autoSaveSettings = ref(false);
+  const showSettingsDialog = ref(false);
+  const selectedDay = ref<Date>(new Date());
+  const selectedBrigadeId = ref<number>(0);
   const isMobile = ref(false);
   const dialogVisible = ref(false);
   const editingTask = ref<ScheduleTask | null>(null);
@@ -45,6 +52,15 @@
   onMounted(() => {
     checkMobile();
     window.addEventListener('resize', checkMobile);
+    const settings = settingsStore.getScheduleCalendarSettings();
+    if (settings?.defaultView) {
+      viewMode.value = settings.defaultView;
+      if (settings.defaultView === 'month') {
+        calendarMonth.value = new Date();
+        selectedDay.value = new Date();
+      }
+    }
+    autoSaveSettings.value = settings?.autoSaveSettings ?? false;
   });
 
   onUnmounted(() => {
@@ -61,6 +77,31 @@
 
   const activeBrigades = computed(() => brigadesStore.getAllBrigades({ isActive: true }));
 
+  const visibleBrigadeIds = computed(() => {
+    const settings = settingsStore.getScheduleCalendarSettings();
+    if (settings?.visibleBrigadeIds?.length) return settings.visibleBrigadeIds;
+    return activeBrigades.value.map(b => b.id);
+  });
+
+  const visibleBrigades = computed(() =>
+    activeBrigades.value.filter(b => visibleBrigadeIds.value.includes(b.id))
+  );
+
+  const effectiveViewMode = computed<ViewMode>(() =>
+    isMobile.value ? 'day' : viewMode.value
+  );
+
+  watch(
+    [visibleBrigadeIds, activeBrigades],
+    () => {
+      if (selectedBrigadeId.value === 0 || !visibleBrigadeIds.value.includes(selectedBrigadeId.value)) {
+        const first = visibleBrigadeIds.value[0] ?? activeBrigades.value[0]?.id ?? 1;
+        selectedBrigadeId.value = first;
+      }
+    },
+    { immediate: true }
+  );
+
   const weekStart = computed(() => moment(currentDate.value).startOf('isoWeek').toDate());
   const weekDays = computed(() =>
     [0, 1, 2, 3, 4, 5].map(i => {
@@ -75,6 +116,64 @@
     end.setDate(end.getDate() + 5);
     return `${dateFormatMain.format(start)} – ${dateFormatMain.format(end)}`;
   });
+
+  const calendarMonth = ref<Date>(new Date());
+
+  const monthStart = computed(() => moment(calendarMonth.value).startOf('month'));
+
+  const monthDays = computed(() => {
+    const start = monthStart.value;
+    const daysInMonth = start.daysInMonth();
+    const firstDow = start.isoWeekday(); // 1=Pn, 2=Wt, ..., 7=Nd
+    const padStart = firstDow - 1; // kolumny: 0=Pn, 1=Wt, ..., 6=Nd
+    const totalCells = Math.ceil((padStart + daysInMonth) / 7) * 7;
+    const days: { date: Date; isCurrentMonth: boolean }[] = [];
+    for (let i = 0; i < padStart; i++) {
+      const d = moment(start).subtract(padStart - i, 'days').toDate();
+      days.push({ date: d, isCurrentMonth: false });
+    }
+    for (let i = 1; i <= daysInMonth; i++) {
+      const d = moment(start).date(i).toDate();
+      days.push({ date: d, isCurrentMonth: true });
+    }
+    const remaining = totalCells - days.length;
+    for (let i = 1; i <= remaining; i++) {
+      const d = moment(start).add(daysInMonth + i - 1, 'days').toDate();
+      days.push({ date: d, isCurrentMonth: false });
+    }
+    return days;
+  });
+
+  const monthLabel = computed(() =>
+    new Intl.DateTimeFormat('pl-PL', { month: 'long', year: 'numeric' }).format(calendarMonth.value)
+  );
+
+  const prevMonth = () => {
+    calendarMonth.value = moment(calendarMonth.value).subtract(1, 'month').toDate();
+  };
+
+  const nextMonth = () => {
+    calendarMonth.value = moment(calendarMonth.value).add(1, 'month').toDate();
+  };
+
+  function getTasksForDay(day: Date): ScheduleTask[] {
+    const groups = scheduleTasksStore.getTasksForDayGroupedByBrigade(day);
+    const found = groups.find(g => g.brigadeId === selectedBrigadeId.value);
+    return found?.tasks ?? [];
+  }
+
+  function selectDay(day: Date) {
+    selectedDay.value = new Date(day);
+  }
+
+  function isSelectedDay(day: Date): boolean {
+    const d = new Date(day);
+    return (
+      d.getFullYear() === selectedDay.value.getFullYear() &&
+      d.getMonth() === selectedDay.value.getMonth() &&
+      d.getDate() === selectedDay.value.getDate()
+    );
+  }
 
   function isToday(day: Date): boolean {
     const d = new Date(day);
@@ -142,6 +241,15 @@
 
   const setViewMode = (mode: ViewMode) => {
     viewMode.value = mode;
+    if (mode === 'month') {
+      const now = new Date();
+      calendarMonth.value = now;
+      selectedDay.value = now;
+    }
+    if (autoSaveSettings.value) {
+      const ids = visibleBrigadeIds.value;
+      settingsStore.saveScheduleCalendarSettings(ids, mode, true);
+    }
   };
 
   const onAdd = () => {
@@ -171,34 +279,34 @@
     editingTask.value = null;
   };
 
-  const onEdit = () => {
-    // placeholder – brak wybranego zadania w widoku dzień
-  };
+  function handleResetConfig(event: Event) {
+    confirm.require({
+      target: event.currentTarget as HTMLElement,
+      message: 'Czy na pewno chcesz zresetować ustawienia kalendarza (widok, brygady, auto-zapis)?',
+      icon: 'pi pi-exclamation-triangle',
+      rejectProps: { label: 'Anuluj', severity: 'secondary', outlined: true },
+      acceptProps: { label: 'Resetuj', severity: 'warning' },
+      accept: () => {
+        settingsStore.resetScheduleCalendarSettings();
+        viewMode.value = 'day';
+        autoSaveSettings.value = false;
+      },
+    });
+  }
 
-  const onDelete = (_event: Event) => {
-    // placeholder
-  };
+  function handleSettingsSaved(
+    _visibleBrigadeIds: number[],
+    defaultView?: ScheduleCalendarDefaultView,
+    autoSave?: boolean
+  ) {
+    if (defaultView) viewMode.value = defaultView;
+    if (autoSave !== undefined) autoSaveSettings.value = autoSave;
+    if (defaultView === 'month') {
+      calendarMonth.value = new Date();
+      selectedDay.value = new Date();
+    }
+  }
 
-  const speedDialItems = computed<MenuItem[]>(() => [
-    {
-      label: 'Dodaj',
-      icon: 'pi pi-plus',
-      command: () => onAdd(),
-      class: 'bg-green-50 dark:bg-green-900 text-green-600 dark:text-green-400',
-    },
-    {
-      label: 'Edytuj',
-      icon: 'pi pi-pencil',
-      command: () => onEdit(),
-      class: 'bg-primary-50 dark:bg-primary-900 text-primary dark:text-primary',
-    },
-    {
-      label: 'Usuń',
-      icon: 'pi pi-trash',
-      command: (e: { originalEvent: Event }) => onDelete(e.originalEvent),
-      class: 'bg-red-50 dark:bg-red-900 text-red-600 dark:text-red-400',
-    },
-  ]);
 </script>
 
 <template>
@@ -222,22 +330,42 @@
           <template #start>
             <div class="flex items-center gap-2">
               <Button icon="pi pi-plus" severity="success" text rounded class="text-xs" title="Dodaj" @click="onAdd" />
-              <Button icon="pi pi-pencil" text rounded class="text-xs!" title="Edytuj" @click="onEdit" />
+              <div
+                class="h-6 w-px bg-surface-200 dark:bg-surface-700 shrink-0"
+                aria-hidden="true"
+              />
               <Button
-                icon="pi pi-trash"
-                severity="danger"
+                icon="pi pi-cog"
                 text
-                rounded
+                severity="secondary"
                 class="text-xs!"
-                title="Usuń"
-                @click="onDelete($event)"
+                title="Ustawienia"
+                @click="showSettingsDialog = true"
+              />
+              <Button
+                icon="pi pi-refresh"
+                text
+                severity="secondary"
+                class="text-xs!"
+                title="Resetuj konfigurację"
+                @click="handleResetConfig($event)"
               />
             </div>
           </template>
 
           <template #center>
             <div class="flex items-center gap-3">
-              <template v-if="viewMode === 'week'">
+              <template v-if="viewMode === 'month'">
+                <Button icon="pi pi-chevron-left" text rounded title="Poprzedni miesiąc" @click="prevMonth" />
+                <div class="text-center min-w-[200px]">
+                  <div class="text-lg font-bold text-surface-700 dark:text-surface-300">
+                    {{ monthLabel }}
+                  </div>
+                  <div class="text-sm text-surface-600 dark:text-surface-400">Miesiąc</div>
+                </div>
+                <Button icon="pi pi-chevron-right" text rounded title="Następny miesiąc" @click="nextMonth" />
+              </template>
+              <template v-else-if="viewMode === 'week'">
                 <Button icon="pi pi-chevron-left" text rounded title="Poprzedni tydzień" @click="prevWeek" />
                 <div class="text-center min-w-[280px]">
                   <div class="text-lg font-bold text-surface-700 dark:text-surface-300">
@@ -260,6 +388,7 @@
                 <Button icon="pi pi-chevron-right" text rounded title="Następny dzień" @click="nextDay" />
               </template>
               <Button
+                v-if="viewMode !== 'month'"
                 label="Dziś"
                 outlined
                 severity="secondary"
@@ -309,114 +438,40 @@
           </template>
         </Toolbar>
 
-        <!-- Mobile Toolbar -->
+        <!-- Mobile Toolbar (zawsze widok dzień: nawigacja + Dodaj) -->
         <div
           v-if="isMobile"
-          class="relative md:hidden bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg w-full mb-4 p-3"
+          class="md:hidden bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg w-full mb-4 p-3"
         >
-          <div class="flex flex-col gap-3">
-            <div class="flex items-center gap-2">
-              <template v-if="viewMode === 'week'">
-                <Button icon="pi pi-chevron-left" text rounded title="Poprzedni tydzień" @click="prevWeek" />
-                <div class="flex-1 text-center min-w-0">
-                  <div class="text-base font-bold text-surface-700 dark:text-surface-300 truncate">
-                    {{ weekLabel }}
-                  </div>
-                  <div class="text-xs text-surface-600 dark:text-surface-400">Tydzień</div>
-                </div>
-                <Button icon="pi pi-chevron-right" text rounded title="Następny tydzień" @click="nextWeek" />
-              </template>
-              <template v-else>
-                <Button icon="pi pi-chevron-left" text rounded title="Poprzedni dzień" @click="prevDay" />
-                <div class="flex-1 text-center min-w-0">
-                  <div class="text-base font-bold text-surface-700 dark:text-surface-300 truncate">
-                    {{ formattedDateMain }}
-                  </div>
-                  <div class="text-xs text-surface-600 dark:text-surface-400">
-                    {{ formattedDateSub }}
-                  </div>
-                </div>
-                <Button icon="pi pi-chevron-right" text rounded title="Następny dzień" @click="nextDay" />
-              </template>
-              <Button
-                label="Dziś"
-                outlined
-                severity="secondary"
-                size="small"
-                class="rounded-lg shrink-0"
-                title="Przejdź do dzisiejszej daty"
-                @click="goToToday"
-              />
+          <div class="flex items-center gap-2">
+            <Button icon="pi pi-chevron-left" text rounded title="Poprzedni dzień" @click="prevDay" />
+            <div class="flex-1 text-center min-w-0">
+              <div class="text-base font-bold text-surface-700 dark:text-surface-300 truncate">
+                {{ formattedDateMain }}
+              </div>
+              <div class="text-xs text-surface-600 dark:text-surface-400">
+                {{ formattedDateSub }}
+              </div>
             </div>
-            <div class="flex items-center gap-1">
-              <Button
-                label="Dzień"
-                :outlined="viewMode !== 'day'"
-                :class="
-                  viewMode === 'day'
-                    ? 'bg-primary-400 text-black text-xs! border-0!'
-                    : 'text-xs! border-2! border-primary-500! text-primary-500!'
-                "
-                size="small"
-                title="Widok dzień"
-                @click="setViewMode('day')"
-              />
-              <Button
-                label="Tydzień"
-                :outlined="viewMode !== 'week'"
-                :class="
-                  viewMode === 'week'
-                    ? 'bg-primary-400! text-black text-xs! border-0!'
-                    : 'text-xs! border-2! border-primary-500! text-primary-500!'
-                "
-                size="small"
-                title="Widok tydzień"
-                @click="setViewMode('week')"
-              />
-              <Button
-                label="Miesiąc"
-                :outlined="viewMode !== 'month'"
-                :class="
-                  viewMode === 'month'
-                    ? 'bg-primary-400! text-black text-xs! border-0!'
-                    : 'text-xs! border-2! border-primary-500! text-primary-500!'
-                "
-                size="small"
-                title="Widok miesiąc"
-                @click="setViewMode('month')"
-              />
-            </div>
+            <Button icon="pi pi-chevron-right" text rounded title="Następny dzień" @click="nextDay" />
+            <Button
+              label="Dziś"
+              outlined
+              severity="secondary"
+              size="small"
+              class="rounded-lg shrink-0"
+              title="Przejdź do dzisiejszej daty"
+              @click="goToToday"
+            />
+            <Button icon="pi pi-plus" severity="success" text rounded class="text-xs" title="Dodaj" @click="onAdd" />
           </div>
-          <SpeedDial
-            :model="speedDialItems"
-            :radius="120"
-            type="quarter-circle"
-            direction="down-right"
-            :mask="true"
-            class="absolute top-0 right-0 z-10"
-          >
-            <template #item="{ item }: { item: MenuItem }">
-              <button
-                :class="[
-                  'p-speeddial-action',
-                  'w-12 h-12 rounded-full flex items-center justify-center transition-colors',
-                  item.class || '',
-                ]"
-                :disabled="item.disabled === true"
-                :title="typeof item.label === 'string' ? item.label : undefined"
-                @click="item.command && item.command({ originalEvent: $event, item })"
-              >
-                <i :class="item.icon" class="text-lg" />
-              </button>
-            </template>
-          </SpeedDial>
         </div>
 
         <!-- Widok dzień: panele brygad z zadaniami -->
-        <template v-if="viewMode === 'day'">
+        <template v-if="effectiveViewMode === 'day'">
           <div class="space-y-4">
             <Panel
-              v-for="brigade in activeBrigades"
+              v-for="brigade in visibleBrigades"
               :key="brigade.id"
               toggleable
               :collapsed="getTasksForBrigade(brigade.id).length === 0"
@@ -452,7 +507,7 @@
 
         <!-- Widok tydzień: siatka brygady × dni robocze -->
         <div
-          v-else-if="viewMode === 'week'"
+          v-else-if="effectiveViewMode === 'week'"
           class="overflow-x-auto rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900"
         >
           <div
@@ -478,7 +533,7 @@
               <div class="text-lg font-bold">{{ day.getDate() }}</div>
             </button>
             <!-- Wiersze: brygada + komórki dni -->
-            <template v-for="brigade in activeBrigades" :key="brigade.id">
+            <template v-for="brigade in visibleBrigades" :key="brigade.id">
               <div
                 class="border-b border-r border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900 py-2 flex items-center justify-center"
               >
@@ -513,14 +568,74 @@
           </div>
         </div>
 
-        <!-- Placeholder dla widoku miesiąc -->
+        <!-- Widok miesiąc: kalendarz + panel dnia -->
         <div
           v-else
-          class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-xl p-12 text-center"
+          class="flex flex-col lg:flex-row gap-4"
         >
-          <CalendarIcon class="w-16 h-16 text-surface-400 dark:text-surface-600 mx-auto mb-4" />
-          <h2 class="text-xl font-semibold text-surface-700 dark:text-surface-300 mb-2">Widok miesiąc</h2>
-          <p class="text-surface-600 dark:text-surface-400">Widok miesiąc zostanie dodany w przyszłości.</p>
+          <div
+            class="flex-1 min-w-0 overflow-x-auto rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900"
+          >
+            <div
+              class="grid min-w-[600px]"
+              style="grid-template-columns: repeat(7, 1fr)"
+            >
+              <div
+                v-for="w in 7"
+                :key="w"
+                class="border-b border-r border-surface-200 dark:border-surface-700 px-2 py-2 text-center text-xs font-semibold uppercase text-surface-600 dark:text-surface-400 bg-surface-100 dark:bg-surface-800 last:border-r-0"
+              >
+                {{ ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd'][w - 1] }}
+              </div>
+              <div
+                v-for="(cell, idx) in monthDays"
+                :key="idx"
+                :class="[
+                  'border-b border-r border-surface-200 dark:border-surface-700 p-2 min-h-[100px] last:border-r-0',
+                  !cell.isCurrentMonth && 'bg-surface-100/50 dark:bg-surface-800/50',
+                  cell.isCurrentMonth && isToday(cell.date) && 'bg-primary-400/20 dark:bg-primary-400/10',
+                  cell.isCurrentMonth && isSelectedDay(cell.date) && 'ring-2 ring-primary-500 ring-inset',
+                ]"
+              >
+                <button
+                  type="button"
+                  class="w-full h-full flex flex-col items-stretch text-left"
+                  @click="selectDay(cell.date)"
+                >
+                  <span
+                    :class="[
+                      'text-sm font-medium mb-1',
+                      cell.isCurrentMonth
+                        ? 'text-surface-700 dark:text-surface-300'
+                        : 'text-surface-400 dark:text-surface-500',
+                    ]"
+                  >
+                    {{ cell.date.getDate() }}
+                  </span>
+                  <div class="flex flex-col gap-1 overflow-y-auto">
+                    <ScheduleTaskCard
+                      v-for="task in getTasksForDay(cell.date)"
+                      :key="task.id"
+                      :task="task"
+                      minimal
+                      class="shrink-0 max-w-full"
+                      @edit="onEditTask(task)"
+                      @delete="e => onDeleteTask(task, e)"
+                    />
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="w-full lg:w-[380px] shrink-0 min-h-[300px]">
+            <ScheduleDayDetailPanel
+              :selected-day="selectedDay"
+              :selected-brigade-id="selectedBrigadeId"
+              @update:selected-brigade-id="selectedBrigadeId = $event"
+              @edit="onEditTask"
+              @delete="onDeleteTask"
+            />
+          </div>
         </div>
       </div>
 
@@ -530,6 +645,12 @@
         :schedule-task="editingTask ?? undefined"
         :initial-date="currentDate"
         @close="onDialogClose"
+      />
+      <ScheduleCalendarSettingsDialog
+        v-model:visible="showSettingsDialog"
+        :default-view="viewMode"
+        :auto-save-settings="autoSaveSettings"
+        @saved="handleSettingsSaved"
       />
     </div>
   </div>

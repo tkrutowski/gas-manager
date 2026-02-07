@@ -12,8 +12,10 @@
       task: ScheduleTask;
       /** Gdy true, notatki nie są wyświetlane w treści; pokazywane w title przy najechaniu. */
       compact?: boolean;
+      /** Gdy true, pokazywane są tylko tytuł i status (np. w widoku miesięcznym). */
+      minimal?: boolean;
     }>(),
-    { compact: false }
+    { compact: false, minimal: false }
   );
 
   const emit = defineEmits<{
@@ -86,69 +88,80 @@
 <template>
   <div
     :class="[
-      'flex flex-col rounded-xl border bg-surface-100 dark:bg-surface-800 p-3 pb-0.5 max-w-[360px] shrink-0',
+      'flex flex-col rounded-xl border bg-surface-100 dark:bg-surface-800 min-w-0 max-w-full',
+      minimal ? 'p-2 md:max-w-[200px]' : 'p-3 pb-0.5 md:max-w-[360px]',
       statusBorderClass,
     ]"
-    :title="compact && task.notes ? task.notes : undefined"
+    :title="(compact && task.notes) || minimal ? task.notes || undefined : undefined"
   >
-    <div class="flex items-center justify-between gap-2 mb-3">
-      <span class="text-sm font-medium text-surface-600 dark:text-surface-400">{{ timeRange }}</span>
-      <span :class="['rounded-full px-2 py-1.5 text-xs font-medium', statusBadgeClass]">
-        {{ SCHEDULE_TASK_STATUS_LABELS[task.status] }}
-      </span>
-    </div>
-    <h3 class="text-base font-bold text-surface-700 dark:text-surface-300 mb-1">
-      {{ task.title }}
-    </h3>
-    <div class="flex items-center gap-1.5 text-sm text-surface-600 dark:text-surface-400 mb-4 min-w-0">
-      <MapPinIcon class="w-4 h-4 shrink-0" />
-      <span class="min-w-0 truncate">{{ locationText }}</span>
-    </div>
+    <!-- Tryb minimal: tylko tytuł, kolor statusu w obramowaniu (border-l-8) -->
+    <template v-if="minimal">
+      <h3 class="text-sm font-bold text-surface-700 dark:text-surface-300 truncate">
+        {{ task.title }}
+      </h3>
+    </template>
 
-    <div
-      v-if="!compact && task.notes"
-      class="text-sm text-surface-600 dark:text-surface-400 mb-4 min-w-0 wrap-break-word line-clamp-2"
-    >
-      <span class="font-medium text-surface-700 dark:text-surface-300">Notatki:</span>
-      {{ task.notes }}
-    </div>
+    <!-- Tryb pełny lub compact -->
+    <template v-else>
+      <div class="flex items-center justify-between gap-2 mb-3">
+        <span class="text-sm font-medium text-surface-600 dark:text-surface-400">{{ timeRange }}</span>
+        <span :class="['rounded-full px-2 py-1.5 text-xs font-medium', statusBadgeClass]">
+          {{ SCHEDULE_TASK_STATUS_LABELS[task.status] }}
+        </span>
+      </div>
+      <h3 class="text-base font-bold text-surface-700 dark:text-surface-300 mb-1">
+        {{ task.title }}
+      </h3>
+      <div class="flex items-center gap-1.5 text-sm text-surface-600 dark:text-surface-400 mb-4 min-w-0">
+        <MapPinIcon class="w-4 h-4 shrink-0" />
+        <span class="min-w-0 truncate">{{ locationText }}</span>
+      </div>
 
-    <div class="mt-auto flex items-center justify-between gap-2 border-t border-surface-200 dark:border-surface-700">
-      <div class="flex items-center gap-1">
-        <Button
-          icon="pi pi-pencil"
-          text
-          rounded
-          severity="primary"
-          size="small"
-          title="Edytuj"
-          class="p-1.5!"
-          @click="onEdit"
-        />
-        <Button
-          icon="pi pi-trash"
-          text
-          rounded
-          severity="danger"
-          size="small"
-          title="Usuń"
-          class="p-1.5! text-red-600 dark:text-red-400"
-          @click="onDelete"
-        />
+      <div
+        v-if="!compact && task.notes"
+        class="text-sm text-surface-600 dark:text-surface-400 mb-4 min-w-0 wrap-break-word line-clamp-2"
+      >
+        <span class="font-medium text-surface-700 dark:text-surface-300">Notatki:</span>
+        {{ task.notes }}
       </div>
-      <div class="flex items-center gap-1">
-        <Button
-          v-if="canShowConnectionDetails"
-          icon="pi pi-eye"
-          text
-          rounded
-          severity="primary"
-          size="small"
-          title="Szczegóły przyłącza (tylko odczyt)"
-          class="p-1.5!"
-          @click="goToConnectionDetails"
-        />
+
+      <div class="mt-auto flex items-center justify-between gap-2 border-t border-surface-200 dark:border-surface-700">
+        <div class="flex items-center gap-1">
+          <Button
+            icon="pi pi-pencil"
+            text
+            rounded
+            severity="primary"
+            size="small"
+            title="Edytuj"
+            class="p-1.5!"
+            @click="onEdit"
+          />
+          <Button
+              icon="pi pi-trash"
+            text
+            rounded
+            severity="danger"
+            size="small"
+            title="Usuń"
+            class="p-1.5! text-red-600 dark:text-red-400"
+            @click="onDelete"
+          />
+        </div>
+        <div class="flex items-center gap-1">
+          <Button
+            v-if="canShowConnectionDetails"
+            icon="pi pi-eye"
+            text
+            rounded
+            severity="primary"
+            size="small"
+            title="Szczegóły przyłącza (tylko odczyt)"
+            class="p-1.5!"
+            @click="goToConnectionDetails"
+          />
+        </div>
       </div>
-    </div>
+    </template>
   </div>
 </template>

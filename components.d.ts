@@ -92,6 +92,8 @@ declare module 'vue' {
     RefreshComponent: typeof import('./src/components/RefreshComponent.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    ScheduleCalendarSettingsDialog: typeof import('./src/components/tasks/ScheduleCalendarSettingsDialog.vue')['default']
+    ScheduleDayDetailPanel: typeof import('./src/components/tasks/ScheduleDayDetailPanel.vue')['default']
     ScheduleTaskCard: typeof import('./src/components/tasks/ScheduleTaskCard.vue')['default']
     ScheduleTaskFormDialog: typeof import('./src/components/tasks/ScheduleTaskFormDialog.vue')['default']
     SecondaryButton: typeof import('./src/components/SecondaryButton.vue')['default']
