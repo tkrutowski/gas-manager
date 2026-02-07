@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+  import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue';
   import Toolbar from 'primevue/toolbar';
   import Button from 'primevue/button';
   import Panel from 'primevue/panel';
@@ -44,6 +44,99 @@
   const isMobile = ref(false);
   const dialogVisible = ref(false);
   const editingTask = ref<ScheduleTask | null>(null);
+
+  // Drag and drop (widok miesiąc) – tylko zadania jednodniowe
+  const draggedTask = ref<ScheduleTask | null>(null);
+  const dragOverDay = ref<Date | null>(null);
+  const dragImageEl = ref<HTMLElement | null>(null);
+  const ghostEl = ref<HTMLElement | null>(null);
+  let globalDragOverHandler: ((e: DragEvent) => void) | null = null;
+
+  function isSameDay(a: Date, b: Date): boolean {
+    const d1 = new Date(a);
+    const d2 = new Date(b);
+    return (
+      d1.getFullYear() === d2.getFullYear() &&
+      d1.getMonth() === d2.getMonth() &&
+      d1.getDate() === d2.getDate()
+    );
+  }
+
+  function isSingleDayTask(task: ScheduleTask): boolean {
+    const start = task.startDate instanceof Date ? task.startDate : new Date(task.startDate);
+    const end = task.endDate instanceof Date ? task.endDate : new Date(task.endDate);
+    return isSameDay(start, end);
+  }
+
+  function moveTaskToDay(
+    task: ScheduleTask,
+    targetDay: Date
+  ): { startDate: Date; endDate: Date } {
+    const start = task.startDate instanceof Date ? task.startDate : new Date(task.startDate);
+    const end = task.endDate instanceof Date ? task.endDate : new Date(task.endDate);
+    const t = new Date(targetDay);
+    t.setHours(0, 0, 0, 0);
+    const newStart = new Date(t);
+    newStart.setHours(start.getHours(), start.getMinutes(), start.getSeconds(), 0);
+    const newEnd = new Date(t);
+    newEnd.setHours(end.getHours(), end.getMinutes(), end.getSeconds(), 0);
+    return { startDate: newStart, endDate: newEnd };
+  }
+
+  function onTaskDragStart(e: DragEvent, task: ScheduleTask) {
+    if (!isSingleDayTask(task)) {
+      e.preventDefault();
+      return;
+    }
+    if (!e.dataTransfer || !dragImageEl.value) return;
+    e.dataTransfer.setData('taskId', String(task.id));
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setDragImage(dragImageEl.value, 0, 0);
+    draggedTask.value = task;
+    document.body.classList.add('cursor-grabbing');
+    globalDragOverHandler = (ev: DragEvent) => {
+      ev.preventDefault();
+      if (ghostEl.value && ev.clientX !== undefined && ev.clientY !== undefined) {
+        ghostEl.value.style.left = `${ev.clientX + 10}px`;
+        ghostEl.value.style.top = `${ev.clientY + 10}px`;
+      }
+    };
+    document.addEventListener('dragover', globalDragOverHandler);
+    nextTick(() => {
+      if (ghostEl.value) {
+        ghostEl.value.style.left = `${e.clientX + 10}px`;
+        ghostEl.value.style.top = `${e.clientY + 10}px`;
+      }
+    });
+  }
+
+  function onTaskDragEnd() {
+    draggedTask.value = null;
+    dragOverDay.value = null;
+    document.body.classList.remove('cursor-grabbing');
+    if (globalDragOverHandler) {
+      document.removeEventListener('dragover', globalDragOverHandler);
+      globalDragOverHandler = null;
+    }
+  }
+
+  function onDayDragOver(e: DragEvent, cell: { date: Date }) {
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+    dragOverDay.value = cell.date;
+  }
+
+  function onDayDrop(e: DragEvent, cell: { date: Date }) {
+    e.preventDefault();
+    dragOverDay.value = null;
+    const taskIdStr = e.dataTransfer?.getData('taskId');
+    if (!taskIdStr) return;
+    const taskId = Number(taskIdStr);
+    const task = scheduleTasksStore.getTask(taskId);
+    if (!task || !isSingleDayTask(task)) return;
+    const { startDate, endDate } = moveTaskToDay(task, cell.date);
+    scheduleTasksStore.updateTask(task.id, { startDate, endDate });
+  }
 
   const checkMobile = () => {
     isMobile.value = window.innerWidth < 768;
@@ -595,7 +688,11 @@
                   !cell.isCurrentMonth && 'bg-surface-100/50 dark:bg-surface-800/50',
                   cell.isCurrentMonth && isToday(cell.date) && 'bg-primary-400/20 dark:bg-primary-400/10',
                   cell.isCurrentMonth && isSelectedDay(cell.date) && 'ring-2 ring-primary-500 ring-inset',
+                  dragOverDay && isSameDay(cell.date, dragOverDay) &&
+                    'ring-2 ring-primary-500 ring-inset bg-primary-400/30 dark:bg-primary-400/20',
                 ]"
+                @dragover.prevent="onDayDragOver($event, cell)"
+                @drop="onDayDrop($event, cell)"
               >
                 <button
                   type="button"
@@ -613,19 +710,44 @@
                     {{ cell.date.getDate() }}
                   </span>
                   <div class="flex flex-col gap-1 overflow-y-auto">
-                    <ScheduleTaskCard
+                    <div
                       v-for="task in getTasksForDay(cell.date)"
                       :key="task.id"
-                      :task="task"
-                      minimal
+                      :draggable="isSingleDayTask(task)"
                       class="shrink-0 max-w-full"
-                      @edit="onEditTask(task)"
-                      @delete="e => onDeleteTask(task, e)"
-                    />
+                      :class="{ 'cursor-grab': isSingleDayTask(task) }"
+                      @dragstart="onTaskDragStart($event, task)"
+                      @dragend="onTaskDragEnd"
+                    >
+                      <ScheduleTaskCard
+                        :task="task"
+                        minimal
+                        class="shrink-0 max-w-full"
+                        @edit="onEditTask(task)"
+                        @delete="e => onDeleteTask(task, e)"
+                      />
+                    </div>
                   </div>
                 </button>
               </div>
             </div>
+            <!-- Ukryty element do setDragImage (1px) -->
+            <div
+              ref="dragImageEl"
+              class="absolute w-px h-px opacity-0 pointer-events-none -left-[9999px]"
+              aria-hidden="true"
+            />
+          </div>
+          <!-- Ghost przeciąganej karty – pozycja ustawiana w JS (bez reaktywności), żeby nie blokować przy ruchu myszy -->
+          <div
+            v-if="draggedTask"
+            ref="ghostEl"
+            class="fixed pointer-events-none z-9999 cursor-grabbing rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900 shadow-lg p-2 min-w-[120px] max-w-[200px]"
+            style="left: 0; top: 0"
+          >
+            <h3 class="text-sm font-bold text-surface-700 dark:text-surface-300 truncate">
+              {{ draggedTask.title }}
+            </h3>
           </div>
           <div class="w-full lg:w-[380px] shrink-0 min-h-[300px]">
             <ScheduleDayDetailPanel
