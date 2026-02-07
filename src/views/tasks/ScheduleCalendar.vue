@@ -10,6 +10,7 @@
   import ScheduleTaskCard from '@/components/tasks/ScheduleTaskCard.vue';
   import ScheduleTaskFormDialog from '@/components/tasks/ScheduleTaskFormDialog.vue';
   import ScheduleDayDetailPanel from '@/components/tasks/ScheduleDayDetailPanel.vue';
+  import ScheduleTaskDetailPanel from '@/components/tasks/ScheduleTaskDetailPanel.vue';
   import ScheduleCalendarSettingsDialog from '@/components/tasks/ScheduleCalendarSettingsDialog.vue';
   import { useBrigadesStore } from '@/stores/brigades';
   import { useScheduleTasksStore } from '@/stores/scheduleTasks';
@@ -44,6 +45,7 @@
   const isMobile = ref(false);
   const dialogVisible = ref(false);
   const editingTask = ref<ScheduleTask | null>(null);
+  const selectedTaskInDayView = ref<ScheduleTask | null>(null);
 
   // Drag and drop (widok miesiąc) – tylko zadania jednodniowe
   const draggedTask = ref<ScheduleTask | null>(null);
@@ -55,11 +57,7 @@
   function isSameDay(a: Date, b: Date): boolean {
     const d1 = new Date(a);
     const d2 = new Date(b);
-    return (
-      d1.getFullYear() === d2.getFullYear() &&
-      d1.getMonth() === d2.getMonth() &&
-      d1.getDate() === d2.getDate()
-    );
+    return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
   }
 
   function isSingleDayTask(task: ScheduleTask): boolean {
@@ -68,10 +66,7 @@
     return isSameDay(start, end);
   }
 
-  function moveTaskToDay(
-    task: ScheduleTask,
-    targetDay: Date
-  ): { startDate: Date; endDate: Date } {
+  function moveTaskToDay(task: ScheduleTask, targetDay: Date): { startDate: Date; endDate: Date } {
     const start = task.startDate instanceof Date ? task.startDate : new Date(task.startDate);
     const end = task.endDate instanceof Date ? task.endDate : new Date(task.endDate);
     const t = new Date(targetDay);
@@ -176,13 +171,9 @@
     return activeBrigades.value.map(b => b.id);
   });
 
-  const visibleBrigades = computed(() =>
-    activeBrigades.value.filter(b => visibleBrigadeIds.value.includes(b.id))
-  );
+  const visibleBrigades = computed(() => activeBrigades.value.filter(b => visibleBrigadeIds.value.includes(b.id)));
 
-  const effectiveViewMode = computed<ViewMode>(() =>
-    isMobile.value ? 'day' : viewMode.value
-  );
+  const effectiveViewMode = computed<ViewMode>(() => (isMobile.value ? 'day' : viewMode.value));
 
   watch(
     [visibleBrigadeIds, activeBrigades],
@@ -222,7 +213,9 @@
     const totalCells = Math.ceil((padStart + daysInMonth) / 7) * 7;
     const days: { date: Date; isCurrentMonth: boolean }[] = [];
     for (let i = 0; i < padStart; i++) {
-      const d = moment(start).subtract(padStart - i, 'days').toDate();
+      const d = moment(start)
+        .subtract(padStart - i, 'days')
+        .toDate();
       days.push({ date: d, isCurrentMonth: false });
     }
     for (let i = 1; i <= daysInMonth; i++) {
@@ -231,7 +224,9 @@
     }
     const remaining = totalCells - days.length;
     for (let i = 1; i <= remaining; i++) {
-      const d = moment(start).add(daysInMonth + i - 1, 'days').toDate();
+      const d = moment(start)
+        .add(daysInMonth + i - 1, 'days')
+        .toDate();
       days.push({ date: d, isCurrentMonth: false });
     }
     return days;
@@ -399,7 +394,6 @@
       selectedDay.value = new Date();
     }
   }
-
 </script>
 
 <template>
@@ -423,10 +417,7 @@
           <template #start>
             <div class="flex items-center gap-2">
               <Button icon="pi pi-plus" severity="success" text rounded class="text-xs" title="Dodaj" @click="onAdd" />
-              <div
-                class="h-6 w-px bg-surface-200 dark:bg-surface-700 shrink-0"
-                aria-hidden="true"
-              />
+              <div class="h-6 w-px bg-surface-200 dark:bg-surface-700 shrink-0" aria-hidden="true" />
               <Button
                 icon="pi pi-cog"
                 text
@@ -560,41 +551,48 @@
           </div>
         </div>
 
-        <!-- Widok dzień: panele brygad z zadaniami -->
+        <!-- Widok dzień: panele brygad z zadaniami + panel szczegółów (desktop) -->
         <template v-if="effectiveViewMode === 'day'">
-          <div class="space-y-4">
-            <Panel
-              v-for="brigade in visibleBrigades"
-              :key="brigade.id"
-              toggleable
-              :collapsed="getTasksForBrigade(brigade.id).length === 0"
-              class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700"
-            >
-              <template #header>
-                <div class="flex items-center w-full gap-3">
-                  <div class="flex items-center gap-3 min-w-0">
-                    <div class="w-1.5 h-10 shrink-0 rounded-full bg-amber-400 dark:bg-amber-500" aria-hidden="true" />
-                    <span class="font-semibold text-surface-700 dark:text-surface-300 truncate">
-                      {{ brigade.name }}
+          <div class="flex flex-col lg:flex-row gap-4">
+            <div class="flex-1 min-w-0 space-y-4">
+              <Panel
+                v-for="brigade in visibleBrigades"
+                :key="brigade.id"
+                toggleable
+                :collapsed="getTasksForBrigade(brigade.id).length === 0"
+                class="bg-surface-50! dark:bg-surface-900! border border-surface-200 dark:border-surface-700"
+              >
+                <template #header>
+                  <div class="flex items-center w-full gap-3">
+                    <div class="flex items-center gap-3 min-w-0">
+                      <div class="w-1.5 h-10 shrink-0 rounded-full bg-amber-400 dark:bg-amber-500" aria-hidden="true" />
+                      <span class="font-semibold text-surface-700 dark:text-surface-300 truncate">
+                        {{ brigade.name }}
+                      </span>
+                    </div>
+                    <span
+                      class="shrink-0 rounded-full bg-surface-200 dark:bg-surface-700 px-2.5 py-1 text-xs font-medium text-surface-700 dark:text-surface-300"
+                    >
+                      {{ taskCountLabel(getTasksForBrigade(brigade.id).length) }}
                     </span>
                   </div>
-                  <span
-                    class="shrink-0 rounded-full bg-surface-200 dark:bg-surface-700 px-2.5 py-1 text-xs font-medium text-surface-700 dark:text-surface-300"
-                  >
-                    {{ taskCountLabel(getTasksForBrigade(brigade.id).length) }}
-                  </span>
+                </template>
+                <div class="flex flex-wrap gap-4 p-1 md:p-4">
+                  <ScheduleTaskCard
+                    v-for="task in getTasksForBrigade(brigade.id)"
+                    :key="task.id"
+                    :task="task"
+                    :selectable="!isMobile"
+                    @edit="onEditTask(task)"
+                    @delete="e => onDeleteTask(task, e)"
+                    @select="selectedTaskInDayView = task"
+                  />
                 </div>
-              </template>
-              <div class="flex flex-wrap gap-4 p-1 md:p-4">
-                <ScheduleTaskCard
-                  v-for="task in getTasksForBrigade(brigade.id)"
-                  :key="task.id"
-                  :task="task"
-                  @edit="onEditTask(task)"
-                  @delete="e => onDeleteTask(task, e)"
-                />
-              </div>
-            </Panel>
+              </Panel>
+            </div>
+            <div v-if="!isMobile" class="w-full lg:w-[380px] shrink-0 min-h-[300px]">
+              <ScheduleTaskDetailPanel :task="selectedTaskInDayView" />
+            </div>
           </div>
         </template>
 
@@ -662,17 +660,11 @@
         </div>
 
         <!-- Widok miesiąc: kalendarz + panel dnia -->
-        <div
-          v-else
-          class="flex flex-col lg:flex-row gap-4"
-        >
+        <div v-else class="flex flex-col lg:flex-row gap-4">
           <div
             class="flex-1 min-w-0 overflow-x-auto rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900"
           >
-            <div
-              class="grid min-w-[600px]"
-              style="grid-template-columns: repeat(7, 1fr)"
-            >
+            <div class="grid min-w-[600px]" style="grid-template-columns: repeat(7, 1fr)">
               <div
                 v-for="w in 7"
                 :key="w"
@@ -688,7 +680,8 @@
                   !cell.isCurrentMonth && 'bg-surface-100/50 dark:bg-surface-800/50',
                   cell.isCurrentMonth && isToday(cell.date) && 'bg-primary-400/20 dark:bg-primary-400/10',
                   cell.isCurrentMonth && isSelectedDay(cell.date) && 'ring-2 ring-primary-500 ring-inset',
-                  dragOverDay && isSameDay(cell.date, dragOverDay) &&
+                  dragOverDay &&
+                    isSameDay(cell.date, dragOverDay) &&
                     'ring-2 ring-primary-500 ring-inset bg-primary-400/30 dark:bg-primary-400/20',
                 ]"
                 @dragover.prevent="onDayDragOver($event, cell)"

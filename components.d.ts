@@ -95,6 +95,7 @@ declare module 'vue' {
     ScheduleCalendarSettingsDialog: typeof import('./src/components/tasks/ScheduleCalendarSettingsDialog.vue')['default']
     ScheduleDayDetailPanel: typeof import('./src/components/tasks/ScheduleDayDetailPanel.vue')['default']
     ScheduleTaskCard: typeof import('./src/components/tasks/ScheduleTaskCard.vue')['default']
+    ScheduleTaskDetailPanel: typeof import('./src/components/tasks/ScheduleTaskDetailPanel.vue')['default']
     ScheduleTaskFormDialog: typeof import('./src/components/tasks/ScheduleTaskFormDialog.vue')['default']
     SecondaryButton: typeof import('./src/components/SecondaryButton.vue')['default']
     Select: typeof import('primevue/select')['default']

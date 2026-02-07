@@ -14,13 +14,16 @@
       compact?: boolean;
       /** Gdy true, pokazywane są tylko tytuł i status (np. w widoku miesięcznym). */
       minimal?: boolean;
+      /** Gdy true, klik w kartę emituje select (np. do panelu szczegółów w widoku dzień). */
+      selectable?: boolean;
     }>(),
-    { compact: false, minimal: false }
+    { compact: false, minimal: false, selectable: false }
   );
 
   const emit = defineEmits<{
     edit: [];
     delete: [event: Event];
+    select: [];
   }>();
 
   const router = useRouter();
@@ -44,7 +47,7 @@
 
   const statusBadgeClass = computed(() => {
     const m: Record<ScheduleTaskStatus, string> = {
-      scheduled: 'bg-surface-200 dark:bg-surface-700 text-surface-700 dark:text-surface-300',
+      scheduled: 'bg-surface-400 dark:bg-surface-700 text-surface-50 dark:text-surface-300',
       active: 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200',
       done: 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200',
       cancelled: 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200',
@@ -83,16 +86,22 @@
   function onDelete(event: Event) {
     emit('delete', event);
   }
+
+  function onCardClick() {
+    if (props.selectable) emit('select');
+  }
 </script>
 
 <template>
   <div
     :class="[
-      'flex flex-col rounded-xl border bg-surface-100 dark:bg-surface-800 min-w-0 max-w-full',
+      'flex flex-col rounded-xl border bg-surface-200 dark:bg-surface-800 min-w-0 max-w-full',
       minimal ? 'p-2 md:max-w-[200px]' : 'p-3 pb-0.5 md:max-w-[360px]',
       statusBorderClass,
+      selectable && 'cursor-pointer',
     ]"
     :title="(compact && task.notes) || minimal ? task.notes || undefined : undefined"
+    @click="onCardClick"
   >
     <!-- Tryb minimal: tylko tytuł, kolor statusu w obramowaniu (border-l-8) -->
     <template v-if="minimal">
@@ -125,7 +134,10 @@
         {{ task.notes }}
       </div>
 
-      <div class="mt-auto flex items-center justify-between gap-2 border-t border-surface-200 dark:border-surface-700">
+      <div
+        class="mt-auto flex items-center justify-between gap-2 border-t border-surface-200 dark:border-surface-700"
+        @click.stop
+      >
         <div class="flex items-center gap-1">
           <Button
             icon="pi pi-pencil"
@@ -138,7 +150,7 @@
             @click="onEdit"
           />
           <Button
-              icon="pi pi-trash"
+            icon="pi pi-trash"
             text
             rounded
             severity="danger"
@@ -151,7 +163,7 @@
         <div class="flex items-center gap-1">
           <Button
             v-if="canShowConnectionDetails"
-            icon="pi pi-eye"
+            icon="pi pi-eye-slash"
             text
             rounded
             severity="primary"
