@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { computed, ref } from 'vue';
-  import { MapPinIcon, ClockIcon, EyeIcon } from '@heroicons/vue/24/outline';
+  import { MapPinIcon, ClockIcon, EyeIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/outline';
   import { useGasConnectionsStore } from '@/stores/gasConnections';
   import { getPersonDisplayName } from '@/utils/tableFormatters';
   import LocationMap from '@/components/maps/LocationMap.vue';
@@ -112,6 +112,15 @@
     customerForDialog.value = gc.customer;
     customerDialogVisible.value = true;
   }
+
+  function openGoogleMaps() {
+    if (!hasCoordinates.value || !props.task) return;
+    const lat = Number(props.task.latitude);
+    const lng = Number(props.task.longitude);
+    if (isNaN(lat) || isNaN(lng)) return;
+    const url = `https://www.google.com/maps?q=${lat},${lng}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
 </script>
 
 <template>
@@ -146,11 +155,29 @@
 
         <!-- Lokalizacja -->
         <section>
-          <div class="flex items-center gap-2 mb-2">
-            <MapPinIcon class="w-5 h-5 text-primary-400 shrink-0" />
-            <h3 class="text-sm font-semibold text-surface-700 dark:text-surface-300 uppercase tracking-wide">
-              Lokalizacja
-            </h3>
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <div class="flex items-center gap-2">
+              <MapPinIcon class="w-5 h-5 text-primary-400 shrink-0" />
+              <h3 class="text-sm font-semibold text-surface-700 dark:text-surface-300 uppercase tracking-wide">
+                Lokalizacja
+              </h3>
+            </div>
+            <div
+              v-if="hasCoordinates"
+              class="flex items-center gap-2"
+            >
+              <span class="text-sm font-semibold text-surface-700 dark:text-surface-300 uppercase tracking-wide">
+                Google Maps
+              </span>
+              <button
+                type="button"
+                class="p-1 rounded cursor-pointer hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
+                title="Otwórz w Google Maps"
+                @click="openGoogleMaps"
+              >
+                <ArrowTopRightOnSquareIcon class="w-4 h-4 shrink-0 text-amber-400 dark:text-amber-400" />
+              </button>
+            </div>
           </div>
           <div
             v-if="hasCoordinates"
