@@ -13,11 +13,12 @@
   import type { Designer, DesignerTraffic } from '@/types/Designer';
   import type { Coordinator } from '@/types/Coordinator';
   import type { Surveyor } from '@/types/Surveyor';
+  import type { Brigade } from '@/types/Brigade';
 
   const props = defineProps<{
     visible: boolean;
-    entity: Designer | DesignerTraffic | Coordinator | Surveyor | null;
-    entityType: 'designer' | 'designerTraffic' | 'coordinator' | 'surveyor';
+    entity: Designer | DesignerTraffic | Coordinator | Surveyor | Brigade | null;
+    entityType: 'designer' | 'designerTraffic' | 'coordinator' | 'surveyor' | 'brigade';
   }>();
 
   const emit = defineEmits<{
@@ -28,6 +29,7 @@
   const entityName = computed(() => {
     const e = props.entity;
     if (!e) return '';
+    if (props.entityType === 'brigade') return (e as Brigade).name;
     return `${e.name} ${'lastName' in e ? (e.lastName ?? '') : ''}`.trim();
   });
 
@@ -45,6 +47,8 @@
         return 'KOORDYNATOR';
       case 'surveyor':
         return 'GEODETA';
+      case 'brigade':
+        return 'BRYGADA';
       default:
         return 'OSOBA';
     }
@@ -53,9 +57,20 @@
   const getInitials = computed(() => {
     const e = props.entity;
     if (!e) return '?';
+    if (props.entityType === 'brigade') {
+      const name = (e as Brigade).name || '';
+      return (name.charAt(0) + name.charAt(1)).toUpperCase() || '?';
+    }
     const first = e.name?.charAt(0).toUpperCase() || '';
     const last = 'lastName' in e && e.lastName ? e.lastName.charAt(0).toUpperCase() : '';
     return first + last || '?';
+  });
+
+  const entityStatus = computed(() => {
+    const e = props.entity;
+    if (!e) return false;
+    if (props.entityType === 'brigade') return (e as Brigade).isActive;
+    return 'status' in e && e.status;
   });
 
   const formatDate = (date?: Date | string): string => {
@@ -128,23 +143,49 @@
         <div
           :class="[
             'flex items-center gap-2 px-3 py-1.5 rounded-full',
-            entity.status ? 'bg-green-100 dark:bg-green-900/30' : 'bg-gray-100 dark:bg-gray-700/50',
+            entityStatus ? 'bg-green-100 dark:bg-green-900/30' : 'bg-gray-100 dark:bg-gray-700/50',
           ]"
         >
-          <span :class="['w-2 h-2 rounded-full', entity.status ? 'bg-green-500' : 'bg-gray-500']"></span>
+          <span :class="['w-2 h-2 rounded-full', entityStatus ? 'bg-green-500' : 'bg-gray-500']"></span>
           <span
             :class="[
               'text-sm font-medium',
-              entity.status ? 'text-green-700 dark:text-green-400' : 'text-gray-700 dark:text-gray-400',
+              entityStatus ? 'text-green-700 dark:text-green-400' : 'text-gray-700 dark:text-gray-400',
             ]"
           >
-            {{ entity.status ? 'Aktywny' : 'Nieaktywny' }}
+            {{ entityStatus ? 'Aktywna' : 'Nieaktywna' }}
           </span>
         </div>
       </div>
 
-      <!-- Kontakt + Adres -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Dla brygady: ID + informacje dodatkowe -->
+      <div
+        v-if="entityType === 'brigade' && entity && 'id' in entity"
+        class="space-y-4"
+      >
+        <div class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg p-4">
+          <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">ID</label>
+          <p class="text-sm font-semibold text-surface-900 dark:text-surface-300">{{ (entity as Brigade).id }}</p>
+        </div>
+        <div class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg p-4">
+          <div class="flex items-center gap-2 mb-4">
+            <DocumentTextIcon class="w-5 h-5 text-yellow-400" />
+            <h3 class="text-xs font-medium text-surface-600 dark:text-surface-400 uppercase">Informacje dodatkowe</h3>
+          </div>
+          <div class="space-y-3">
+            <div v-if="(entity as Brigade).info">
+              <label class="block text-xs text-surface-600 dark:text-surface-400 mb-1">Uwagi</label>
+              <p class="text-sm font-semibold text-surface-900 dark:text-surface-300 whitespace-pre-wrap">
+                {{ (entity as Brigade).info }}
+              </p>
+            </div>
+            <p v-else class="text-sm text-surface-500 dark:text-surface-400">Brak dodatkowych informacji</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kontakt + Adres (pomijane dla brygady) -->
+      <div v-if="entityType !== 'brigade'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- Kontakt -->
         <div class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg p-4">
           <div class="flex items-center gap-2 mb-4">
@@ -154,9 +195,9 @@
           <div class="space-y-3">
             <div>
               <label class="block text-xs text-surface-600 dark:text-surface-400 mb-2">Telefony</label>
-              <div v-if="entity.phones && entity.phones.length > 0" class="space-y-1.5">
+              <div v-if="'phones' in entity && entity.phones && entity.phones.length > 0" class="space-y-1.5">
                 <div
-                  v-for="(phone, index) in entity.phones"
+                  v-for="(phone, index) in ('phones' in entity ? entity.phones : [])"
                   :key="index"
                   class="flex items-center gap-2 text-sm font-semibold text-surface-900 dark:text-surface-300"
                 >
@@ -175,9 +216,9 @@
             </div>
             <div>
               <label class="block text-xs text-surface-600 dark:text-surface-400 mb-2">Emaile</label>
-              <div v-if="entity.emails && entity.emails.length > 0" class="space-y-1.5">
+              <div v-if="'emails' in entity && entity.emails && entity.emails.length > 0" class="space-y-1.5">
                 <div
-                  v-for="(email, index) in entity.emails"
+                  v-for="(email, index) in ('emails' in entity ? entity.emails : [])"
                   :key="index"
                   class="flex items-center gap-2 text-sm font-semibold text-surface-900 dark:text-surface-300"
                 >
@@ -235,8 +276,8 @@
         </div>
       </div>
 
-      <!-- Informacje dodatkowe + daty (jeśli dostępne) -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Informacje dodatkowe + daty (jeśli dostępne, pomijane dla brygady) -->
+      <div v-if="entityType !== 'brigade'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg p-4">
           <div class="flex items-center gap-2 mb-4">
             <DocumentTextIcon class="w-5 h-5 text-yellow-400" />

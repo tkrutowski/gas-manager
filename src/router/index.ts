@@ -135,6 +135,22 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/tasks/brigades/grid',
+      name: 'brigades-grid',
+      component: () => import('../views/tasks/brigades/BrigadesGrid.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/tasks/brigades',
+      redirect: '/tasks/brigades/grid',
+    },
+    {
+      path: '/tasks/brigades/new',
+      name: 'new-brigade',
+      component: () => import('../views/tasks/brigades/BrigadesGrid.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/tasks/gas-connections/details',
       name: 'gas-connection-details',
       component: () => import('../views/tasks/GasConnectionDetails.vue'),

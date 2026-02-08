@@ -156,7 +156,7 @@ export type TasksListFilter = 'all' | 'active' | 'inactive' | 'favorites';
  * Ustawienia tabeli dla list tasks (projektanci, koordynatorzy, geodeci, projektanci ruchu)
  */
 export interface TasksListTableSettings extends ModuleSettings {
-  moduleName: 'designerTable' | 'coordinatorTable' | 'surveyorTable' | 'designerTrafficTable';
+  moduleName: 'designerTable' | 'coordinatorTable' | 'surveyorTable' | 'designerTrafficTable' | 'brigadeTable';
   defaultFilter?: TasksListFilter;
   favoriteIds?: number[];
 }

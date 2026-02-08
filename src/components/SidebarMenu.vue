@@ -9,6 +9,7 @@
     FolderIcon,
     UserGroupIcon,
     MapPinIcon,
+    BuildingOffice2Icon,
     ChevronRightIcon,
     ChevronLeftIcon,
     ArrowRightStartOnRectangleIcon,
@@ -211,6 +212,16 @@
         { id: 'surveyors-new', label: 'Nowy', route: '/tasks/surveyors/new', icon: PlusIcon },
         { id: 'surveyors-list', label: 'Lista', route: '/tasks/surveyors/list', icon: ListBulletIcon },
         { id: 'surveyors-grid', label: 'Kafelki', route: '/tasks/surveyors/grid', icon: Squares2X2Icon },
+      ],
+    },
+    {
+      id: 'brigades',
+      label: 'Brygady',
+      icon: BuildingOffice2Icon,
+      route: null,
+      children: [
+        { id: 'brigades-new', label: 'Nowy', route: '/tasks/brigades/new', icon: PlusIcon },
+        { id: 'brigades-grid', label: 'Kafelki', route: '/tasks/brigades/grid', icon: Squares2X2Icon },
       ],
     },
   ];
