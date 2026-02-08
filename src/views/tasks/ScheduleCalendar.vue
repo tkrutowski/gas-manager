@@ -47,12 +47,33 @@
   const editingTask = ref<ScheduleTask | null>(null);
   const selectedTaskInDayView = ref<ScheduleTask | null>(null);
 
-  // Drag and drop (widok miesiąc) – tylko zadania jednodniowe
+  // Drag and drop (miesiąc + tydzień) – tylko zadania jednodniowe
   const draggedTask = ref<ScheduleTask | null>(null);
-  const dragOverDay = ref<Date | null>(null);
   const dragImageEl = ref<HTMLElement | null>(null);
   const ghostEl = ref<HTMLElement | null>(null);
   let globalDragOverHandler: ((e: DragEvent) => void) | null = null;
+  let lastHighlightedEl: HTMLElement | null = null;
+  const DROP_TARGET_CLASSES = [
+    'ring-2',
+    'ring-primary-500',
+    'ring-inset',
+    'bg-primary-400/30',
+    'dark:bg-primary-400/20',
+  ];
+
+  function clearDropTargetHighlight() {
+    if (lastHighlightedEl) {
+      lastHighlightedEl.classList.remove(...DROP_TARGET_CLASSES);
+      lastHighlightedEl = null;
+    }
+  }
+
+  function setDropTargetHighlight(el: HTMLElement) {
+    if (el === lastHighlightedEl) return;
+    clearDropTargetHighlight();
+    el.classList.add(...DROP_TARGET_CLASSES);
+    lastHighlightedEl = el;
+  }
 
   function isSameDay(a: Date, b: Date): boolean {
     const d1 = new Date(a);
@@ -107,7 +128,7 @@
 
   function onTaskDragEnd() {
     draggedTask.value = null;
-    dragOverDay.value = null;
+    clearDropTargetHighlight();
     document.body.classList.remove('cursor-grabbing');
     if (globalDragOverHandler) {
       document.removeEventListener('dragover', globalDragOverHandler);
@@ -115,15 +136,15 @@
     }
   }
 
-  function onDayDragOver(e: DragEvent, cell: { date: Date }) {
+  function onDayDragOver(e: DragEvent, _cell: { date: Date }) {
     e.preventDefault();
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
-    dragOverDay.value = cell.date;
+    setDropTargetHighlight(e.currentTarget as HTMLElement);
   }
 
   function onDayDrop(e: DragEvent, cell: { date: Date }) {
     e.preventDefault();
-    dragOverDay.value = null;
+    clearDropTargetHighlight();
     const taskIdStr = e.dataTransfer?.getData('taskId');
     if (!taskIdStr) return;
     const taskId = Number(taskIdStr);
@@ -131,6 +152,24 @@
     if (!task || !isSingleDayTask(task)) return;
     const { startDate, endDate } = moveTaskToDay(task, cell.date);
     scheduleTasksStore.updateTask(task.id, { startDate, endDate });
+  }
+
+  function onWeekCellDragOver(e: DragEvent, _cell: { brigadeId: number; date: Date }) {
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+    setDropTargetHighlight(e.currentTarget as HTMLElement);
+  }
+
+  function onWeekCellDrop(e: DragEvent, cell: { brigadeId: number; date: Date }) {
+    e.preventDefault();
+    clearDropTargetHighlight();
+    const taskIdStr = e.dataTransfer?.getData('taskId');
+    if (!taskIdStr) return;
+    const taskId = Number(taskIdStr);
+    const task = scheduleTasksStore.getTask(taskId);
+    if (!task || !isSingleDayTask(task)) return;
+    const { startDate, endDate } = moveTaskToDay(task, cell.date);
+    scheduleTasksStore.updateTask(task.id, { startDate, endDate, brigadeId: cell.brigadeId });
   }
 
   const checkMobile = () => {
@@ -403,7 +442,23 @@
 
     <!-- Main Content -->
     <div class="flex-1 overflow-y-auto p-1 md:p-6 w-full">
-      <div class="w-full">
+      <div class="w-full relative">
+        <!-- Wspólne dla drag (miesiąc + tydzień): ghost i drag image muszą być w DOM -->
+        <div
+          ref="dragImageEl"
+          class="absolute w-px h-px opacity-0 pointer-events-none -left-[9999px]"
+          aria-hidden="true"
+        />
+        <div
+          v-if="draggedTask"
+          ref="ghostEl"
+          class="fixed pointer-events-none z-9999 cursor-grabbing rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900 shadow-lg p-2 min-w-[120px] max-w-[200px]"
+          style="left: 0; top: 0"
+        >
+          <h3 class="text-sm font-bold text-surface-700 dark:text-surface-300 truncate">
+            {{ draggedTask.title }}
+          </h3>
+        </div>
         <div class="flex items-center gap-3 mb-1 md:mb-6">
           <CalendarIcon class="md:w-6 md:h-6 w-4 h-4 text-primary-400" />
           <h1 class="text-md md:text-3xl font-bold text-surface-700 dark:text-surface-300">Terminarz</h1>
@@ -642,17 +697,27 @@
                   'border-b border-r border-surface-200 dark:border-surface-700 p-2 min-h-[120px] last:border-r-0',
                   isToday(day) ? 'bg-primary-400/20 dark:bg-primary-400/10' : 'bg-surface-50 dark:bg-surface-900',
                 ]"
+                @dragover.prevent="onWeekCellDragOver($event, { brigadeId: brigade.id, date: day })"
+                @drop="onWeekCellDrop($event, { brigadeId: brigade.id, date: day })"
               >
                 <div class="flex flex-col gap-2">
-                  <ScheduleTaskCard
+                  <div
                     v-for="task in getTasksForBrigadeAndDay(brigade.id, day)"
                     :key="task.id"
-                    :task="task"
-                    compact
+                    :draggable="isSingleDayTask(task)"
                     class="shrink-0"
-                    @edit="onEditTask(task)"
-                    @delete="e => onDeleteTask(task, e)"
-                  />
+                    :class="{ 'cursor-grab': isSingleDayTask(task) }"
+                    @dragstart="onTaskDragStart($event, task)"
+                    @dragend="onTaskDragEnd"
+                  >
+                    <ScheduleTaskCard
+                      :task="task"
+                      compact
+                      class="shrink-0"
+                      @edit="onEditTask(task)"
+                      @delete="e => onDeleteTask(task, e)"
+                    />
+                  </div>
                 </div>
               </div>
             </template>
@@ -680,9 +745,6 @@
                   !cell.isCurrentMonth && 'bg-surface-100/50 dark:bg-surface-800/50',
                   cell.isCurrentMonth && isToday(cell.date) && 'bg-primary-400/20 dark:bg-primary-400/10',
                   cell.isCurrentMonth && isSelectedDay(cell.date) && 'ring-2 ring-primary-500 ring-inset',
-                  dragOverDay &&
-                    isSameDay(cell.date, dragOverDay) &&
-                    'ring-2 ring-primary-500 ring-inset bg-primary-400/30 dark:bg-primary-400/20',
                 ]"
                 @dragover.prevent="onDayDragOver($event, cell)"
                 @drop="onDayDrop($event, cell)"
@@ -724,23 +786,6 @@
                 </button>
               </div>
             </div>
-            <!-- Ukryty element do setDragImage (1px) -->
-            <div
-              ref="dragImageEl"
-              class="absolute w-px h-px opacity-0 pointer-events-none -left-[9999px]"
-              aria-hidden="true"
-            />
-          </div>
-          <!-- Ghost przeciąganej karty – pozycja ustawiana w JS (bez reaktywności), żeby nie blokować przy ruchu myszy -->
-          <div
-            v-if="draggedTask"
-            ref="ghostEl"
-            class="fixed pointer-events-none z-9999 cursor-grabbing rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900 shadow-lg p-2 min-w-[120px] max-w-[200px]"
-            style="left: 0; top: 0"
-          >
-            <h3 class="text-sm font-bold text-surface-700 dark:text-surface-300 truncate">
-              {{ draggedTask.title }}
-            </h3>
           </div>
           <div class="w-full lg:w-[380px] shrink-0 min-h-[300px]">
             <ScheduleDayDetailPanel
