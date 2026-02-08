@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, computed, watch } from 'vue';
+  import { ref, computed, watch, nextTick } from 'vue';
   import { useSurveyorsStore } from '@/stores/surveyors';
   import { useDesignersStore } from '@/stores/designers';
   import { useStageCards } from '@/composables/useStageCards';
@@ -142,12 +142,22 @@
   const isStage2Collapsed = computed(() => checkmark2Color.value === 'green');
   const isStage3Collapsed = computed(() => checkmark3Color.value === 'green');
   const isStage4Collapsed = computed(() => checkmark4Color.value === 'green');
+
+  const locationMapRef = ref<InstanceType<typeof LocationMap> | null>(null);
+
+  const onStage1Toggle = (e: { value: boolean }) => {
+    if (!e.value) {
+      nextTick(() => {
+        locationMapRef.value?.invalidateSize();
+      });
+    }
+  };
 </script>
 
 <template>
   <div>
     <!-- ETAP 1 -->
-    <Panel :key="stage1SettingsKey" toggleable :collapsed="isStage1Collapsed">
+    <Panel :key="stage1SettingsKey" toggleable :collapsed="isStage1Collapsed" @toggle="onStage1Toggle">
       <template #header>
         <div class="flex items-center justify-between w-full">
           <div class="flex items-center gap-4">
@@ -504,6 +514,7 @@
                 </div>
                 <div v-if="latitude && longitude" class="mb-4">
                   <LocationMap
+                    ref="locationMapRef"
                     :latitude="latitude"
                     :longitude="longitude"
                     :readonly="isReadonly || !mapEditable"

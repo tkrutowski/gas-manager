@@ -16,6 +16,7 @@
     ListBulletIcon,
     Squares2X2Icon,
     PlusIcon,
+    CalendarIcon,
   } from '@heroicons/vue/24/outline';
 
   const router = useRouter();
@@ -36,6 +37,9 @@
       icon: ClipboardDocumentCheckIcon,
       color: 'bg-blue-500',
       route: '/tasks',
+      addConnectionRoute: '/tasks/gas-connections/new',
+      connectionsListRoute: '/tasks/gas-connections',
+      scheduleRoute: '/tasks/schedule',
     },
     {
       id: 'customers',
@@ -219,6 +223,37 @@
           >
             ADMIN
           </span>
+
+          <!-- Nowe przyłącze / Lista przyłączy / Terminarz (Zadania) -->
+          <div
+            v-if="module.addConnectionRoute && module.connectionsListRoute && module.scheduleRoute"
+            class="absolute top-4 right-4 flex gap-1 z-10"
+          >
+            <button
+              type="button"
+              class="p-1.5 rounded-lg bg-surface-200 dark:bg-surface-700 hover:bg-surface-300 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 transition-colors cursor-pointer"
+              title="Dodaj nowe przyłącze"
+              @click.stop="handleModuleClick(module.addConnectionRoute)"
+            >
+              <PlusIcon class="w-5 h-5 text-yellow-400" />
+            </button>
+            <button
+              type="button"
+              class="p-1.5 rounded-lg bg-surface-200 dark:bg-surface-700 hover:bg-surface-300 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 transition-colors cursor-pointer"
+              title="Lista przyłączy"
+              @click.stop="handleModuleClick(module.connectionsListRoute)"
+            >
+              <ListBulletIcon class="w-5 h-5 text-yellow-400" />
+            </button>
+            <button
+              type="button"
+              class="p-1.5 rounded-lg bg-surface-200 dark:bg-surface-700 hover:bg-surface-300 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 transition-colors cursor-pointer"
+              title="Terminarz"
+              @click.stop="handleModuleClick(module.scheduleRoute)"
+            >
+              <CalendarIcon class="w-5 h-5 text-yellow-400" />
+            </button>
+          </div>
 
           <!-- Dodaj klienta / Lista / Kafelki (Klienci) -->
           <div

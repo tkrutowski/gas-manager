@@ -3,6 +3,7 @@
   import { LMap, LTileLayer, LMarker } from '@vue-leaflet/vue-leaflet';
   import 'leaflet/dist/leaflet.css';
   import L from 'leaflet';
+  import type { Map } from 'leaflet';
 
   // Fix dla domyślnej ikony markera w Leaflet
   delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -26,6 +27,18 @@
   const zoom = ref(15);
   const center = ref<[number, number]>([52.2297, 21.0122]); // Domyślnie Warszawa
   const markerPosition = ref<[number, number] | null>(null);
+  const leafletMapRef = ref<Map | null>(null);
+
+  const onMapReady = (map: Map) => {
+    leafletMapRef.value = map;
+  };
+
+  /** Wywołaj po rozwinięciu panelu, gdy mapa była wcześniej ukryta – przelicza rozmiar i odświeża kafelki */
+  const invalidateSize = () => {
+    leafletMapRef.value?.invalidateSize();
+  };
+
+  defineExpose({ invalidateSize });
 
   const onMapClick = (e: any) => {
     if (props.readonly) return;
@@ -92,6 +105,7 @@
           :use-global-leaflet="false"
           style="height: 100%; width: 100%"
           @click="onMapClick"
+          @ready="onMapReady"
         >
           <l-tile-layer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

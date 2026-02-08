@@ -43,6 +43,13 @@
     updateTheme();
   });
 
+  const clearLocalStorage = () => {
+    if (window.confirm('Czy na pewno chcesz wyzerować wszystkie dane w localStorage? Zostaniesz wylogowany i strona się odświeży.')) {
+      localStorage.clear();
+      window.location.reload();
+    }
+  };
+
   const handleLogin = () => {
     // TODO: Implementacja prawdziwego logowania z API
     // Na razie symulujemy zalogowanie
@@ -192,6 +199,18 @@
                 </svg>
               </button>
             </form>
+
+            <!-- Przycisk wyzerowania localStorage (aplikacja testowa) -->
+            <div class="mt-6 pt-6 border-t border-surface-200 dark:border-surface-700">
+              <button
+                type="button"
+                @click="clearLocalStorage"
+                class="w-full py-2.5 px-4 rounded-lg text-sm font-medium bg-red-500 hover:bg-red-600 text-white transition-colors border border-red-600 dark:border-red-700"
+                title="Usuwa wszystkie dane zapisane w przeglądarce (localStorage)"
+              >
+                Wyzeruj dane (aplikacja testowa)
+              </button>
+            </div>
 
             <!-- Tekst na dole -->
             <p class="text-surface-500 dark:text-surface-500 text-sm mt-8 text-center">
