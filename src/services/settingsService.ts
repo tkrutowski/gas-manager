@@ -5,6 +5,7 @@ import type {
   GasConnectionStageSettings,
   StageCardConfig,
   CustomerTableSettings,
+  InvoiceTableSettings,
   TasksListTableSettings,
   ScheduleCalendarSettings,
 } from '@/types/Settings';
@@ -242,6 +243,42 @@ class SettingsService {
     if (settings.defaultSortOrder !== undefined) current.defaultSortOrder = settings.defaultSortOrder;
     if (settings.defaultFilter !== undefined) current.defaultFilter = settings.defaultFilter;
     if (settings.favoriteCustomerIds !== undefined) current.favoriteCustomerIds = settings.favoriteCustomerIds;
+    if (settings.autoSaveSettings !== undefined) current.autoSaveSettings = settings.autoSaveSettings;
+    this.saveModuleSettings(current);
+  }
+
+  /**
+   * Pobiera ustawienia tabeli faktur
+   */
+  getInvoiceTableSettings(): InvoiceTableSettings | null {
+    return this.getModuleSettings<InvoiceTableSettings>('invoiceTable');
+  }
+
+  /**
+   * Aktualizuje ustawienia tabeli faktur (sortowanie, filtr, auto-save)
+   */
+  updateInvoiceTableSettings(
+    settings: Partial<
+      Pick<InvoiceTableSettings, 'defaultSortField' | 'defaultSortOrder' | 'defaultFilter' | 'autoSaveSettings'>
+    >
+  ): void {
+    const current = this.getInvoiceTableSettings();
+    if (!current) {
+      const newSettings: InvoiceTableSettings = {
+        moduleName: 'invoiceTable',
+        version: '1.0.0',
+        updatedAt: new Date().toISOString(),
+        defaultSortField: settings.defaultSortField,
+        defaultSortOrder: settings.defaultSortOrder,
+        defaultFilter: settings.defaultFilter,
+        autoSaveSettings: settings.autoSaveSettings ?? false,
+      };
+      this.saveModuleSettings(newSettings);
+      return;
+    }
+    if (settings.defaultSortField !== undefined) current.defaultSortField = settings.defaultSortField;
+    if (settings.defaultSortOrder !== undefined) current.defaultSortOrder = settings.defaultSortOrder;
+    if (settings.defaultFilter !== undefined) current.defaultFilter = settings.defaultFilter;
     if (settings.autoSaveSettings !== undefined) current.autoSaveSettings = settings.autoSaveSettings;
     this.saveModuleSettings(current);
   }

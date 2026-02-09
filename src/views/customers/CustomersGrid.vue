@@ -343,11 +343,12 @@
                     v-for="c in slotProps.items"
                     :key="c.id"
                     type="button"
-                    class="text-left rounded-2xl border transition-all duration-200 focus:outline-none"
+                    class="text-left rounded-xl border border-surface-200 dark:border-surface-700 transition-all duration-200 focus:outline-none"
                     :class="[
                       selectedCustomerId === c.id
-                        ? 'border-primary-400 ring-2 ring-primary-400/40 bg-surface-200 dark:bg-surface-700'
-                        : 'border-surface-200 dark:border-surface-700 bg-surface-100 dark:bg-surface-800 hover:border-primary-400/60 hover:bg-surface-100 dark:hover:bg-surface-800',
+                        ? 'ring-2 ring-primary-400/40 bg-surface-200 dark:bg-surface-700 border-primary-400'
+                        : 'bg-surface-100 dark:bg-surface-800 hover:border-primary-400/60 hover:bg-surface-100 dark:hover:bg-surface-800',
+                      c.status ? 'border-l-8 border-l-green-500 dark:border-l-green-400' : 'border-l-8 border-l-red-500 dark:border-l-red-400',
                     ]"
                     @click="toggleCustomerSelection(c.id)"
                   >

@@ -148,6 +148,22 @@ export interface CustomerTableSettings extends ModuleSettings {
 }
 
 /**
+ * Typ filtru tabeli faktur
+ */
+export type InvoiceTableFilter = 'all' | 'paid' | 'unpaid';
+
+/**
+ * Ustawienia tabeli faktur
+ */
+export interface InvoiceTableSettings extends ModuleSettings {
+  moduleName: 'invoiceTable';
+  defaultSortField?: string;
+  defaultSortOrder?: number; // 1 = rosnąco, -1 = malejąco
+  defaultFilter?: InvoiceTableFilter;
+  autoSaveSettings?: boolean;
+}
+
+/**
  * Typ filtru dla list tasks (projektanci, koordynatorzy, geodeci, projektanci ruchu)
  */
 export type TasksListFilter = 'all' | 'active' | 'inactive' | 'favorites';
@@ -184,6 +200,7 @@ export type AppDefaultSettings =
   | GasConnectionTableSettings
   | GasConnectionStageSettings
   | CustomerTableSettings
+  | InvoiceTableSettings
   | TasksListTableSettings
   | ScheduleCalendarSettings
   | CompanySettings

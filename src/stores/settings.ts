@@ -8,6 +8,8 @@ import type {
   StageCardConfig,
   CustomerTableSettings,
   CustomerTableFilter,
+  InvoiceTableSettings,
+  InvoiceTableFilter,
   TasksListTableSettings,
   TasksListFilter,
   ScheduleCalendarSettings,
@@ -394,6 +396,51 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   }
 
+  // Invoice Table Settings
+  const invoiceTableSettingsVersion = ref(0);
+
+  const getInvoiceTableSettings = computed((): InvoiceTableSettings | null => {
+    invoiceTableSettingsVersion.value;
+    return settingsService.getInvoiceTableSettings();
+  });
+
+  function saveInvoiceTableSettings(
+    defaultSortField?: string,
+    defaultSortOrder?: number,
+    defaultFilter?: InvoiceTableFilter,
+    autoSave?: boolean
+  ): void {
+    loading.value = true;
+    error.value = null;
+    try {
+      const payload: Parameters<typeof settingsService.updateInvoiceTableSettings>[0] = {
+        defaultSortField,
+        defaultSortOrder,
+        defaultFilter,
+      };
+      if (autoSave !== undefined) payload.autoSaveSettings = autoSave;
+      settingsService.updateInvoiceTableSettings(payload);
+      invoiceTableSettingsVersion.value += 1;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Błąd podczas zapisywania ustawień tabeli faktur';
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  function resetInvoiceTableSettings(): void {
+    loading.value = true;
+    error.value = null;
+    try {
+      settingsService.removeModuleSettings('invoiceTable');
+      invoiceTableSettingsVersion.value += 1;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Błąd podczas resetowania ustawień tabeli faktur';
+    } finally {
+      loading.value = false;
+    }
+  }
+
   /**
    * Pobiera konfigurację Cardów dla konkretnego etapu
    */
@@ -551,6 +598,7 @@ export const useSettingsStore = defineStore('settings', () => {
     favoriteConnectionIds,
     getCustomerTableSettings,
     favoriteCustomerIds,
+    getInvoiceTableSettings,
     // Methods - Generic
     setDefaultValue,
     removeDefaultValue,
@@ -570,6 +618,8 @@ export const useSettingsStore = defineStore('settings', () => {
     resetCustomerTableSettings,
     addFavoriteCustomer,
     removeFavoriteCustomer,
+    saveInvoiceTableSettings,
+    resetInvoiceTableSettings,
     // Methods - Stage Settings
     getStageSettings,
     saveStageSettings,
