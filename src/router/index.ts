@@ -193,6 +193,18 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/finance/invoices/edit/:idNumber/:idYear',
+      name: 'edit-invoice',
+      component: () => import('../views/finance/NewInvoice.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/finance/invoices/preview/:idNumber/:idYear',
+      name: 'preview-invoice',
+      component: () => import('../views/finance/NewInvoice.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/finance/invoices/list',
       name: 'invoices-list',
       component: () => import('../views/finance/InvoicesList.vue'),

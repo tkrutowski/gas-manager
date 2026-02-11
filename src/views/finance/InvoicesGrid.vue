@@ -135,7 +135,16 @@
 
   function handleEdit() {
     if (!selectedRow.value) return;
-    // Placeholder
+    router.push(
+      `/finance/invoices/edit/${selectedRow.value.idInvoiceNumber}/${selectedRow.value.idInvoiceYear}`
+    );
+  }
+
+  function handlePreview() {
+    if (!selectedRow.value) return;
+    router.push(
+      `/finance/invoices/preview/${selectedRow.value.idInvoiceNumber}/${selectedRow.value.idInvoiceYear}`
+    );
   }
 
   function handleDelete(event: Event) {
@@ -243,6 +252,7 @@
             @filter-click="handleFilterChange"
             @new="handleNew"
             @edit="handleEdit"
+            @preview="handlePreview"
             @delete="handleDelete"
             @clear-filter="clearFilter"
             @open-settings="handleOpenSettings"

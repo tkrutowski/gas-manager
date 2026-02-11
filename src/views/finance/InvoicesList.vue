@@ -192,7 +192,16 @@
 
   function handleEdit() {
     if (!selectedRow.value) return;
-    // Placeholder: could open edit dialog or navigate to edit page
+    router.push(
+      `/finance/invoices/edit/${selectedRow.value.idInvoiceNumber}/${selectedRow.value.idInvoiceYear}`
+    );
+  }
+
+  function handlePreview() {
+    if (!selectedRow.value) return;
+    router.push(
+      `/finance/invoices/preview/${selectedRow.value.idInvoiceNumber}/${selectedRow.value.idInvoiceYear}`
+    );
   }
 
   function handleDelete(event: Event) {
@@ -367,10 +376,11 @@
             :selected-filter="selectedFilter"
             :selected-row="selectedRow"
             :global-search-query="globalSearchQuery"
-            @filter-click="handleFilterClick"
-            @new="handleNew"
-            @edit="handleEdit"
-            @delete="handleDelete"
+          @filter-click="handleFilterClick"
+          @new="handleNew"
+          @edit="handleEdit"
+          @preview="handlePreview"
+          @delete="handleDelete"
             @clear-filter="clearFilter"
             @open-settings="handleOpenSettings"
             @reset-config="handleResetConfig"

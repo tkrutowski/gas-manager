@@ -276,7 +276,20 @@ export const useInvoicesStore = defineStore('invoices', () => {
     try {
       const idx = invoices.value.findIndex(i => i.idInvoiceNumber === idNumber && i.idInvoiceYear === idYear);
       if (idx === -1) return null;
-      invoices.value[idx] = { ...invoices.value[idx], ...updates };
+      
+      // Aktualizuj invoiceItems z poprawnymi ID
+      const updatedItems = updates.invoiceItems?.map((it, itemIdx) => ({
+        ...it,
+        idInvoiceItem: itemIdx + 1,
+        idInvoiceNumber: idNumber,
+        idInvoiceYear: idYear,
+      })) || invoices.value[idx].invoiceItems;
+      
+      invoices.value[idx] = {
+        ...invoices.value[idx],
+        ...updates,
+        invoiceItems: updatedItems,
+      };
       saveToLocalStorage(invoices.value);
       return invoices.value[idx];
     } catch (err) {

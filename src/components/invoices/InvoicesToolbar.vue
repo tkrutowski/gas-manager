@@ -28,6 +28,7 @@
     'filter-click': [filter: InvoiceTableFilter];
     new: [];
     edit: [];
+    preview: [];
     delete: [event: Event];
     'clear-filter': [];
     'open-settings': [];
@@ -85,6 +86,15 @@
           @click="emit('delete', $event)"
         />
         <div class="h-8 w-px bg-surface-300 dark:bg-surface-600 mx-1" />
+        <Button
+          icon="pi pi-eye"
+          :disabled="!selectedRow"
+          text
+          rounded
+          class="text-xs!"
+          title="Podgląd faktury"
+          @click="emit('preview')"
+        />
       </div>
     </template>
 

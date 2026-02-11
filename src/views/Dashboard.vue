@@ -48,6 +48,7 @@
       icon: UserGroupIcon,
       color: 'bg-green-500',
       route: '/customers',
+      newRoute: '/customers/new',
       listRoute: '/customers/list',
       gridRoute: '/customers/grid',
       listIcon: ListBulletIcon,
@@ -60,6 +61,11 @@
       icon: CurrencyDollarIcon,
       color: 'bg-green-500',
       route: '/finance',
+      newRoute: '/finance/invoices/new',
+      listRoute: '/finance/invoices/list',
+      gridRoute: '/finance/invoices/grid',
+      listIcon: ListBulletIcon,
+      gridIcon: Squares2X2Icon,
     },
     {
       id: 'hr',
@@ -255,16 +261,16 @@
             </button>
           </div>
 
-          <!-- Dodaj klienta / Lista / Kafelki (Klienci) -->
+          <!-- Dodaj / Lista / Kafelki (Klienci, Finanse) -->
           <div
-            v-if="module.listRoute && module.gridRoute && module.listIcon && module.gridIcon"
+            v-if="module.listRoute && module.gridRoute && module.listIcon && module.gridIcon && module.newRoute"
             class="absolute top-4 right-4 flex gap-1 z-10"
           >
             <button
               type="button"
               class="p-1.5 rounded-lg bg-surface-200 dark:bg-surface-700 hover:bg-surface-300 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 transition-colors cursor-pointer"
-              title="Dodaj nowego klienta"
-              @click.stop="handleModuleClick('/customers/new')"
+              :title="module.id === 'customers' ? 'Dodaj nowego klienta' : 'Dodaj nową fakturę'"
+              @click.stop="handleModuleClick(module.newRoute)"
             >
               <PlusIcon class="w-5 h-5 text-yellow-400" />
             </button>
